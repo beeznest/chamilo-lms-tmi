@@ -23,7 +23,7 @@
                 {% endfor %}
             </dl>
             <div class="tool-profile">
-                <a href="{{ profileEditionLink }}" class="btn btn-press btn-sm">{{ "EditProfile" | get_lang }}</a>
+                <a href="{{ profile_edition_link }}" class="btn btn-press btn-sm">{{ "EditProfile" | get_lang }}</a>
             </div>
         </div>
     </div>
