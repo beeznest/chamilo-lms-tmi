@@ -30,12 +30,19 @@
     {% else %}
         <div class="row">
             <div class="col-md-4">
+                {% set first_course = session.courses|first %}
                 {% for field_value in session.extra_fields %}
                 
                     {% if field_value.field.variable == 'image' %}
                         <div class="thumbnail">
                             <img src="{{ _p.web_upload ~ field_value.value }}" class="media-gris">
-                            <div class="trophy"><img src="{{ _p.web_css_theme }}images/trophy.png"></div>
+                            <div class="trophy">
+                                {% if first_course.skill and first_course.skill.icon %}
+                                    <img src="{{ _p.web_upload ~ 'badges/' ~ first_course.skill.icon }}" alt="{{ first_course.skill.name }}">
+                                {% else %}
+                                    <img src="{{ _p.web_css_theme }}images/trophy.png">
+                                {% endif %}
+                            </div>
                         </div>
 
                     {% endif %}

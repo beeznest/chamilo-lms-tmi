@@ -1108,13 +1108,13 @@ hr.separator:after {
   display: none;
 }
 .courses-history .trophy{
-  width: 124px;
-  height: 124px;
   display: block;
+  left: 50%;
+  margin-left: -25%;
+  margin-top: -25%;
   position: absolute;
+  top: 50%;
   z-index: 2;
-  top: 40px;
-  left: 33%;
 }
 .courses-history .thumbnail .media-gris{
   z-index: 1;
@@ -1123,19 +1123,11 @@ hr.separator:after {
 .courses-history .media-gris {
   filter: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'><filter%20id='grayscale'><feColorMatrix%20type='matrix'%20values='0.3333%200.3333%200.3333%200%200%200.3333%200.3333%200.3333%200%200%200.3333%200.3333%200.3333%200%200%200%200%200%201%200'/></filter></svg>#grayscale");
   filter: grayscale(100%) blur(2px);
-  -webkit-filter: grayscale(100%) blur(1px);
-  -moz-filter: grayscale(100%) blur(1px);
-  -ms-filter: grayscale(100%) blur(1px);
-  -o-filter: grayscale(100%) blur(1px);
+  -webkit-filter: grayscale(100%) blur(2px);
+  -moz-filter: grayscale(100%) blur(2px);
+  -ms-filter: grayscale(100%) blur(2px);
+  -o-filter: grayscale(100%) blur(2px);
   filter: gray;
-}
-img.g1-effect-grayscale:hover {
-  filter: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'><filter%20id='grayscale'><feColorMatrix%20type='matrix'%20values='1%200%200%200%200,%200%201%200%200%200,%200%200%201%200%200,%200%200%200%201%200'/></filter></svg>#grayscale");
-  filter: grayscale(0%);
-  -webkit-filter: grayscale(0%);
-  -moz-filter: grayscale(0%);
-  -ms-filter: grayscale(0%);
-  -o-filter: grayscale(0%);
 }
 #lostpassword .help{
   margin-top: 20px;
