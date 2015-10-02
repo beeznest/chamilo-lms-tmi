@@ -55,7 +55,7 @@ if (isset($content['form']->_elementIndex['extra_gender'])) {
 $content['form']->addElement('text', 'firstname', get_lang('FirstName'), array('size' => 40));
 $content['form']->addElement('text', 'lastname', get_lang('LastName'), array('size' => 40));
 $content['form']->addElement('text', 'email', get_lang('EmailAddress'), array('size' => 40));
-$content['form']->addElement('DatePicker', 'extra_date_of_birth', 'Fecha de nacimiento');
+$content['form']->addElement('DatePicker', 'extra_date_of_birth', 'Fecha de nacimiento', ['style' => 'z-index: 100000;']);
 $content['form']->addElement('password', 'pass1', get_lang('Pass'), array('id' => 'pass1', 'size' => 20, 'autocomplete' => 'off'));
 $content['form']->addElement('password', 'pass2', get_lang('Confirmation'), array('id' => 'pass2', 'size' => 20, 'autocomplete' => 'off'));
 $content['form']->addButton('submit', get_lang('Regístrate'), null, 'press');
@@ -76,17 +76,12 @@ $dateElementTemplate = <<<HTML
     <div class="col-md-6">
         <div class="form-group">
             <label><!-- BEGIN required --><span class="form_required">*</span> <!-- END required -->{label}</label>
-            <div class="input-group">
-                <span class="input-group-addon" id="date-trigger">
-                    {element}
-                </span>
-                <input class="form-control" type="text" readonly id="extra_date_of_birth_alt">
-            </div>
+            {element}
             <!-- BEGIN error --><span class="form_error">{error}</span><br /><!-- END error -->
             <script>
                 $(function () {
                     $('#date-trigger img').on('click', function () {
-                        $( "#extra_date_of_birth" ).datepicker( "widget" ).css('z-index', 1051);
+                        $( "#extra_date_of_birth" ).datepicker( "widget" ).datepicker( "refresh" );
                     });
                 });
             </script>

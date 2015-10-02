@@ -294,7 +294,7 @@ $socialAutoExtendLink = Display::url(
 // Added a Jquery Function to return the Preview of OpenGraph URL Content
 $htmlHeadXtra[] = '<script>
 $(document).ready(function() {
-    $("label").remove();
+    
     $("[name=\'social_wall_new_msg_main\']").on("paste", function(e) {
         $.ajax({
             contentType: "application/x-www-form-urlencoded",
@@ -307,6 +307,7 @@ $(document).ready(function() {
             success: function(response) {
                 $(".url_preview").html(response);
                 $("[name=\'url_content\']").val(response);
+                $(".url_preview img").addCSS("img-responsive");
             }
         });
     });
@@ -320,8 +321,6 @@ if ($show_full_profile) {
 
     $t_ufo = Database :: get_main_table(TABLE_EXTRA_FIELD_OPTIONS);
     $extra_user_data = UserManager::get_extra_user_data($user_id, false, true);
-
-    var_dump($extra_user_data);
 
     $extra_information = '';
     if (is_array($extra_user_data) && count($extra_user_data)>0 ) {
