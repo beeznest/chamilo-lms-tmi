@@ -4057,7 +4057,6 @@ class CourseManager
         } else {
             $output = array($course_info['user_course_cat'], $html);
         }
-        var_dump($output);
         return $output;
     }
 
