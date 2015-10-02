@@ -5,8 +5,6 @@
     </div>
 {% endif %}
 
-{{ flash_messages }}
-
 {#  Page header #}
 {% if header != '' %}
     <div class="page-header">

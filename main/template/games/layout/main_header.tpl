@@ -127,8 +127,10 @@
         {% endblock %}
         {% endif %}
         </header>
+{{ flash_messages }}    
 </div>
     <!-- Inicia el slider -->
+    
     {# Announcements  #}
     {% if announcements_block %}
     <div class="slider-top">
