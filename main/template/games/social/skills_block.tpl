@@ -3,7 +3,11 @@
             <ul class="list-badges">
                 {% for skill in skills %}
                     <li>
-                        <img title="{{ skill.name }}" src="{{ _p.web_upload }}badges/{{ skill.icon ? skill.icon : 'badges-default.png'|icon(128) }}" alt="{{ skill.name }}">
+                        {% if skill.icon %}
+                            <img title="{{ skill.name }}" src="{{ "#{_p.web_upload}badges/#{skill.icon}" }}" alt="{{ skill.name }}">
+                        {% else %}
+                            <img title="{{ skill.name }}" src="{{ 'badges-default.png'|icon(128) }}" alt="{{ skill.name }}">
+                        {% endif %}
                         <div class="badges-name">{{ skill.name }}</div>
                     </li>
                 {% endfor %}
