@@ -736,6 +736,9 @@ footer .media{
 .section-mycourses .current-item .thumbnail img{
     border-radius: 10px;
 }
+.section-mycourses .current-item .thumbnail .trophy img{
+    width: 130px;
+}
 .section-mycourses .description-course{
   padding-top: 10px;
   padding-bottom: 10px;
@@ -1110,14 +1113,17 @@ hr.separator:after {
 .courses-history .trophy{
   display: block;
   left: 50%;
-  margin-left: -25%;
-  margin-top: -25%;
+  margin-left: -20%;
+  margin-top: -20%;
   position: absolute;
   top: 50%;
   z-index: 2;
 }
 .courses-history .thumbnail .media-gris{
   z-index: 1;
+}
+#session-list .options .btn-sm{
+    font-size: 11px;
 }
 /* =effect-grayscale */
 .courses-history .media-gris {
