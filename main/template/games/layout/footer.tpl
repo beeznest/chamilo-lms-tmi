@@ -28,7 +28,7 @@
                 <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
                     <div class="direction">
                         <p>Rio de la plata 167 Of.503<br>
-                            San Isidro - Lima Perú
+                            San Isidro - Lima Perú<br>
                             (511) 221 - 2721<br>
                             contacto@tademi.com
                         </p>
