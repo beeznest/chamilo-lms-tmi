@@ -1165,10 +1165,14 @@ hr.separator:after {
   width: 100%;
 }
 /* Large desktop */
-@media (min-width: 1200px) { 
+@media (max-width: 1900px) { 
 	/* .container{
 	width: 1024px;
 } */
+    .carousel-inner .item img{
+        width: 100%;
+        /*display: inline;*/
+    }
 }
 
 /* Portrait tablet to landscape and desktop */
@@ -1201,6 +1205,10 @@ hr.separator:after {
             width: 225px;
             min-height: 325px;
         }
+        .carousel-inner .item img{
+            width: 100%;
+            /*display: inline;*/
+        }
 }
 /* Landscape phone to portrait tablet */
 @media (max-width: 767px) {
@@ -1215,6 +1223,10 @@ hr.separator:after {
     z-index: 2;
     top: 40px;
     left: 40%;
+  }
+  .carousel-inner .item img{
+    width: 100%;
+    /*display: inline;*/
   }
 }
 /* Landscape phones and down */
