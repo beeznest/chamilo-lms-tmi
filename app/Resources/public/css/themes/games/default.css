@@ -1164,6 +1164,10 @@ hr.separator:after {
   color: #8A6D3B;
   width: 100%;
 }
+#slider-sessions{
+ padding-bottom: 15px;
+ margin-bottom: 15px;
+}
 /* Large desktop */
 @media (max-width: 1900px) { 
 	/* .container{
