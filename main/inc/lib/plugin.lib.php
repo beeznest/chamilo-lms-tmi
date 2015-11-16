@@ -518,6 +518,7 @@ class AppPlugin
     }
 
     /**
+     * Add the course settings to the course settings form
      * @param FormValidator $form
      */
     public function add_course_settings_form($form)
@@ -560,6 +561,7 @@ class AppPlugin
                         if (isset($setting['init_value']) && $setting['init_value'] == 1) {
                             $element->setChecked(true);
                         }
+                        $form->addElement($element);
 
                         if (isset($setting['group'])) {
                             $groups[$setting['group']][] = $element;

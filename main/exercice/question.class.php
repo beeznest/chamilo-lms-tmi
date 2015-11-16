@@ -1326,9 +1326,9 @@ abstract class Question
                     $item['question_id'] = $new_question_id;
                     $item['c_id'] = $course_id;
                     unset($item['id']);
+                    unset($item['iid']);
                     $id = Database::insert($TBL_QUESTION_OPTIONS, $item);
                     if ($id) {
-
                         $sql = "UPDATE $TBL_QUESTION_OPTIONS SET id = iid
                                 WHERE iid = $id";
                         Database::query($sql);
@@ -1372,6 +1372,10 @@ abstract class Question
         if (api_get_setting('enable_nanogong') != 'true') {
             self::$questionTypes[ORAL_EXPRESSION] = null;
             unset(self::$questionTypes[ORAL_EXPRESSION]);
+        }
+        if (api_get_setting('enable_quiz_scenario') !== 'true') {
+            self::$questionTypes[HOT_SPOT_DELINEATION] = null;
+            unset(self::$questionTypes[HOT_SPOT_DELINEATION]);
         }
         return self::$questionTypes;
     }
@@ -1424,7 +1428,7 @@ abstract class Question
         </script>';
 
         // question name
-        $form->addElement('text', 'questionName', get_lang('Question'), array('class' => 'span6'));
+        $form->addElement('text', 'questionName', get_lang('Question'));
         $form->addRule('questionName', get_lang('GiveQuestion'), 'required');
 
         // default content

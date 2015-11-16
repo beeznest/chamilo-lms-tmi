@@ -13,7 +13,9 @@ use Symfony\Component\Finder\Finder;
  * current configuration file.
  * @package chamilo.install
  */
-error_log('Entering file');
+error_log("Starting " . basename(__FILE__));
+
+global $debug;
 
 if (defined('SYSTEM_INSTALLATION')) {
     // Changes for 1.10.x
@@ -151,6 +153,10 @@ if (defined('SYSTEM_INSTALLATION')) {
         }
     }
 
+    if ($debug) {
+        error_log('Cleaning folders');
+    }
+
     // Remove the "main/conference/" directory that wasn't used since years long
     // past - see rrmdir function declared below
     @rrmdir(api_get_path(SYS_CODE_PATH).'conference');
@@ -164,34 +170,64 @@ if (defined('SYSTEM_INSTALLATION')) {
         unlink(api_get_path(SYS_PATH).'courses/.htaccess');
     }
 
-    // Delete all "courses/ABC/index.php" files.
-
-    $finder = new Finder();
-    $dirs = $finder->directories()->in(api_get_path(SYS_APP_PATH).'courses');
-    $fs = new Filesystem();
-    /** @var Symfony\Component\Finder\SplFileInfo $dir */
-    foreach ($dirs as $dir) {
-        $indexFile = $dir->getPath().'/index.php';
-        if ($fs->exists($indexFile)) {
-            $fs->remove($indexFile);
-        }
-    }
-
     // Move dirs into new structures.
-
     $movePathList = [
         api_get_path(SYS_CODE_PATH).'upload/users/groups' => api_get_path(SYS_UPLOAD_PATH),
         api_get_path(SYS_CODE_PATH).'upload/users' => api_get_path(SYS_UPLOAD_PATH),
         api_get_path(SYS_CODE_PATH).'upload/badges' => api_get_path(SYS_UPLOAD_PATH),
         api_get_path(SYS_PATH).'courses' => api_get_path(SYS_APP_PATH),
-        api_get_path(SYS_PATH).'searchdb' => api_get_path(SYS_UPLOAD_PATH).'plugins/xapian',
+        api_get_path(SYS_PATH).'searchdb' => api_get_path(SYS_UPLOAD_PATH).'plugins/xapian/',
         api_get_path(SYS_PATH).'home' => api_get_path(SYS_APP_PATH)
     ];
 
+    if ($debug) {
+        error_log('Moving folders');
+    }
+
     foreach ($movePathList as $origin => $destination) {
         if (is_dir($origin)) {
-            move($origin, $destination);
+            move($origin, $destination, true, true);
         }
+    }
+
+    // Delete all "courses/ABC/index.php" files.
+
+    if ($debug) {
+        error_log('Deleting old courses/ABC/index.php files');
+    }
+    $finder = new Finder();
+
+    $courseDir = api_get_path(SYS_APP_PATH).'courses';
+    if (is_dir($courseDir)) {
+        $dirs = $finder->directories()->in($courseDir);
+        $fs = new Filesystem();
+        /** @var Symfony\Component\Finder\SplFileInfo $dir */
+        foreach ($dirs as $dir) {
+            $indexFile = $dir->getPath().'/index.php';
+            if ($debug) {
+                error_log('Deleting '.$indexFile);
+            }
+            if ($fs->exists($indexFile)) {
+                $fs->remove($indexFile);
+            }
+        }
+    }
+
+    // Remove old "courses" folder if empty
+    $originalCourseDir = api_get_path(SYS_PATH).'courses';
+
+    if (is_dir($originalCourseDir)) {
+        $dirs = $finder->directories()->in($originalCourseDir);
+        $files = $finder->directories()->in($originalCourseDir);
+        $dirCount = $dirs->count();
+        $fileCount = $dirs->count();
+        if ($fileCount == 0 && $dirCount == 0) {
+            @rrmdir(api_get_path(SYS_PATH).'courses');
+        }
+    }
+
+    if ($debug) {
+        error_log('Remove archive folder');
     }
 
     // Remove archive

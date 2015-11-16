@@ -140,6 +140,8 @@ if ($debug) {
 }
 
 $get_toc_list = $_SESSION['oLP']->get_toc();
+$get_teacher_buttons = $_SESSION['oLP']->get_teacher_toc_buttons();
+
 $type_quiz = false;
 foreach ($get_toc_list as $toc) {
     if ($toc['id'] == $lp_item_id && $toc['type'] == 'quiz') {
@@ -453,7 +455,8 @@ if ($_SESSION['oLP']->current == $_SESSION['oLP']->get_last()) {
     }
 }
 
-$gamificationMode = api_get_setting('gamification_mode');
+
+
 
 $template = new Template('title', false, false, true, true, false);
 $template->assign('glossary_extra_tools', api_get_setting('show_glossary_in_extra_tools'));
@@ -469,6 +472,12 @@ $template->assign(
     'glossary_tool_availables',
     ['true', 'lp', 'exercise_and_lp']
 );
+
+// If the global gamification mode is enabled...
+$gamificationMode = api_get_setting('gamification_mode');
+// ...AND this learning path is set in gamification mode, then change the display
+$gamificationMode = $gamificationMode && $_SESSION['oLP']->seriousgame_mode;
+
 $template->assign('show_glossary_in_documents', api_get_setting('show_glossary_in_documents'));
 $template->assign('jquery_web_path', api_get_jquery_web_path());
 $template->assign('jquery_ui_js_web_path', api_get_jquery_ui_js_web_path());
@@ -483,6 +492,8 @@ $template->assign('progress_bar', $progress_bar);
 $template->assign('show_audio_player', $show_audioplayer);
 $template->assign('media_player', $mediaplayer);
 $template->assign('toc_list', $get_toc_list);
+$template->assign('teacher_toc_buttons', $get_teacher_buttons);
+
 $template->assign('iframe_src', $src);
 $template->assign('navigation_bar_bottom', $navigation_bar_bottom);
 

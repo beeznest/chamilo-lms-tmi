@@ -7,7 +7,7 @@
                 <tr>
                     <th>{{ "Course"|get_lang }}</th>
                     <th class="text-right">{{ "Score"|get_lang }}</th>
-                    <th class="text-center">{{ "Fecha"|get_lang }}</th>
+                    <th class="text-center">{{ "Date"|get_lang }}</th>
                     <th class="text-right">&nbsp;</th>
                 </tr>
             </thead>
@@ -19,7 +19,7 @@
                         <td class="text-center">{{ row.date }}</td>
                         <td class="text-right">
                             <a href="{{ row.link }}" target="_blank" class="btn btn-default">
-                                <i class="fa fa-external-link"></i> {{ 'Certificate'|get_lang }}
+                                <em class="fa fa-external-link"></em> {{ 'Certificate'|get_lang }}
                             </a>
                         </td>
                     </tr>
@@ -39,7 +39,7 @@
                     <th>{{ "Session"|get_lang }}</th>
                     <th>{{ "Course"|get_lang }}</th>
                     <th class="text-right">{{ "Score"|get_lang }}</th>
-                    <th class="text-center">{{ "Fecha"|get_lang }}</th>
+                    <th class="text-center">{{ "Date"|get_lang }}</th>
                     <th class="text-right">&nbsp;</th>
                 </tr>
             </thead>
@@ -52,7 +52,7 @@
                         <td class="text-center">{{ row.date }}</td>
                         <td class="text-right">
                             <a href="{{ row.link }}" target="_blank" class="btn btn-default">
-                                <i class="fa fa-external-link"></i> {{ 'Certificate'|get_lang }}
+                                <em class="fa fa-external-link"></em> {{ 'Certificate'|get_lang }}
                             </a>
                         </td>
                     </tr>

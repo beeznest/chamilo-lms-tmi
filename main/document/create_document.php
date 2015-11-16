@@ -21,18 +21,47 @@ var hide_bar = function() {
     $("#hide_bar_template").css({"background-image" : \'url("../img/hide2.png")\'})
 }
 
+jQuery(document).ready(function(){
+    jQuery(".scrollbar-macosx").scrollbar();
+});
+
 $(document).ready(function() {
     if ($(window).width() <= 785 ) {
         hide_bar();
     }
+    
 
     $("#hide_bar_template").click(function() {
+        
         $("#template_col").toggleClass("hide");
+        
+        if ($("#doc_form").is(".col-md-8")) {
+            $("#doc_form").removeClass("col-md-8");
+            $("#doc_form").addClass("col-md-11");
+        } else {
+            $("#doc_form").removeClass("col-md-11");
+            $("#doc_form").addClass("col-md-8");
+        }
+        
         $("#hide_bar_template").toggleClass("hide_bar_template_not_hide");
+        
     });
 
     CKEDITOR.on("instanceReady", function (e) {
         showTemplates();
+    });
+});
+
+$(document).on("change", ".selectpicker", function () {
+    var dirValue = $(this).val();
+    $.ajax({
+        contentType: "application/x-www-form-urlencoded",
+        data: "dirValue="+dirValue,
+        url: "' . api_get_path(WEB_AJAX_PATH) . 'document.ajax.php?a=document_destination",
+        type: "POST",
+        success: function(response) {
+            $("[name=\'dirValue\']").val(response)
+        }
     });
 });
 
@@ -156,7 +185,8 @@ $is_allowed_to_edit = api_is_allowed_to_edit(null, true);
 $editorConfig = array(
     'ToolbarSet' => ($is_allowed_to_edit ? 'Documents' : 'DocumentsStudent'),
     'Width' => '100%',
-    'Height' => '500',
+    'Height' => '400',
+    'cols-size' => [2, 10, 0],
     'FullPage' => true,
     'InDocument' => true,
 	'CreateDocumentDir'    => $relative_url,
@@ -172,7 +202,7 @@ if ($is_certificate_mode) {
     $editorConfig['BaseHref'] = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document'.$dir;
 }
 
-$filepath = api_get_path(SYS_COURSE_PATH).$_course['path'].'/document'.$dir;
+$filepath = api_get_path(SYS_COURSE_PATH).$_course['path'].'/document';
 
 if (!is_dir($filepath)) {
 	$filepath = api_get_path(SYS_COURSE_PATH).$_course['path'].'/document/';
@@ -225,8 +255,7 @@ $form = new FormValidator(
     'create_document',
     'post',
     api_get_self().'?'.api_get_cidreq().'&dir='.Security::remove_XSS(urlencode($dir)).'&selectcat='.$select_cat,
-    null,
-    array('class' =>'form-vertical')
+    null
 );
 
 // form title
@@ -268,9 +297,9 @@ function document_exists($filename)
 
 // Add group to the form
 if ($is_certificate_mode) {
-    $form->addText('title', get_lang('CertificateName'), true, array('autofocus'));
+    $form->addText('title', get_lang('CertificateName'), true, array('cols-size' => [2, 10, 0], 'autofocus'));
 } else {
-	$form->addText('title', get_lang('Title'), true, array('autofocus'));
+	$form->addText('title', get_lang('Title'), true, array('cols-size' => [2, 10, 0], 'autofocus'));
 }
 
 // Show read-only box only in groups
@@ -281,7 +310,7 @@ $form->addRule('title', get_lang('ThisFieldIsRequired'), 'required');
 $form->addRule('title', get_lang('FileExists'), 'callback', 'document_exists');
 
 $current_session_id = api_get_session_id();
-$form->addHtmlEditor('content','', true, true, $editorConfig);
+$form->addHtmlEditor('content','', true, true, $editorConfig, true);
 
 // Comment-field
 $folders = DocumentManager::get_all_document_folders($_course, $to_group_id, $is_allowed_to_edit);
@@ -294,8 +323,8 @@ if (!$is_certificate_mode &&
 ) {
 	$folders = DocumentManager::get_all_document_folders($_course, $to_group_id, $is_allowed_to_edit);
 
-	$parent_select = $form->addElement('select', 'curdirpath', array(null, get_lang('DestinationDirectory')));
-
+	//$parent_select = $form->addElement('select', 'curdirpath', array(null, get_lang('DestinationDirectory')));
+        $parent_select = $form->addSelect('curdirpath', get_lang('DestinationDirectory'),null, array('cols-size' => [2, 10, 0]) );
 	// Following two conditions copied from document.inc.php::build_directory_selector()
 	$folder_titles = array();
 
@@ -403,6 +432,8 @@ if (!$is_certificate_mode &&
 	}
 }
 
+$form->addHidden('dirValue', '');
+
 if ($is_certificate_mode) {
 	$form->addButtonCreate(get_lang('CreateCertificate'));
 } else {
@@ -416,10 +447,15 @@ if ($form->validate()) {
 	$values = $form->exportValues();
 	$readonly = isset($values['readonly']) ? 1 : 0;
 	$values['title'] = trim($values['title']);
+    
+    if (!empty($values['dirValue'])) {
+        $dir = $values['dirValue'];
+    }
 
     if ($dir[strlen($dir) - 1] != '/') {
 		$dir .= '/';
 	}
+    $filepath = $filepath.$dir;
 
     // Setting the filename
 	$filename = $values['title'];
@@ -574,16 +610,18 @@ if ($form->validate()) {
 
 	Display :: display_header($nameTools, "Doc");
 	// actions
-	echo '<div class="actions">';
 
 	// link back to the documents overview
-	if ($is_certificate_mode)
-		echo '<a href="document.php?certificate=true&id='.$folder_id.'&selectcat=' . Security::remove_XSS($_GET['selectcat']).'">'.
+	if ($is_certificate_mode) {
+		$actionsLeft =  '<a href="document.php?certificate=true&id='.$folder_id.'&selectcat=' . Security::remove_XSS($_GET['selectcat']).'">'.
             Display::return_icon('back.png',get_lang('Back').' '.get_lang('To').' '.get_lang('CertificateOverview'),'',ICON_SIZE_MEDIUM).'</a>';
-	else
-		echo '<a href="document.php?curdirpath='.Security::remove_XSS($dir).'">'.
+        } else {
+		$actionsLeft = '<a href="document.php?curdirpath='.Security::remove_XSS($dir).'">'.
             Display::return_icon('back.png',get_lang('Back').' '.get_lang('To').' '.get_lang('DocumentsOverview'),'',ICON_SIZE_MEDIUM).'</a>';
-	echo '</div>';
+        }
+        
+        echo $toolbar = Display::toolbarAction('actions-documents', array(0 => $actionsLeft, 1 => ''));
+                
 
 	if ($is_certificate_mode) {
 		$all_information_by_create_certificate = DocumentManager::get_all_info_to_certificate(api_get_user_id(), api_get_course_id());
@@ -597,13 +635,17 @@ if ($form->validate()) {
 	}
     // HTML-editor
     echo '<div class="row" style="overflow:hidden">
-            <div id="template_col" class="col-md-2">
-                <div id="frmModel" ></div>
+            <div id="template_col" class="col-md-3">
+                <div class="panel panel-default">
+                <div class="panel-body">
+                    <div id="frmModel" class="items-templates scrollbar-macosx"></div>
+                </div>
+                </div>
             </div>
             <div class="col-md-1">
                 <div id="hide_bar_template"></div>
             </div>
-            <div id="doc_form" class="col-md-9">
+            <div id="doc_form" class="col-md-8">
                 '.$form->returnForm().'
             </div>
           </div>';

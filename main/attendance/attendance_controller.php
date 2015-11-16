@@ -67,11 +67,7 @@ class AttendanceController
                     $last_id = $attendance->attendance_add($link_to_gradebook);
                     Security::clear_token();
                 }
-                $param_gradebook = '';
-                if (isset($_SESSION['gradebook'])) {
-                    $param_gradebook = '&gradebook='.Security::remove_XSS($_SESSION['gradebook']);
-                }
-                header('location:index.php?action=calendar_add&attendance_id='.$last_id.'&'.api_get_cidreq().$param_gradebook);
+                header('location:index.php?action=calendar_add&attendance_id='.$last_id.'&'.api_get_cidreq());
                 exit;
             } else {
                 $data['error'] = true;
@@ -629,8 +625,8 @@ class AttendanceController
                 api_get_self() . '?' . api_get_cidreq(
                 ) . '&action=calendar_logins'
             );
-            $form->addDateRangePicker('range', get_lang('Range'));
-            $form->addButton('submit', get_lang('submit'));
+            $form->addDateRangePicker('range', get_lang('DateRange'));
+            $form->addButton('submit', get_lang('Submit'));
 
             if ($form->validate()) {
                 $values = $form->getSubmitValues();

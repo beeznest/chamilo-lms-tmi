@@ -70,7 +70,7 @@ $(function () {
                     file.delete + '<\/td>' +
                     '<input type=\"hidden\" value=\"' + file.id +'\" name=\"file_ids[]\">' + '<\/tr>');
             } else {
-                alert('" . get_lang('ErrorUploadAttachment') . "');
+                alert('" . get_lang('UploadError') . "');
             }
         }
     });
@@ -90,7 +90,7 @@ $htmlHeadXtra[] = '<script>
             var l = $(this);
             var id = l.closest("tr").attr("id");
             var filename = l.closest("tr").find(".attachFilename").html();
-            if (confirm("' . get_lang('AreYouSureToDeleteFileX') . '".replace("%s", filename))) {
+            if (confirm("' . get_lang('AreYouSureToDeleteJS') . '", filename)) {
                 $.ajax({
                     type: "POST",
                     url: "'.api_get_path(WEB_AJAX_PATH) . 'forum.ajax.php?'.api_get_cidreq().'&a=delete_file&attachId=" + id +"&thread='.$threadId .'&forum='.$forumId .'",
@@ -542,6 +542,7 @@ function store_forumcategory($values, $courseInfo = array(), $showMessage = true
     $new_max = $row['sort_max'] + 1;
     $session_id = api_get_session_id();
     $clean_cat_title = $values['forum_category_title'];
+    $last_id = null;
 
     if (isset($values['forum_category_id'])) {
         // Storing after edition.
@@ -701,17 +702,17 @@ function store_forum($values, $courseInfo = array(), $returnId = false)
         $params = [
             'forum_title'=> $values['forum_title'],
             'forum_image'=> $sql_image,
-            'forum_comment'=> $values['forum_comment'],
-            'forum_category'=> $values['forum_category'],
-            'allow_anonymous'=> $values['allow_anonymous_group']['allow_anonymous'],
-            'allow_edit'=> $values['students_can_edit_group']['students_can_edit'],
-            'approval_direct_post'=> $values['approval_direct_group']['approval_direct'],
-            'allow_attachments'=> $values['allow_attachments_group']['allow_attachments'],
-            'allow_new_threads'=>  $values['allow_new_threads_group']['allow_new_threads'],
-            'default_view'=> $values['default_view_type_group']['default_view_type'],
-            'forum_of_group'=> $values['group_forum'],
-            'forum_group_public_private'=> $values['public_private_group_forum_group']['public_private_group_forum'],
-            'forum_order'=> $new_max,
+            'forum_comment'=> isset($values['forum_comment']) ? $values['forum_comment'] : null,
+            'forum_category'=> isset($values['forum_category']) ? $values['forum_category'] : null,
+            'allow_anonymous'=> isset($values['allow_anonymous_group']['allow_anonymous']) ? $values['allow_anonymous_group']['allow_anonymous'] : null,
+            'allow_edit'=> isset($values['students_can_edit_group']['students_can_edit']) ? $values['students_can_edit_group']['students_can_edit'] : null,
+            'approval_direct_post'=> isset($values['approval_direct_group']['approval_direct']) ? $values['approval_direct_group']['approval_direct'] : null,
+            'allow_attachments'=> isset($values['allow_attachments_group']['allow_attachments']) ? $values['allow_attachments_group']['allow_attachments'] : null,
+            'allow_new_threads'=> isset($values['allow_new_threads_group']['allow_new_threads']) ? $values['allow_new_threads_group']['allow_new_threads'] : null,
+            'default_view'=> isset($values['default_view_type_group']['default_view_type']) ? $values['default_view_type_group']['default_view_type'] : null,
+            'forum_of_group'=> isset($values['group_forum']) ? $values['group_forum'] : null,
+            'forum_group_public_private'=> isset($values['public_private_group_forum_group']['public_private_group_forum']) ? $values['public_private_group_forum_group']['public_private_group_forum'] : null,
+            'forum_order'=> isset($new_max) ? $new_max : null,
             'session_id'=> $session_id,
         ];
 
@@ -2578,7 +2579,7 @@ function show_add_post_form($current_forum, $forum_setting, $action = '', $id = 
     $form = new FormValidator(
         'thread',
         'post',
-        api_get_self().'?forum='.Security::remove_XSS($my_forum).'&'.api_get_cidreq().'&thread='.Security::remove_XSS($myThread).'&post='.Security::remove_XSS($my_post).'&action='.$action
+        api_get_self().'?forum='.intval($my_forum).'&gradebook='.$my_gradebook.'&thread='.intval($myThread).'&post='.intval($my_post).'&action='.$action.'&'.api_get_cidreq()
     );
     $form->setConstants(array('forum' => '5'));
 
@@ -2874,7 +2875,6 @@ function saveThreadScore(
                         ";
                 Database::query($sql);
 
-
                 return 'update';
             }
 
@@ -3073,7 +3073,9 @@ function store_reply($current_forum, $values)
     $table_posts = Database :: get_course_table(TABLE_FORUM_POST);
     $post_date = api_get_utc_datetime();
 
-    if ($current_forum['approval_direct_post'] == '1' && !api_is_allowed_to_edit(null, true)) {
+    if ($current_forum['approval_direct_post'] == '1' &&
+        !api_is_allowed_to_edit(null, true)
+    ) {
         $visible = 0;
     } else {
         $visible = 1;
@@ -3131,10 +3133,8 @@ function store_reply($current_forum, $values)
                 api_get_user_id()
             );
 
-            if ($current_forum['approval_direct_post'] == '1' && !api_is_allowed_to_edit(
-                    null,
-                    true
-                )
+            if ($current_forum['approval_direct_post'] == '1' &&
+                !api_is_allowed_to_edit(null, true)
             ) {
                 $message .= '<br />'.get_lang(
                         'MessageHasToBeApproved'
@@ -3179,8 +3179,14 @@ function store_reply($current_forum, $values)
  * @author Patrick Cool <patrick.cool@UGent.be>, Ghent University
  * @version february 2006, dokeos 1.8
  */
-function show_edit_post_form($forum_setting, $current_post, $current_thread, $current_forum, $form_values = '', $id_attach = 0)
-{
+function show_edit_post_form(
+    $forum_setting,
+    $current_post,
+    $current_thread,
+    $current_forum,
+    $form_values = '',
+    $id_attach = 0
+) {
     // Initialize the object.
     $form = new FormValidator(
         'edit_post',
@@ -3391,7 +3397,7 @@ function store_edit_post($values)
 
     $posts = getPosts($values['thread_id']);
     $first_post = null;
-    if (!empty($posts)) {
+    if (!empty($posts) && count($posts) > 0 && isset($posts[0])) {
         $first_post = $posts[0];
     }
 
@@ -4669,7 +4675,7 @@ function delete_attachment($post_id, $id_attach = 0, $display = true)
     api_item_property_update($_course, TOOL_FORUM_ATTACH, $id_attach, 'ForumAttachmentDelete', api_get_user_id());
 
     if (!empty($result) && !empty($id_attach) && $display) {
-        $message = get_lang(get_lang('AttachmentFileDeleteSuccess'));
+        $message = get_lang('AttachmentFileDeleteSuccess');
         Display::display_confirmation_message($message);
     }
 
@@ -5486,7 +5492,7 @@ function getAttachmentsAjaxTable($postId = null)
     // Forum attachment Ajax table
     $fileData = '
     <div class="control-group " style="'. $style . '">
-        <label class="control-label">'.get_lang('AttachmentFilesList').'</label>
+        <label class="control-label">'.get_lang('AttachmentList').'</label>
         <div class="controls">
             <table id="attachmentFileList" class="files data_table span10">
                 <tr>

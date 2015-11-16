@@ -249,72 +249,68 @@ if ($tool == TOOL_COURSE_HOMEPAGE && !isset($_GET['intro_cmdEdit'])) {
         );
         $userInfo = $_SESSION['_user'];
         $courseInfo = api_get_course_info();
-        $thematic_description_html = '
-            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-            <div id="panel-thematic" class="panel panel-default">
-                <div class="panel-heading">
-                 <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                <h4>
-                    '. $thematic_advance .' : '. $courseInfo['name'] . ' <b>( '. $thematicScore .' )</b>
-                </h4>
-                </a>
-                </div>
-                <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="thumbnail">
-                                <img src="' . $userInfo['avatar'] . '" class="img-responsive">
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" style="width: ' . $thematicScore . ';">
-                                    '.$thematicScore.'
-                                </div>
-                            </div>
-                            <div class="separate">
-                                <a href="' . $thematicUrl . '" class="btn btn-block btn-info">' . get_lang('ShowFullCourseAdvance') . '</a>
-                            </div>
-                        </div>';
+        $titleThematic = $thematic_advance .' : '. $courseInfo['name'] . ' <b>( '. $thematicScore .' )</b>';
 
-        $thematic_description_html .= '<div class="col-md-9">';
 
-        $thematic_description_html .= '<div class="row">';
-        $thematic_description_html .= '<div class="col-md-6 items-progress'.$class1.'">
-                                    <div class="topics">' . $subTitle1 . '</div>
-                                    <h4 class="title-topics">' . $thematic_info['title'] . '</h4>
-                                    <p class="date">' . $thematic_advance_info['start_date'] . '</p>
-                                    <div class="views">' . $thematic_advance_info['content'] . '</div>
-                                    <p class="time">' . get_lang('DurationInHours') . ' : ' . $thematic_advance_info['duration'] . ' - <a href="' . $thematicUrl . '">' . get_lang('SeeDetail') . '</a></p>
-                                </div>';
+
+        $infoUser = '<div class="thematic-avatar"><img src="' . $userInfo['avatar'] . '" class="img-circle img-responsive"></div>';
+        $infoUser .= '<div class="progress">
+                        <div class="progress-bar progress-bar-danger" role="progressbar" style="width: ' . $thematicScore . ';">
+                        '.$thematicScore.'
+                        </div>
+                    </div>';
+
+
+        $thematicItemOne = '
+        <div class="col-md-6 items-progress">
+            <div class="thematic-cont '.$class1.'">
+            <div class="topics">' . $subTitle1 . '</div>
+            <h4 class="title-topics">' . Display::returnFontAwesomeIcon('book') . $thematic_info['title'] . '</h4>
+            <p class="date">' .  Display::returnFontAwesomeIcon('calendar-o') . $thematic_advance_info['start_date'] . '</p>
+            <div class="views">' . Display::returnFontAwesomeIcon('file-text-o')  . strip_tags($thematic_advance_info['content']). '</div>
+            <p class="time">'. Display::returnFontAwesomeIcon('clock-o') . get_lang('DurationInHours') . ' : ' . $thematic_advance_info['duration'] . ' - <a href="' . $thematicUrl . '">' . get_lang('SeeDetail') . '</a></p>
+            </div>
+        </div>';
 
         if (!empty($thematic_advance_info2)) {
             $thematic_info2 = $thematic->get_thematic_list($thematic_advance_info2['thematic_id']);
             $thematic_advance_info2['start_date'] = api_get_local_time($thematic_advance_info2['start_date']);
             $thematic_advance_info2['start_date'] = api_format_date($thematic_advance_info2['start_date'], DATE_TIME_FORMAT_LONG);
 
-            $thematic_description_html .= '
+            $thematicItemTwo = '
                 <div class="col-md-6 items-progress">
+                    <div class="thematic-cont">
                     <div class="topics">'.$subTitle2.'</div>
-                    <h4 class="title-topics">'.$thematic_info2['title'].'</h4>
-                    <p class="date">'.$thematic_advance_info2['start_date'].'</p>
-                    <div class="views">'.$thematic_advance_info2['content'].'</div>
-                    <p class="time">'.get_lang('DurationInHours').' : '.$thematic_advance_info2['duration'].' - <a href="'.$thematicUrl.'">'.get_lang('SeeDetail').'</a></p>
+                    <h4 class="title-topics">'. Display::returnFontAwesomeIcon('book')  . $thematic_info2['title'].'</h4>
+                    <p class="date">' . Display::returnFontAwesomeIcon('calendar-o') .$thematic_advance_info2['start_date'].'</p>
+                    <div class="views">' . Display::returnFontAwesomeIcon('file-text-o')  . strip_tags($thematic_advance_info2['content']).'</div>
+                    <p class="time">'. Display::returnFontAwesomeIcon('clock-o') .get_lang('DurationInHours').' : '.$thematic_advance_info2['duration'].' - <a href="'.$thematicUrl.'">'.get_lang('SeeDetail').'</a></p>
+                    </div>
                 </div>';
         }
-        $thematic_description_html.='</div>';
-        $thematic_description_html.='</div></div></div></div></div></div>';
+
+
+        $thematicPanel = '<div class="row">';
+        $thematicPanel .= '<div class="col-md-2">' . $infoUser . '</div>';
+        $thematicPanel .= '<div class="col-md-10"><div class="row">' . $thematicItemOne . $thematicItemTwo . '</div></div>';
+        $thematicPanel .= '</div>';
+        $thematicPanel .= '<div class="separate">
+                        <a href="' . $thematicUrl . '" class="btn btn-default btn-block">' . get_lang('ShowFullCourseAdvance') . '</a>
+                    </div>';
+        $thematicProgress = Display::panelCollapse($titleThematic, $thematicPanel, 'thematic', null, 'accordion-thematic', 'collapse-thematic', false);
     }
 }
 $introduction_section .= '<div class="row">';
 if (!empty($thematic_advance_info)) {
     $introduction_section .= '<div class="col-md-12">';
     $introduction_section .= $thematic_description_html;
+    $introduction_section .= $thematicProgress;
     $introduction_section .= '</div>';
 }
 $editIconButton = '';
-if (api_is_allowed_to_edit()) {
+if (api_is_allowed_to_edit() && empty($session_id)) {
     $editIconButton = Display::url(
-        '<i class="fa fa-wrench"></i> ',
+        '<em class="fa fa-wrench"></em> ',
         api_get_path(WEB_CODE_PATH).'course_info/tools.php?'.api_get_cidreq(),
         ['class' => 'btn btn-default', 'title' => get_lang('CustomizeIcons') ]
     );
@@ -325,10 +321,10 @@ $textIntro = '';
 if ($intro_dispCommand) {
     if (empty($intro_content)) {
         // Displays "Add intro" commands
-        $toolbar = '<div class="btn-group pull-right" rol="group">';
+        $toolbar = '<div class="btn-group pull-right" role="group">';
         if (!empty($courseId)) {
             $textIntro  = '<a class="btn btn-default" title="' . get_lang('AddIntro') . '" href="'.api_get_self().'?' . api_get_cidreq().'&intro_cmdAdd=1">';
-            $textIntro .= '<i class="fa fa-file-text"></i> ';
+            $textIntro .= '<em class="fa fa-file-text"></em> ';
             $textIntro .= "</a>";
             $toolbar .= $textIntro . $editIconButton;
         } else {
@@ -343,21 +339,21 @@ if ($intro_dispCommand) {
         if (!empty($courseId)) {
             $toolbar .=
                 '<a  class="btn btn-default" href="'.api_get_self().'?'.api_get_cidreq().'&intro_cmdEdit=1" title="'.get_lang('Modify').'">
-                <i class="fa fa-pencil"></i></a>';
+                <em class="fa fa-pencil"></em></a>';
             $toolbar .= $editIconButton;
             $toolbar .="<a class=\"btn btn-default\" href=\"".api_get_self()."?".api_get_cidreq()."&intro_cmdDel=1\" onclick=\"javascript:
                 if(!confirm('".addslashes(api_htmlentities(get_lang('ConfirmYourChoice'), ENT_QUOTES, $charset)).
-                "')) return false;\"><i class=\"fa fa-trash-o\"></i></a>";
+                "')) return false;\"><em class=\"fa fa-trash-o\"></em></a>";
 
         } else {
             $toolbar .=
                 '<a class="btn btn-default" href="'.api_get_self().'?intro_cmdEdit=1" title="'.get_lang('Modify').'">
-                <i class="fa fa-pencil"></i>
+                <em class="fa fa-pencil"></em>
                 </a>"';
             $toolbar .= $editIconButton;
             $toolbar .= "<a class=\"btn btn-default\" href=\"".api_get_self()."?".api_get_cidreq()."&intro_cmdDel=1\" onclick=\"javascript:
                 if(!confirm('".addslashes(api_htmlentities(get_lang('ConfirmYourChoice'), ENT_QUOTES, $charset)).
-                "')) return false;\"><i class=\"fa fa-trash-o\"></i></a>";
+                "')) return false;\"><em class=\"fa fa-trash-o\"></em></a>";
         }
         $toolbar .=  "</div>";
         // Fix for chrome XSS filter for videos in iframes - BT#7930

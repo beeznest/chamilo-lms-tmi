@@ -486,10 +486,10 @@ class UserManager
             return false;
         }
         $sql = "SELECT * FROM $table_course_user
-                WHERE status = '1' AND user_id = '".$user_id."'";
+                WHERE status = '1' AND id = '".$user_id."'";
         $res = Database::query($sql);
         while ($course = Database::fetch_object($res)) {
-            $sql = "SELECT user_id FROM $table_course_user
+            $sql = "SELECT id FROM $table_course_user
                     WHERE status='1' AND c_id ='".Database::escape_string($course->c_id)."'";
             $res2 = Database::query($sql);
             if (Database::num_rows($res2) == 1) {
@@ -593,7 +593,7 @@ class UserManager
         Database::query($sql);
 
         // Delete user from database
-        $sql = "DELETE FROM $table_user WHERE user_id = '".$user_id."'";
+        $sql = "DELETE FROM $table_user WHERE id = '".$user_id."'";
         Database::query($sql);
 
         // Delete user from the admin table
@@ -709,7 +709,7 @@ class UserManager
         $ids = array_map('intval', $ids);
         $ids = implode(',', $ids);
 
-        $sql = "UPDATE $table_user SET active = 0 WHERE user_id IN ($ids)";
+        $sql = "UPDATE $table_user SET active = 0 WHERE id IN ($ids)";
         $r = Database::query($sql);
         if ($r !== false) {
             Event::addEvent(LOG_USER_DISABLE, LOG_USER_ID, $ids);
@@ -739,7 +739,7 @@ class UserManager
         $ids = array_map('intval', $ids);
         $ids = implode(',', $ids);
 
-        $sql = "UPDATE $table_user SET active = 1 WHERE user_id IN ($ids)";
+        $sql = "UPDATE $table_user SET active = 1 WHERE id IN ($ids)";
         $r = Database::query($sql);
         if ($r !== false) {
             Event::addEvent(LOG_USER_ENABLE,LOG_USER_ID,$ids);
@@ -764,7 +764,7 @@ class UserManager
             return false;
         $sql = "UPDATE $table_user SET
                 openid='".Database::escape_string($openid)."'";
-        $sql .= " WHERE user_id='$user_id'";
+        $sql .= " WHERE id= $user_id";
         return Database::query($sql);
     }
 
@@ -963,7 +963,7 @@ class UserManager
         }
         $user_id = intval($user_id);
         $table_user = Database :: get_main_table(TABLE_MAIN_USER);
-        $sql = "UPDATE $table_user SET active = '$active' WHERE user_id = '$user_id';";
+        $sql = "UPDATE $table_user SET active = '$active' WHERE id = $user_id";
         $r = Database::query($sql);
         $ev = LOG_USER_DISABLE;
         if ($active == 1) {
@@ -1231,7 +1231,7 @@ class UserManager
         $ids = implode(',', $ids);
 
         $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
-        $sql = "SELECT * FROM $tbl_user WHERE user_id IN ($ids)";
+        $sql = "SELECT * FROM $tbl_user WHERE id IN ($ids)";
         if (!is_null($active)) {
             $sql .= ' AND active='.($active ? '1' : '0');
         }
@@ -1371,7 +1371,7 @@ class UserManager
         if (empty($userInfo)) {
             $user_table = Database:: get_main_table(TABLE_MAIN_USER);
             $sql = "SELECT email, picture_uri FROM $user_table
-                    WHERE user_id=".$id;
+                    WHERE id=".$id;
             $res = Database::query($sql);
 
             if (!Database::num_rows($res)) {
@@ -1492,22 +1492,23 @@ class UserManager
 
         $gravatarEnabled = api_get_setting('gravatar_enabled');
 
-        if ($gravatarEnabled === 'true') {
-            $file = self::getGravatar(
-                $imageWebPath['email'],
-                $gravatarSize,
-                api_get_setting('gravatar_type')
-            );
-
-            if ($addRandomId) {
-                $file .= '&rand='.uniqid();
-            }
-            return $file;
-        }
-
         $anonymousPath = api_get_path(WEB_CODE_PATH).'img/'.$pictureAnonymous;
 
         if ($pictureWebFile == 'unknown.jpg' || empty($pictureWebFile)) {
+
+            if ($gravatarEnabled === 'true') {
+                $file = self::getGravatar(
+                    $imageWebPath['email'],
+                    $gravatarSize,
+                    api_get_setting('gravatar_type')
+                );
+
+                if ($addRandomId) {
+                    $file .= '&rand='.uniqid();
+                }
+
+                return $file;
+            }
 
             return $anonymousPath;
         }
@@ -1546,10 +1547,11 @@ class UserManager
      *                       If an empty name is provided, then old user photos are deleted only,
      * @see     UserManager::delete_user_picture() as the prefered way for deletion.
      * @param   string $source_file The full system name of the image from which user photos will be created.
+     * @param   string $cropParameters Optional string that contents "x,y,width,height" of a cropped image format
      * @return  string/bool Returns the resulting common file name of created images which usually should be stored in database.
      * When deletion is requested returns empty string. In case of internal error or negative validation returns FALSE.
      */
-    public static function update_user_picture($user_id, $file = null, $source_file = null)
+    public static function update_user_picture($user_id, $file = null, $source_file = null, $cropParameters)
     {
         if (empty($user_id)) {
             return false;
@@ -1617,19 +1619,28 @@ class UserManager
             $filename = $user_id.'_'.$filename;
         }
 
+        //Crop the image to adjust 1:1 ratio
+        $image = new Image($source_file);
+        $image->crop($cropParameters);
+        
         // Storing the new photos in 4 versions with various sizes.
-
-        $small = self::resize_picture($source_file, 22);
-        $medium = self::resize_picture($source_file, 85);
-        $normal = self::resize_picture($source_file, 200);
+        
+        $small = new Image($source_file);
+        $small->resize(22);
+        $small->send_image($path.'small_'.$filename);
+        $medium = new Image($source_file);
+        $medium->resize(85);
+        $medium->send_image($path.'medium_'.$filename);
+        $normal = new Image($source_file);
+        $normal->resize(200);
+        $normal->send_image($path.$filename);
 
         $big = new Image($source_file); // This is the original picture.
-
-        $ok = $small && $small->send_image($path.'small_'.$filename) &&
-            $medium && $medium->send_image($path.'medium_'.$filename) &&
-            $normal && $normal->send_image($path.$filename) &&
-            $big && $big->send_image($path.'big_'.$filename);
-        return $ok ? $filename : false;
+        $big->send_image($path.'big_'.$filename);
+        
+        $result = $small && $medium && $normal && $big;
+        
+        return $result ? $filename : false;
     }
 
     /**
@@ -2581,7 +2592,7 @@ class UserManager
                         INNER JOIN $tbl_session as session
                             ON session.id = session_course_user.session_id
                         LEFT JOIN $tbl_user as user
-                            ON user.user_id = session_course_user.user_id OR session.id_coach = user.user_id
+                            ON user.id = session_course_user.user_id OR session.id_coach = user.id
                     WHERE
                         session_course_user.session_id = $id_session AND (
                             (session_course_user.user_id = $user_id AND session_course_user.status = 2)
@@ -2623,7 +2634,7 @@ class UserManager
                 INNER JOIN $tbl_course AS course
                 ON course.id = session_course_user.c_id AND session_course_user.session_id = $session_id
                 INNER JOIN $tbl_session as session ON session_course_user.session_id = session.id
-                LEFT JOIN $tbl_user as user ON user.user_id = session_course_user.user_id
+                LEFT JOIN $tbl_user as user ON user.id = session_course_user.user_id
             WHERE session_course_user.user_id = $user_id
             ORDER BY i";
 
@@ -2778,7 +2789,7 @@ class UserManager
         $username = trim($username);
         $username = Database::escape_string($username);
         $t_user = Database::get_main_table(TABLE_MAIN_USER);
-        $sql = "SELECT user_id FROM $t_user WHERE username = '$username'";
+        $sql = "SELECT id FROM $t_user WHERE username = '$username'";
         $res = Database::query($sql);
         if ($res === false) {
             return false;
@@ -2787,7 +2798,7 @@ class UserManager
             return false;
         }
         $row = Database::fetch_array($res);
-        return $row['user_id'];
+        return $row['id'];
     }
 
     /**
@@ -3014,7 +3025,7 @@ class UserManager
         }
         if (!empty($access_url_id) && $access_url_id == intval($access_url_id)) {
             $sql .= ", $t_a a ";
-            $sql2 .= " AND a.access_url_id = $access_url_id AND u.user_id = a.user_id ";
+            $sql2 .= " AND a.access_url_id = $access_url_id AND u.id = a.user_id ";
         }
         $sql = $sql.$sql2;
         $res = Database::query($sql);
@@ -3022,39 +3033,6 @@ class UserManager
             return (int) Database::result($res, 0, 0);
         }
         return false;
-    }
-
-    /**
-     * Resize a picture
-     *
-     * @param  string file picture
-     * @param  int size in pixels
-     * @todo move this function somewhere else image.lib?
-     * @return obj image object
-     */
-    public static function resize_picture($file, $max_size_for_picture)
-    {
-        $temp = false;
-        if (file_exists($file)) {
-            $temp = new Image($file);
-            $image_size = $temp->get_image_size($file);
-            $width = $image_size['width'];
-            $height = $image_size['height'];
-            if ($width >= $height) {
-                if ($width >= $max_size_for_picture) {
-                    // scale height
-                    $new_height = round($height * ($max_size_for_picture / $width));
-                    $temp->resize($max_size_for_picture, $new_height, 0);
-                }
-            } else { // height > $width
-                if ($height >= $max_size_for_picture) {
-                    // scale width
-                    $new_width = round($width * ($max_size_for_picture / $height));
-                    $temp->resize($new_width, $max_size_for_picture, 0);
-                }
-            }
-        }
-        return $temp;
     }
 
     /**
@@ -3072,12 +3050,12 @@ class UserManager
         $content = api_utf8_decode($content);
         $email_administrator = Database::escape_string($email_administrator);
         //message in inbox
-        $sql_message_outbox = 'SELECT user_id from '.$table_user.' WHERE email="'.$email_administrator.'" ';
+        $sql_message_outbox = 'SELECT id from '.$table_user.' WHERE email="'.$email_administrator.'" ';
         //$num_row_query = Database::num_rows($sql_message_outbox);
         $res_message_outbox = Database::query($sql_message_outbox);
         $array_users_administrator = array();
         while ($row_message_outbox = Database::fetch_array($res_message_outbox, 'ASSOC')) {
-            $array_users_administrator[] = $row_message_outbox['user_id'];
+            $array_users_administrator[] = $row_message_outbox['id'];
         }
         //allow to insert messages in outbox
         for ($i = 0; $i < count($array_users_administrator); $i++) {
@@ -3416,13 +3394,13 @@ class UserManager
                     INNER JOIN $table_admin as admin
                     ON (admin.user_id=url.user_id)
                     INNER JOIN $table_user u
-                    ON (u.user_id=admin.user_id)
+                    ON (u.id=admin.user_id)
                     WHERE access_url_id ='".$access_url_id."'";
         } else {
             $sql = "SELECT admin.user_id, username, firstname, lastname, email, active
                     FROM $table_admin as admin
                     INNER JOIN $table_user u
-                    ON (u.user_id=admin.user_id)";
+                    ON (u.id=admin.user_id)";
         }
         $result = Database::query($sql);
         $return = array();
@@ -3469,17 +3447,17 @@ class UserManager
         // all the information of the field
 
         if ($getCount) {
-            $select = "SELECT count(DISTINCT u.user_id) count";
+            $select = "SELECT count(DISTINCT u.id) count";
         } else {
-            $select = "SELECT DISTINCT u.user_id, u.username, firstname, lastname, email, tag, picture_uri";
+            $select = "SELECT DISTINCT u.id, u.username, firstname, lastname, email, tag, picture_uri";
         }
 
         $sql = " $select
                 FROM $user_table u
                 INNER JOIN $access_url_rel_user_table url_rel_user
-                ON (u.user_id = url_rel_user.user_id)
+                ON (u.id = url_rel_user.user_id)
                 LEFT JOIN $table_user_tag_values uv
-                ON (u.user_id AND uv.user_id AND uv.user_id = url_rel_user.user_id)
+                ON (u.id AND uv.user_id AND uv.user_id = url_rel_user.user_id)
                 LEFT JOIN $table_user_tag ut ON (uv.tag_id = ut.id)
                 WHERE
                     ($where_field tag LIKE '".Database::escape_string($tag."%")."') OR
@@ -3513,8 +3491,8 @@ class UserManager
                 return $row['count'];
             }
             while ($row = Database::fetch_array($result, 'ASSOC')) {
-                if (isset($return[$row['user_id']]) &&
-                    !empty($return[$row['user_id']]['tag'])
+                if (isset($return[$row['id']]) &&
+                    !empty($return[$row['id']]['tag'])
                 ) {
                     $url = Display::url(
                         $row['tag'],
@@ -3523,7 +3501,7 @@ class UserManager
                     );
                     $row['tag'] = $url;
                 }
-                $return[$row['user_id']] = $row;
+                $return[$row['id']] = $row;
             }
         }
 
@@ -3594,10 +3572,10 @@ class UserManager
             }
 
             if (is_array($finalResult) && count($finalResult)>0) {
-                $whereFilter = " AND u.user_id IN  ('".implode("','", $finalResult)."') ";
+                $whereFilter = " AND u.id IN  ('".implode("','", $finalResult)."') ";
             } else {
                 //no results
-                $whereFilter = " AND u.user_id  = -1 ";
+                $whereFilter = " AND u.id  = -1 ";
             }
 
             return $whereFilter;
@@ -3808,10 +3786,10 @@ class UserManager
             $orderBy .= " ORDER BY lastname, firstname ";
         }
 
-        $sql = "SELECT u.user_id, username, u.firstname, u.lastname
+        $sql = "SELECT u.id, username, u.firstname, u.lastname
                 FROM $tblUser u
-                INNER JOIN $tblUserRelUser uru ON (uru.friend_user_id = u.user_id)
-                INNER JOIN $tblUserRelAccessUrl a ON (a.user_id = u.user_id)
+                INNER JOIN $tblUserRelUser uru ON (uru.friend_user_id = u.id)
+                INNER JOIN $tblUserRelAccessUrl a ON (a.user_id = u.id)
                 WHERE
                     access_url_id = ".api_get_current_access_url_id()." AND
                     uru.user_id = '$userId' AND
@@ -3930,16 +3908,16 @@ class UserManager
             $userConditions .= ' AND u.status = '.intval($userStatus);
         }
 
-        $select = " SELECT DISTINCT u.user_id, u.username, u.lastname, u.firstname, u.email ";
+        $select = " SELECT DISTINCT u.id user_id, u.username, u.lastname, u.firstname, u.email ";
         if ($getOnlyUserId) {
-            $select = " SELECT DISTINCT u.user_id";
+            $select = " SELECT DISTINCT u.id user_id";
         }
 
         $masterSelect = "SELECT DISTINCT * FROM ";
 
         if ($getCount) {
             $masterSelect = "SELECT COUNT(DISTINCT(user_id)) as count FROM ";
-            $select = " SELECT DISTINCT(u.user_id) ";
+            $select = " SELECT DISTINCT(u.id) user_id";
         }
 
         if (!is_null($active)) {
@@ -3973,7 +3951,7 @@ class UserManager
         $drhConditions = null;
         $teacherSelect = null;
 
-        switch($status) {
+        switch ($status) {
             case DRH:
                 $drhConditions .= " AND
                     friend_user_id = '$userId' AND
@@ -3998,7 +3976,7 @@ class UserManager
                 "UNION ALL (
                         $select
                         FROM $tbl_user u
-                        INNER JOIN $tbl_session_rel_user sru ON (sru.user_id = u.user_id)
+                        INNER JOIN $tbl_session_rel_user sru ON (sru.user_id = u.id)
                         WHERE
                             sru.session_id IN (
                                 SELECT DISTINCT(s.id) FROM $tbl_session s INNER JOIN
@@ -4020,7 +3998,7 @@ class UserManager
                     UNION ALL(
                         $select
                         FROM $tbl_user u
-                        INNER JOIN $tbl_course_user cu ON (cu.user_id = u.user_id)
+                        INNER JOIN $tbl_course_user cu ON (cu.user_id = u.id)
                         WHERE cu.c_id IN (
                             SELECT DISTINCT(c_id) FROM $tbl_course_user
                             WHERE user_id = $userId AND status = ".COURSEMANAGER."
@@ -4041,8 +4019,8 @@ class UserManager
                     (
                         $select
                         FROM $tbl_user u
-                        INNER JOIN $tbl_user_rel_user uru ON (uru.user_id = u.user_id)
-                        LEFT JOIN $tbl_user_rel_access_url a ON (a.user_id = u.user_id)
+                        INNER JOIN $tbl_user_rel_user uru ON (uru.user_id = u.id)
+                        LEFT JOIN $tbl_user_rel_access_url a ON (a.user_id = u.id)
                         $join
                         WHERE
                             access_url_id = ".api_get_current_access_url_id()."
@@ -4056,7 +4034,6 @@ class UserManager
         if ($getSql) {
             return $sql;
         }
-
         if ($getCount) {
             $result = Database::query($sql);
             $row = Database::fetch_array($result);
@@ -4078,7 +4055,6 @@ class UserManager
 
         $sql .= $orderBy;
         $sql .= $limitCondition;
-
         $result = Database::query($sql);
         $users = array();
         if (Database::num_rows($result) > 0) {
@@ -4129,7 +4105,6 @@ class UserManager
                 . "WHERE friend_user_id = $userId "
                 . "AND relation_type = $relationType";
         }
-
         $result = Database::query($sql);
 
         if (Database::num_rows($result) > 0) {
@@ -4176,8 +4151,8 @@ class UserManager
 
         $sql = "SELECT user_id FROM $tbl_user_rel_user
                 WHERE
-                    user_id='$user_id' AND
-                    friend_user_id='$hr_dept_id' AND
+                    user_id = $user_id AND
+                    friend_user_id = $hr_dept_id AND
                     relation_type = ".USER_RELATION_TYPE_RRHH;
         $rs = Database::query($sql);
         if (Database::num_rows($rs) > 0) {
@@ -4202,9 +4177,9 @@ class UserManager
         $courseCode = $courseInfo['code'];
 
         if ($session == 0 || is_null($session)) {
-            $sql = 'SELECT u.user_id FROM '.$table_user.' u
+            $sql = 'SELECT u.id uid FROM '.$table_user.' u
                     INNER JOIN '.$table_course_user.' ru
-                    ON ru.user_id=u.user_id
+                    ON ru.user_id = u.id
                     WHERE
                         ru.status = 1 AND
                         ru.c_id = "'.$courseId.'" ';
@@ -4212,23 +4187,23 @@ class UserManager
             $num_rows = Database::num_rows($rs);
             if ($num_rows == 1) {
                 $row = Database::fetch_array($rs);
-                return $row['user_id'];
+                return $row['uid'];
             } else {
                 $my_num_rows = $num_rows;
-                $my_user_id = Database::result($rs, $my_num_rows - 1, 'user_id');
+                $my_user_id = Database::result($rs, $my_num_rows - 1, 'uid');
                 return $my_user_id;
             }
         } elseif ($session > 0) {
-            $sql = 'SELECT u.user_id FROM '.$table_user.' u
+            $sql = 'SELECT u.id uid FROM '.$table_user.' u
                     INNER JOIN '.$table_session_course_user.' sru
-                    ON sru.user_id=u.user_id
+                    ON sru.user_id=u.id
                     WHERE
                         sru.c_id="'.$courseId.'" AND
                         sru.status=2';
             $rs = Database::query($sql);
             $row = Database::fetch_array($rs);
 
-            return $row['user_id'];
+            return $row['uid'];
         }
     }
 
@@ -4317,7 +4292,7 @@ class UserManager
         }
         $sql = "SELECT tc.path_certificate,tc.cat_id,tgc.course_code,tgc.name
                 FROM $table_certificate tc, $table_gradebook_category tgc
-                WHERE tgc.id = tc.cat_id AND tc.user_id='$user_id'
+                WHERE tgc.id = tc.cat_id AND tc.user_id = $user_id
                 ORDER BY tc.date_certificate DESC limit 5";
 
         $rs = Database::query($sql);
@@ -4346,8 +4321,8 @@ class UserManager
 
         $sql = "SELECT session_id FROM $tbl_session_course_rel_user
                 WHERE
-                  session_id=$session_id AND
-                  c_id='$courseId' AND
+                  session_id = $session_id AND
+                  c_id = $courseId AND
                   user_id = $user_id AND
                   status = 2 ";
         $res = Database::query($sql);
@@ -4753,7 +4728,7 @@ EOF;
         $user_id = intval($user_id);
 
         if (!self::is_admin($user_id)) {
-            $sql = "INSERT INTO $table_admin SET user_id = '".$user_id."'";
+            $sql = "INSERT INTO $table_admin SET user_id = $user_id";
             Database::query($sql);
         }
     }
@@ -4766,7 +4741,7 @@ EOF;
         $table_admin = Database :: get_main_table(TABLE_MAIN_ADMIN);
         $user_id = intval($user_id);
         if (self::is_admin($user_id)) {
-            $sql = "DELETE FROM $table_admin WHERE user_id = '".$user_id."'";
+            $sql = "DELETE FROM $table_admin WHERE user_id = user_id";
             Database::query($sql);
         }
     }
@@ -4883,7 +4858,7 @@ EOF;
         $user = Database::get_main_table(TABLE_MAIN_USER);
         $officialCode = Database::escape_string($officialCode);
 
-        $sql = "SELECT DISTINCT user_id
+        $sql = "SELECT DISTINCT id
                 FROM $user
                 WHERE official_code = '$officialCode'
                 ";
@@ -4891,7 +4866,7 @@ EOF;
 
         $users = array();
         while ($row = Database::fetch_array($result)) {
-            $users[] = $row['user_id'];
+            $users[] = $row['id'];
         }
         return $users;
     }

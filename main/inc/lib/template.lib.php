@@ -519,6 +519,7 @@ class Template
             'mediaelement/build/mediaelementplayer.min.css',
             'jqueryui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.css',
             'bootstrap/dist/css/bootstrap.min.css',
+            'jquery.scrollbar/jquery.scrollbar.css',
         ];
 
         foreach ($bowerCSSFiles as $file) {
@@ -661,7 +662,8 @@ class Template
             'jquery-timeago/jquery.timeago.js',
             'mediaelement/build/mediaelement-and-player.min.js',
             'jqueryui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js',
-            'imagemap-resizer/js/imageMapResizer.min.js'
+            'imagemap-resizer/js/imageMapResizer.min.js',
+            'jquery.scrollbar/jquery.scrollbar.min.js'
         ];
 
         if (api_get_setting('include_asciimathml_script') == 'true') {
@@ -750,8 +752,8 @@ class Template
             }
         }
 
-        $this->assign('online_button', Display::return_icon('statusonline.png'));
-        $this->assign('offline_button',Display::return_icon('statusoffline.png'));
+        $this->assign('online_button', Display::return_icon('statusonline.png', null, null, ICON_SIZE_ATOM));
+        $this->assign('offline_button',Display::return_icon('statusoffline.png', null, null, ICON_SIZE_ATOM));
 
         // Get language iso-code for this page - ignore errors
         $this->assign('document_language', api_get_language_isocode());
@@ -860,9 +862,9 @@ class Template
         if (api_get_setting('accessibility_font_resize') == 'true') {
             $resize .= '<div class="resize_font">';
             $resize .= '<div class="btn-group">';
-            $resize .= '<a title="'.get_lang('DecreaseFontSize').'" href="#" class="decrease_font btn btn-default"><i class="fa fa-font"></i></a>';
-            $resize .= '<a title="'.get_lang('ResetFontSize').'" href="#" class="reset_font btn btn-default"><i class="fa fa-font"></i></a>';
-            $resize .= '<a title="'.get_lang('IncreaseFontSize').'" href="#" class="increase_font btn btn-default"><i class="fa fa-font"></i></a>';
+            $resize .= '<a title="'.get_lang('DecreaseFontSize').'" href="#" class="decrease_font btn btn-default"><em class="fa fa-font"></em></a>';
+            $resize .= '<a title="'.get_lang('ResetFontSize').'" href="#" class="reset_font btn btn-default"><em class="fa fa-font"></em></a>';
+            $resize .= '<a title="'.get_lang('IncreaseFontSize').'" href="#" class="increase_font btn btn-default"><em class="fa fa-font"></em></a>';
             $resize .= '</div>';
             $resize .= '</div>';
         }

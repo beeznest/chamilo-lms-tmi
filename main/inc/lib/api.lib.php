@@ -396,6 +396,7 @@ define('SCORE_ONLY_CUSTOM', 3);
 // From display.lib.php
 
 define('MAX_LENGTH_BREADCRUMB', 100);
+define('ICON_SIZE_ATOM', 8);
 define('ICON_SIZE_TINY', 16);
 define('ICON_SIZE_SMALL', 22);
 define('ICON_SIZE_MEDIUM', 32);
@@ -458,7 +459,7 @@ define('RESULT_DISABLE_SHOW_FINAL_SCORE_ONLY_WITH_CATEGORIES', 3); //Show final 
 
 define('EXERCISE_MAX_NAME_SIZE', 80);
 
-// Question types
+// Question types (edit next array as well when adding values)
 // @todo move into a class
 define('UNIQUE_ANSWER', 1);
 define('MULTIPLE_ANSWER', 2);
@@ -479,6 +480,29 @@ define('CALCULATED_ANSWER', 16);
 define('UNIQUE_ANSWER_IMAGE', 17);
 define('DRAGGABLE', 18);
 define('MATCHING_DRAGGABLE', 19);
+
+// one big string with all question types, for the validator in pear/HTML/QuickForm/Rule/QuestionType
+define('QUESTION_TYPES',
+    UNIQUE_ANSWER.':'.
+    MULTIPLE_ANSWER.':'.
+    FILL_IN_BLANKS.':'.
+    MATCHING.':'.
+    FREE_ANSWER.':'.
+    HOT_SPOT.':'.
+    HOT_SPOT_ORDER.':'.
+    HOT_SPOT_DELINEATION.':'.
+    MULTIPLE_ANSWER_COMBINATION.':'.
+    UNIQUE_ANSWER_NO_OPTION.':'.
+    MULTIPLE_ANSWER_TRUE_FALSE.':'.
+    MULTIPLE_ANSWER_COMBINATION_TRUE_FALSE.':'.
+    ORAL_EXPRESSION.':'.
+    GLOBAL_MULTIPLE_ANSWER.':'.
+    MEDIA_QUESTION.':'.
+    CALCULATED_ANSWER.':'.
+    UNIQUE_ANSWER_IMAGE.':'.
+    DRAGGABLE.':'.
+    MATCHING_DRAGGABLE
+);
 
 //Some alias used in the QTI exports
 define('MCUA', 1);
@@ -824,7 +848,7 @@ function api_get_path($path_type, $path = null)
                 WEB_COURSE_PATH         => '',
                 WEB_CODE_PATH           => '',
                 WEB_IMG_PATH            => 'img/',
-                WEB_CSS_PATH            => 'css/',
+                WEB_CSS_PATH            => 'web/css/',
                 WEB_PLUGIN_PATH         => 'plugin/',
                 WEB_ARCHIVE_PATH        => 'archive/',
                 WEB_LIBRARY_PATH        => 'inc/lib/',
@@ -842,7 +866,7 @@ function api_get_path($path_type, $path = null)
             $paths[WEB_CODE_PATH]           = $root_web.$code_folder;
             $paths[WEB_IMG_PATH]            = $paths[WEB_CODE_PATH].$web_paths[WEB_IMG_PATH];
 
-            $paths[WEB_CSS_PATH]            = $paths[WEB_CODE_PATH].$web_paths[WEB_CSS_PATH];
+            $paths[WEB_CSS_PATH]            = $paths[WEB_PATH].$web_paths[WEB_CSS_PATH];
             $paths[WEB_PLUGIN_PATH]         = $paths[WEB_PATH].$web_paths[WEB_PLUGIN_PATH];
             $paths[WEB_ARCHIVE_PATH]        = $paths[WEB_PATH].$web_paths[WEB_ARCHIVE_PATH];
             $paths[WEB_LIBRARY_PATH]        = $paths[WEB_CODE_PATH].$web_paths[WEB_LIBRARY_PATH];
@@ -1156,7 +1180,7 @@ function api_protect_course_script($print_headers = false, $allow_session_admins
                 break;
             case COURSE_VISIBILITY_OPEN_PLATFORM:
                 // Open - access allowed for users registered on the platform - 2
-                if (api_get_user_id() && !api_is_anonymous()) {
+                if (api_get_user_id() && !api_is_anonymous() && $is_allowed_in_course) {
                     $is_visible = true;
                 }
                 break;
@@ -1403,7 +1427,9 @@ function _api_format_user($user, $add_password = false)
         'theme',
         'language',
         'creator_id',
-        'registration_date'
+        'registration_date',
+        'hr_dept_id',
+        'expiration_date'
     );
 
     foreach ($attributes as $attribute) {
@@ -1449,6 +1475,8 @@ function _api_format_user($user, $add_password = false)
     $smallFile = UserManager::getUserPicture($user_id, USER_IMAGE_SIZE_SMALL, $result);
 
     $result['avatar'] = $originalFile;
+    $avatarString = explode('?', $originalFile);
+    $result['avatar_no_query'] = reset($avatarString);
     $result['avatar_small'] = $smallFile;
     //$result['avatar_sys_path'] = api_get_path(SYS_CODE_PATH).'img/unknown.jpg';
 
@@ -3297,7 +3325,7 @@ function api_is_anonymous($user_id = null, $db_check = false) {
         return true;
     }
 
-    return isset($_user['is_anonymous']) && $_user['is_anonymous'] === true;
+    return ((isset($_user['is_anonymous']) && $_user['is_anonymous'] === true) || $_user === false);
 }
 
 /**
@@ -4208,6 +4236,12 @@ function api_display_language_form($hide_if_no_choice = false)
     $html = '
     <script type="text/javascript">
     <!--
+    $(document).ready(function() {
+        $("#language_list").change(function() {
+            jumpMenu("parent",this,0);
+        });
+    });
+
     function jumpMenu(targ,selObj,restore){ // v3.0
         eval(targ+".location=\'"+selObj.options[selObj.selectedIndex].value+"\'");
         if (restore) selObj.selectedIndex=0;
@@ -4216,7 +4250,7 @@ function api_display_language_form($hide_if_no_choice = false)
     </script>';
     $html .= '<form id="lang_form" name="lang_form" method="post" action="'.api_get_self().'">';
     $html .= '<label style="display: none;" for="language_list">' . get_lang('Language') . '</label>';
-    $html .=  '<select id="language_list" class="selectpicker show-tick form-control" name="language_list" onchange="javascript: jumpMenu(\'parent\',this,0);">';
+    $html .=  '<select id="language_list" class="selectpicker show-tick form-control" name="language_list" >';
 
     foreach ($original_languages as $key => $value) {
         if ($folder[$key] == $user_selected_language) {
@@ -4297,8 +4331,6 @@ function api_get_language_id($language)
  **/
 function api_get_language_from_type($lang_type)
 {
-    $_user = api_get_user_info();
-    $_course = api_get_course_info();
     $return = false;
 
     switch ($lang_type) {
@@ -4308,6 +4340,7 @@ function api_get_language_from_type($lang_type)
                 $return = $temp_lang;
             break;
         case 'user_profil_lang':
+            $_user = api_get_user_info();
             if (isset($_user['language']) && !empty($_user['language']))
                 $return = $_user['language'];
             break;
@@ -4316,6 +4349,21 @@ function api_get_language_from_type($lang_type)
                 $return = $_SESSION['user_language_choice'];
             break;
         case 'course_lang':
+            global $_course;
+            $cidReq = null;
+            if (empty($_course)) {
+                // Code modified because the local.inc.php file it's declarated after this work
+                // causing the function api_get_course_info() returns a null value
+                $cidReq = isset($_GET["cidReq"]) ? Database::escape_string($_GET["cidReq"]) : null;
+                $cDir = (!empty($_GET['cDir']) ? $_GET['cDir'] : null);
+                if (empty($cidReq) && !empty($cDir)) {
+                    $c = CourseManager::get_course_id_from_path($cDir);
+                    if ($c) {
+                        $cidReq = $c;
+                    }
+                }
+            }
+            $_course = api_get_course_info($cidReq);
             if (isset($_course['language']) && !empty($_course['language']))
                 $return = $_course['language'];
             break;
@@ -6022,9 +6070,9 @@ function api_get_tools_lists($my_tool = null) {
  * @param int user id
  * @return bool true if we pass false otherwise
  */
-function api_check_term_condition($user_id) {
+function api_check_term_condition($user_id)
+{
     if (api_get_setting('allow_terms_conditions') == 'true') {
-
         //check if exists terms and conditions
         if (LegalManager::count() == 0) {
             return true;
@@ -6036,8 +6084,8 @@ function api_check_term_condition($user_id) {
             'legal_accept'
         );
 
-        if (!empty($data) && isset($data[0])) {
-            $rowv = $data[0];
+        if (!empty($data) && isset($data['value'])) {
+            $rowv = $data['value'];
             $user_conditions = explode(':', $rowv);
             $version = $user_conditions[0];
             $lang_id = $user_conditions[1];
@@ -7587,8 +7635,8 @@ function api_warn_hosting_contact($limitName)
 
     if (!empty($email)) {
         $subject = get_lang('HostingWarningReached');
-        $body = get_lang('Portal').': '.api_get_path(WEB_PATH)." \n ";
-        $body .= get_lang('Limit').': '.$limitName." \n ";
+        $body = get_lang('PortalName').': '.api_get_path(WEB_PATH)." \n ";
+        $body .= get_lang('PortalLimitType').': '.$limitName." \n ";
         if (isset($hostingParams[$limitName])) {
             $body .= get_lang('Value') . ': ' . $hostingParams[$limitName];
         }

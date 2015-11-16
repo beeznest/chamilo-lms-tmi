@@ -36,6 +36,7 @@ ob_implicit_flush(true);
 session_start();
 require_once api_get_path(LIBRARY_PATH).'database.constants.inc.php';
 require_once api_get_path(LIBRARY_PATH).'fileManage.lib.php';
+require_once api_get_path(LIBRARY_PATH).'banner.lib.php';
 require_once 'install.lib.php';
 
 // The function api_get_setting() might be called within the installation scripts.
@@ -303,14 +304,14 @@ if ($encryptPassForm == '1') {
     <title>&mdash; <?php echo get_lang('ChamiloInstallation').' &mdash; '.get_lang('Version_').' '.$new_version; ?></title>
     <style type="text/css" media="screen, projection">
         @import "../../web/assets/bootstrap/dist/css/bootstrap.min.css";
-        @import "<?php echo api_get_path(WEB_CSS_PATH)?>bootstrap-select.css";
+        @import "../inc/lib/javascript/bootstrap-select/css/bootstrap-select.css";
         @import "../../web/assets/fontawesome/css/font-awesome.min.css";
         @import "../../web/css/base.css";
         @import "../../web/css/themes/chamilo/default.css";
     </style>
     <script type="text/javascript" src="../../web/assets/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="../../web/assets/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="<?php echo api_get_path(WEB_LIBRARY_PATH)?>javascript/bootstrap-select.min.js"></script>
+    <script type="text/javascript" src="../inc/lib/javascript/bootstrap-select/js/bootstrap-select.min.js"></script>
     <script type="text/javascript">
         $(document).ready( function() {
 
@@ -416,7 +417,7 @@ if ($encryptPassForm == '1') {
             </div>
             <div id="note">
                 <a class="btn btn-default" href="<?php echo $installationGuideLink; ?>" target="_blank">
-                    <i class="fa fa-file-text-o"></i> <?php echo get_lang('ReadTheInstallationGuide'); ?>
+                    <em class="fa fa-file-text-o"></em> <?php echo get_lang('ReadTheInstallationGuide'); ?>
                 </a>
             </div>
         </div>
@@ -636,14 +637,14 @@ if (@$_POST['step2']) {
         <tr>
             <td>
                 <button type="submit" class="btn btn-default" name="step4" value="&lt; <?php echo get_lang('Previous'); ?>" >
-                    <i class="fa fa-backward"> </i> <?php echo get_lang('Previous'); ?>
+                    <em class="fa fa-backward"> </em> <?php echo get_lang('Previous'); ?>
                 </button>
             </td>
             <td align="right">
                 <input type="hidden" name="is_executable" id="is_executable" value="-" />
                 <input type="hidden" name="step6" value="1" />
                 <button id="button_step6" class="btn btn-success" type="submit" name="button_step6" value="<?php echo get_lang('InstallChamilo'); ?>">
-                    <i class="fa fa-floppy-o"> </i>
+                    <em class="fa fa-floppy-o"> </em>
                     <?php echo get_lang('InstallChamilo'); ?>
                 </button>
                 <button class="btn btn-save" id="button_please_wait"></button>
@@ -696,7 +697,7 @@ if (@$_POST['step2']) {
         $perm = api_get_permissions_for_new_directories();
         $perm_file = api_get_permissions_for_new_files();
 
-        error_log('Starting migration process from '.$my_old_version.' ('.time().')');
+        error_log('Starting migration process from '.$my_old_version.' ('.date('Y-m-d H:i:s').')');
 
         switch ($my_old_version) {
             case '1.9.0':
@@ -751,6 +752,8 @@ if (@$_POST['step2']) {
                         'portfolio.conf.php'
                     );
 
+                    error_log('Copy conf files');
+
                     foreach ($configurationFiles as $file) {
                         if (file_exists(api_get_path(SYS_CODE_PATH) . 'inc/conf/'.$file)) {
                             copy(
@@ -759,6 +762,8 @@ if (@$_POST['step2']) {
                             );
                         }
                     }
+
+                    error_log('Finish upgrade process! ('.date('Y-m-d H:i:s').')');
                 } else {
                     error_log('There was an error during running migrations. Check error.log');
                 }
@@ -820,6 +825,7 @@ if (@$_POST['step2']) {
 
         include 'install_files.inc.php';
     }
+
     display_after_install_message($installType);
 
     // Hide the "please wait" message sent previously
