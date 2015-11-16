@@ -36,13 +36,6 @@
     	
 	{{ sniff_notification }}       
         {% include template ~ "/layout/page_body.tpl" %}
-        
-        {# Welcome to course block  #}
-        {% if welcome_to_course_block %}
-            <section id="homepage-course">
-            {{ welcome_to_course_block }}
-            </section>
-        {% endif %}
 
         {% block content %}
         {% if content is not null %}
@@ -57,7 +50,12 @@
                         </li>
                     </ul>
                 {% endif %}
-
+                {# Welcome to course block  #}
+        {% if welcome_to_course_block %}
+            <section id="homepage-course" class="col-md-12">
+            {{ welcome_to_course_block }}
+            </section>
+        {% endif %}
                 <div class="block-course">
                     {{ content }}
                 </div>
