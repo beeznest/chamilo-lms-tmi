@@ -1042,7 +1042,7 @@ class SocialManager extends UserManager
 
             $html .= '<div class="col-xs-6 col-md-2">
                         <div class="items-user">
-                            <div class="items-user-avatar">'.$img.'</div>
+                            <div class="items-user-avatar"><a href="'.$url.'">'.$img.'</a></div>
                             <div class="items-user-name">
                             '.$name.'
                             </div>
@@ -1411,7 +1411,7 @@ class SocialManager extends UserManager
                 <textarea placeholder="'.get_lang('SocialWriteNewComment').
                 '" name="social_wall_new_msg" rows="1" style="width:80%;" ></textarea>
                 <button type="submit" name="social_wall_new_msg_submit"
-                class="pull-right btn btn-default" /><i class="fa fa-pencil"></i> '.get_lang('Post').'</button>
+                class="pull-right btn btn-default" /><em class="fa fa-pencil"></em> '.get_lang('Post').'</button>
                 </form>';
         $formattedList .= '</div>';
 
@@ -1534,40 +1534,20 @@ class SocialManager extends UserManager
     }
 
     /**
-     * Get schedule html (with data openGrap)
-     * @param   string  $text       Content text
-     * @return  string  $newText    Content text with OpenGraph
-     */
-    public static function readContentWithOpenGraph($text)
-    {
-        // search link in first line
-        $regExUrl = "/(http|https)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/";
-        $newText = '';
-        if (preg_match($regExUrl, $text, $url)) {
-            // Comment this line to disable OpenGraph
-            $newText .= self::getHtmlByLink($url[0]);
-            // make the urls hyper links
-            //$newText .= preg_replace($regExUrl, "<a target=\"_blank\" href=" . $url[0] . ">".$url[0]."</a> ", $text);
-            
-        } else {
-            $newText = $text;
-        }
-        return $newText;
-    }
-
-    /**
-     * html with data OpenGrap
+     * get html data with OpenGrap passing the Url
      * @param $link url
      * @return string data html
      */
-    public static function getHtmlByLink($link)
+    public static function readContentWithOpenGraph($link)
     {
         $graph = OpenGraph::fetch($link);
+        if (!$graph) {
+            return false;
+        }
         $url = $graph->url;
         $image = $graph->image;
-        $domain = empty($url) ? '' : parse_url($url);
+        $domain = empty($url) ? parse_url($link) : parse_url($url);
         $domain = $domain['scheme'].'://'.$domain['host'];
-        $html = '';
         // Trick to verify if the Image Url Exist because of some bad metatag dev
         if (self::verifyUrl($image) == false){
             if (!($image[0] == '/')){
@@ -1577,11 +1557,12 @@ class SocialManager extends UserManager
         }
         $title = $graph->title;
         
-        $html .= '<div class="post-open-graph">';
-        $html .= '<h4><a target="_blank" href="'.$link.'">'.$title.'</a></h4>';
-        $html .= empty($image) ? '' : '<img alt="" src="'.$image.'" />';
-        $html .= empty($graph->description) ? '' : '<p class="description">'.$graph->description.'<a href="'.$link.'">'.$link.'</a></p>';
-        $html .= "</div>";
+        $html  = '<div class="thumbnail">';
+        $html .= '<a target="_blank" href="'.$link.'"><h3>'.$title.'</h3>';
+        $html .= empty($image) ? '' : '<img alt="" src="'.$image.'" /></a>';
+        $html .= empty($graph->description) ? '' : '<p class="description">'.$graph->description.'</p>';
+        $html .= '<a href="'.$link.'">'.$link.'</a>';
+        $html .= '</div>';
         return $html;
     }
 
@@ -1662,7 +1643,7 @@ class SocialManager extends UserManager
      * @param int $groupId Optional. Group ID
      * @return string The HTML code with the social block
      */
-    public static function setSocialUserBlock(Template $template, $userId, $groupBlock = '', $groupId = 0)
+    public static function setSocialUserBlock(Template $template, $userId, $groupBlock = '', $groupId = 0, $show_full_profile = true)
     {
         if (api_get_setting('allow_social_tool') != 'true') {
             return '';
@@ -1687,7 +1668,11 @@ class SocialManager extends UserManager
         $template->assign('social_avatar_block', $socialAvatarBlock);
         $template->assign('profile_edition_link', $profileEditionLink);
         //Added the link to export the vCard to the Template
-        $template->assign('vcard_user_link', $vCardUserLink);
+        
+        //If not friend $show_full_profile is False and the user can't see Email Address and Vcard Download Link
+        if ($show_full_profile) {
+            $template->assign('vcard_user_link', $vCardUserLink);
+        }
 
         if (api_get_setting('gamification_mode') === '1') {
             $gamificationPoints = GamificationUtils::getTotalUserPoints(
@@ -1765,7 +1750,7 @@ class SocialManager extends UserManager
             $friendHtml.='</ul>';
         } else {
             $friendHtml.= '<div class="">'.get_lang('NoFriendsInYourContactList').'<br />'
-                .'<a class="btn btn-primary" href="'.api_get_path(WEB_PATH).'whoisonline.php"><i class="fa fa-search"></i> '. get_lang('TryAndFindSomeFriends').'</a></div>';
+                .'<a class="btn btn-primary" href="'.api_get_path(WEB_PATH).'whoisonline.php"><em class="fa fa-search"></em> '. get_lang('TryAndFindSomeFriends').'</a></div>';
         }
 
         $friendHtml = Display::panel($friendHtml, get_lang('SocialFriend').' (' . $number_friends . ')' );
@@ -1830,7 +1815,7 @@ class SocialManager extends UserManager
             $friendHtml.='</div>';
         } else {
             $friendHtml.= '<div class="help">'.get_lang('NoFriendsInYourContactList').' '
-                .'<a href="'.api_get_path(WEB_PATH).'whoisonline.php"><i class="fa fa-search"></i> '. get_lang('TryAndFindSomeFriends').'</a></div>';
+                .'<a href="'.api_get_path(WEB_PATH).'whoisonline.php"><em class="fa fa-search"></em> '. get_lang('TryAndFindSomeFriends').'</a></div>';
         }
 
         return $friendHtml;
@@ -1839,31 +1824,35 @@ class SocialManager extends UserManager
     /**
      * @return string
      */
-    public static function getWallForm()
+    public static function getWallForm($show_full_profile = true)
     {
-        $form = new FormValidator(
-            'social_wall_main',
-            'post',
-            api_get_path(WEB_CODE_PATH).'social/profile.php',
-            null,
-            array('enctype' => 'multipart/form-data') ,
-            FormValidator::LAYOUT_HORIZONTAL    
-        );
+        if ($show_full_profile) {
+            $userId = isset($_GET['u']) ? '?u='.intval($_GET['u']) : '';
+            $form = new FormValidator(
+                'social_wall_main',
+                'post',
+                api_get_path(WEB_CODE_PATH).'social/profile.php'.$userId,
+                null,
+                array('enctype' => 'multipart/form-data') ,
+                FormValidator::LAYOUT_HORIZONTAL    
+            );
 
-        $form->addTextarea(
-            'social_wall_new_msg_main',
-            null,
-            [
-                'placeholder' => get_lang('SocialWallWhatAreYouThinkingAbout'),
-                'cols-size' => [1, 10, 1]
-            ]
-        );
-        $form->addHtml('<div class="url_preview"></div>');
-        $form->addHidden('url_content', '');
-        $form->addButtonSend(get_lang('Post'), null, false, ['cols-size' => [1, 10, 1]]);
-        $html = Display::panel($form->returnForm(), get_lang('SocialWall'));
+            $socialWallPlaceholder = isset($_GET['u']) ? get_lang('SocialWallWriteNewPostToFriend') : get_lang('SocialWallWhatAreYouThinkingAbout');
 
-        return $html;
+            $form->addTextarea(
+                'social_wall_new_msg_main',
+                null,
+                [
+                    'placeholder' => $socialWallPlaceholder,
+                    'cols-size' => [1, 10, 1]
+                ]
+            );
+            $form->addHidden('url_content', '');
+            $form->addButtonSend(get_lang('Post'), 'wall_post_button', false, ['cols-size' => [1, 10, 1]]);
+            $html = Display::panel($form->returnForm(), get_lang('SocialWall'));
+
+            return $html;
+        }
     }
 
     /**
@@ -1904,6 +1893,7 @@ class SocialManager extends UserManager
         $template = new Template(null, false, false, false, false, false);
         $template->assign('ranking', $ranking);
         $template->assign('skills', $skills);
+        $template->assign('user_id', $userId);
         $template->assign(
             'show_skills_report_link',
             api_is_student() || api_is_student_boss() || api_is_drh()

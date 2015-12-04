@@ -117,62 +117,62 @@ if (($search || $forceSearch) && ($search !== 'false')) {
     }
     $filters = isset($_REQUEST['filters']) && !is_array($_REQUEST['filters']) ? json_decode($_REQUEST['filters']) : false;
 
-    /*if (!empty($filters) && !empty($filters->rules)) {
-        $whereCondition .= ' AND ( ';
-        $counter = 0;
-        foreach ($filters->rules as $key => $rule) {
-            $whereCondition .= getWhereClause($rule->field, $rule->op, $rule->data);
-
-            if ($counter < count($filters->rules) -1) {
-                $whereCondition .= $filters->groupOp;
-            }
-            $counter++;
-        }
-        $whereCondition .= ' ) ';
-    }*/
-
-    // for now
     if (!empty($filters)) {
-        switch ($action) {
-            case 'get_questions':
-                $type = 'question';
-                break;
-            case 'get_sessions':
-                $type = 'session';
-                break;
+        if (in_array($action, ['get_questions', 'get_sessions'])) {
+            switch ($action) {
+                case 'get_questions':
+                    $type = 'question';
+                    break;
+                case 'get_sessions':
+                    $type = 'session';
+                    break;
+            }
+
+            if (!empty($type)) {
+                // Extra field.
+                $extraField = new ExtraField($type);
+                $result = $extraField->getExtraFieldRules($filters, 'extra_');
+                $extra_fields = $result['extra_fields'];
+                $condition_array = $result['condition_array'];
+
+                $extraCondition = '';
+                if (!empty($condition_array)) {
+                    $extraCondition = ' AND ( ';
+                    $extraCondition .= implode($filters->groupOp, $condition_array);
+                    $extraCondition .= ' ) ';
+                }
+
+                $whereCondition .= $extraCondition;
+
+                // Question field
+
+                $resultQuestion = $extraField->getExtraFieldRules($filters, 'question_');
+                $questionFields = $resultQuestion['extra_fields'];
+                $condition_array = $resultQuestion['condition_array'];
+
+                if (!empty($condition_array)) {
+                    $extraQuestionCondition = ' AND ( ';
+                    $extraQuestionCondition .= implode($filters->groupOp, $condition_array);
+                    $extraQuestionCondition .= ' ) ';
+                    // Remove conditions already added
+                    $extraQuestionCondition = str_replace($extraCondition, '', $extraQuestionCondition);
+                }
+
+                $whereCondition .= $extraQuestionCondition;
+            }
+        } elseif (!empty($filters->rules)) {
+            $whereCondition .= ' AND ( ';
+            $counter = 0;
+            foreach ($filters->rules as $key => $rule) {
+                $whereCondition .= getWhereClause($rule->field, $rule->op, $rule->data);
+
+                if ($counter < count($filters->rules) -1) {
+                    $whereCondition .= $filters->groupOp;
+                }
+                $counter++;
+            }
+            $whereCondition .= ' ) ';
         }
-
-        // Extra field.
-
-        $extraField = new ExtraField($type);
-        $result = $extraField->getExtraFieldRules($filters, 'extra_');
-        $extra_fields = $result['extra_fields'];
-        $condition_array = $result['condition_array'];
-
-        $extraCondition = '';
-        if (!empty($condition_array)) {
-            $extraCondition = ' AND ( ';
-            $extraCondition .= implode($filters->groupOp, $condition_array);
-            $extraCondition .= ' ) ';
-        }
-
-        $whereCondition .= $extraCondition;
-
-        // Question field
-
-        $resultQuestion = $extraField->getExtraFieldRules($filters, 'question_');
-        $questionFields = $resultQuestion['extra_fields'];
-        $condition_array = $resultQuestion['condition_array'];
-
-        if (!empty($condition_array)) {
-            $extraQuestionCondition = ' AND ( ';
-            $extraQuestionCondition .= implode($filters->groupOp, $condition_array);
-            $extraQuestionCondition .= ' ) ';
-            // Remove conditions already added
-            $extraQuestionCondition = str_replace($extraCondition, '', $extraQuestionCondition);
-        }
-
-        $whereCondition .= $extraQuestionCondition;
     }
 }
 
@@ -403,6 +403,11 @@ switch ($action) {
             $filter_user = intval($_GET['filter_by_user']);
             $whereCondition .= " AND te.exe_user_id  = '$filter_user'";
         }
+
+        if (!empty($whereCondition)) {
+            $whereCondition = " AND $whereCondition";
+        }
+
         $count = ExerciseLib::get_count_exam_results($exercise_id, $whereCondition);
         break;
     case 'get_hotpotatoes_exercise_results':
@@ -1505,19 +1510,19 @@ switch ($action) {
                 $group['users'] = count($obj->get_users_by_usergroup($group['id']));
                 if ($obj->usergroup_was_added_in_course($group['id'], $course_id)) {
                     $url  = 'class.php?action=remove_class_from_course&id='.$group['id'].'&'.api_get_cidreq();
-                    //$icon = Display::return_icon('delete.png', get_lang('Remove'));
-                    $class = 'btn btn-danger';
-                    $text = get_lang('Remove');
+                    $icon = Display::return_icon('delete.png', get_lang('Remove'));
+                    //$class = 'btn btn-danger';
+                    //$text = get_lang('Remove');
                 } else {
                     $url  = 'class.php?action=add_class_to_course&id='.$group['id'].'&'.api_get_cidreq().'&type=not_registered';
-                    $class = 'btn btn-primary';
-                    //$icon = Display::return_icon('add.png', get_lang('Add'));
-                    $text = get_lang('Add');
+                    //$class = 'btn btn-primary';
+                    $icon = Display::return_icon('add.png', get_lang('Add'));
+                    //$text = get_lang('Add');
                 }
 
                 switch ($group['group_type']) {
                     case 0:
-                        $group['group_type'] = Display::label(get_lang('Class'), 'info');
+                        $group['group_type'] = Display::label(get_lang('Class'), 'primary');
                         break;
                     case 1:
                         $group['group_type'] = Display::label(get_lang('Social'), 'success');
@@ -1528,7 +1533,7 @@ switch ($action) {
 
                 $group['status'] = $role;
 
-                $group['actions'] = Display::url($text, $url, ['class' => $class]);
+                $group['actions'] = Display::url($icon, $url);
                 $new_result[] = $group;
             }
             $result = $new_result;

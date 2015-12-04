@@ -310,7 +310,6 @@ class CourseManager
     {
         $courseInfo = api_get_course_info($course_code);
         $courseId = $courseInfo['real_id'];
-
         $result = Database::fetch_array(
             Database::query(
                 "SELECT status FROM " . Database::get_main_table(TABLE_MAIN_COURSE_USER) . "
@@ -1806,6 +1805,9 @@ class CourseManager
     {
         $courseInfo = api_get_course_info($course_code);
         $courseId = $courseInfo['real_id'];
+        if (empty($courseId)) {
+            return false;
+        }
 
         $sql = "SELECT DISTINCT
                     u.id as user_id,
@@ -1840,8 +1842,8 @@ class CourseManager
         $course_code,
         $separator = self::USER_SEPARATOR,
         $add_link_to_profile = false,
-        $orderList = false    
-    ) {     
+        $orderList = false
+    ) {
         $teacher_list = self::get_teacher_list_from_course_code($course_code);
         $teacher_string = '';
         $html = '';
@@ -1865,7 +1867,7 @@ class CourseManager
                 }
                 $list[] = $teacher_name;
             }
-            
+
             if (!empty($list)) {
                 if ($orderList === true){
                     $html .= '<ul class="user-teacher">';
@@ -1878,7 +1880,7 @@ class CourseManager
                 }
             }
         }
-        
+
         return $html;
     }
 
@@ -1943,7 +1945,7 @@ class CourseManager
         $courseId = null,
         $separator = self::USER_SEPARATOR,
         $add_link_to_profile = false,
-        $orderList = false    
+        $orderList = false
     ) {
         $coachs_course = self::get_coachs_from_course($session_id, $courseId);
         $course_coachs = array();
@@ -1966,7 +1968,7 @@ class CourseManager
             }
         }
         $coaches_to_string = null;
-        
+
         if (!empty($course_coachs)) {
             if ($orderList === true){
                 $html .= '<ul class="user-coachs">';
@@ -1977,9 +1979,9 @@ class CourseManager
             } else {
                 $coaches_to_string = array_to_string($course_coachs, $separator);
             }
-            
+
         }
-        
+
         return $html;
     }
 
@@ -2381,11 +2383,9 @@ class CourseManager
         if ($user_id != strval(intval($user_id))) {
             return false;
         }
-
         $courseId = intval($courseId);
         $information = api_get_course_info_by_id($courseId);
         $course_code = $information['code'];
-        $courseId = $information['id'];
 
         $student = api_get_user_info($user_id);
 
@@ -2416,7 +2416,7 @@ class CourseManager
                 $emailbody .= get_lang('LastName') . ': ' . $student['lastname'] . "\n";
                 $emailbody .= get_lang('FirstName') . ': ' . $student['firstname'] . "\n";
             }
-            $emailbody .= get_lang('Email') . ': ' . $student['email'] . "\n\n";
+            $emailbody .= get_lang('Email') . ': <a href="mailto:' . $student['email'] . '">' . $student['email'] ."</a>\n\n";
             $recipient_name = api_get_person_name($tutor['firstname'], $tutor['lastname'], null,
                 PERSON_NAME_EMAIL_ADDRESS);
             $sender_name = api_get_person_name(api_get_setting('administratorName'),
@@ -2429,7 +2429,6 @@ class CourseManager
                 'userUsername' => $student['username'],
                 'courseCode' => $course_code
             );
-
             api_mail_html(
                 $recipient_name,
                 $emailto,
@@ -2461,7 +2460,7 @@ class CourseManager
             if ($access_url_id != -1) {
                 $tbl_url_course = Database:: get_main_table(TABLE_MAIN_ACCESS_URL_REL_COURSE);
                 $join_access_url = "LEFT JOIN $tbl_url_course url_rel_course
-                                    ON url_rel_course.c_id = tcfv.c_id ";
+                                    ON url_rel_course.c_id = tcfv.item_id ";
                 $where_access_url = " AND access_url_id = $access_url_id ";
             }
         }
@@ -3115,9 +3114,10 @@ class CourseManager
      * @param   string  Course code
      * @param   string  File name
      * @param   string  The full system name of the image from which course picture will be created.
+     * @param   string $cropParameters Optional string that contents "x,y,width,height" of a cropped image format
      * @return  bool    Returns the resulting. In case of internal error or negative validation returns FALSE.
      */
-    public static function update_course_picture($course_code, $filename, $source_file = null)
+    public static function update_course_picture($course_code, $filename, $source_file = null, $cropParameters = null)
     {
         $course_info = api_get_course_info($course_code);
         // course path
@@ -3133,18 +3133,21 @@ class CourseManager
             unlink($course_medium_image);
         }
 
-        $my_course_image = new Image($source_file);
-        $result = $my_course_image->send_image($course_image, -1, 'png');
-        // Resize image to 100x85 (should be 85x85 but 100x85 visually gives
-        // better results for most images people put as course icon)
-        if ($result) {
-            $medium = new Image($course_image);
-            //$picture_infos = $medium->get_image_size();
-            $medium->resize(100, 85, 0, false);
-            $medium->send_image($store_path . '/course-pic85x85.png', -1, 'png');
-        }
+        //Crop the image to adjust 4:3 ratio
+        $image = new Image($source_file);
+        $image->crop($cropParameters);
+        
+        //Resize the images in two formats
+        $medium = new Image($source_file);
+        $medium->resize(85);
+        $medium->send_image($course_medium_image, -1, 'png');
+        $normal = new Image($source_file);
+        $normal->resize(300);
+        $normal->send_image($course_image, -1, 'png');
+        
+        $result = $medium && $normal;
 
-        return $result;
+        return $result ? $result : false;
     }
 
     /**
@@ -4617,40 +4620,44 @@ class CourseManager
 
             //Course visibility
             if ($access_link && in_array('register', $access_link)) {
-                $my_course['extra_info']['register_button'] = Display::url(get_lang('Subscribe'),
+                $my_course['extra_info']['register_button'] = Display::url(
+                    Display::returnFontAwesomeIcon('sign-in'),
                     api_get_path(WEB_COURSE_PATH) . $course_info['path'] . '/index.php?action=subscribe&sec_token=' . $stok,
-                    array('class' => 'btn btn-success btn-block btn-sm'));
+                    array('class' => 'btn btn-success btn-sm', 'title' => get_lang('Subscribe')));
             }
 
             if ($access_link && in_array('enter',
                     $access_link) || $course_info['visibility'] == COURSE_VISIBILITY_OPEN_WORLD
             ) {
-                $my_course['extra_info']['go_to_course_button'] = Display::url(get_lang('GoToCourse'),
+                $my_course['extra_info']['go_to_course_button'] = Display::url(
+                    Display::returnFontAwesomeIcon('share'),
                     api_get_path(WEB_COURSE_PATH) . $course_info['path'] . '/index.php',
-                    array('class' => 'btn btn-primary'));
+                    array('class' => 'btn btn-default btn-sm', 'title' => get_lang('GoToCourse')));
             }
 
             if ($access_link && in_array('unsubscribe', $access_link)) {
-                $my_course['extra_info']['unsubscribe_button'] = Display::url(get_lang('Unsubscribe'),
+                $my_course['extra_info']['unsubscribe_button'] = Display::url(
+                    Display::returnFontAwesomeIcon('sign-out'),
                     api_get_path(WEB_CODE_PATH) . 'auth/courses.php?action=unsubscribe&unsubscribe=' . $courseCode . '&sec_token=' . $stok . '&category_code=' . $categoryCode,
-                    array('class' => 'btn btn-primary'));
+                    array('class' => 'btn btn-danger btn-sm', 'title' => get_lang('Unreg')));
             }
 
             //Description
             $my_course['extra_info']['description_button'] = '';
-            if ($course_info['visibility'] == COURSE_VISIBILITY_OPEN_WORLD || in_array($course_info['real_id'],
+            /* if ($course_info['visibility'] == COURSE_VISIBILITY_OPEN_WORLD || in_array($course_info['real_id'],
                     $my_course_code_list)
-            ) {
+            ) { */
                 $my_course['extra_info']['description_button'] = Display::url(
-                    get_lang('Description'),
+                    Display::returnFontAwesomeIcon('info-circle'),
                     api_get_path(WEB_AJAX_PATH) . 'course_home.ajax.php?a=show_course_information&code=' . $course_info['code'],
                     [
-                        'class' => 'btn btn-default btn-sm btn-block ajax',
-                        'data-title' => get_lang('Description')
+                        'class' => 'btn btn-default btn-sm ajax',
+                        'data-title' => get_lang('Description'),
+                        'title' => get_lang('Description')
                     ]
                 );
-            }
-
+            //}
+            /* get_lang('Description') */
             $my_course['extra_info']['teachers'] = CourseManager::get_teacher_list_from_course_code_to_string($course_info['code']);
             $point_info = self::get_course_ranking($course_info['real_id'], 0);
             $my_course['extra_info']['rating_html'] = Display::return_rating_system('star_' . $course_info['real_id'],
@@ -4861,7 +4868,8 @@ class CourseManager
         $teachers,
         $deleteTeachersNotInList = true,
         $editTeacherInSessions = false,
-        $deleteSessionTeacherNotInList = false
+        $deleteSessionTeacherNotInList = false,
+        $teacherBackup = array()
     ) {
         if (empty($teachers)) {
             return false;
@@ -4903,6 +4911,14 @@ class CourseManager
                     $sql = 'UPDATE ' . $course_user_table . ' SET status = "1"
                             WHERE c_id = "' . $courseId . '" AND user_id = "' . $userId . '"  ';
                 } else {
+                    $userCourseCategory = '0';
+                    if (isset($teacherBackup[$userId]) &&
+                        isset($teacherBackup[$userId][$course_code])
+                    ) {
+                        $courseUserData = $teacherBackup[$userId][$course_code];
+                        $userCourseCategory = $courseUserData['user_course_cat'];
+                    }
+
                     $sql = "INSERT INTO " . $course_user_table . " SET
                             c_id = " . $courseId . ",
                             user_id = " . $userId . ",
@@ -4910,7 +4926,8 @@ class CourseManager
                             is_tutor = '0',
                             sort = '0',
                             relation_type = '0',
-                            user_course_cat='0'";
+                            user_course_cat = '$userCourseCategory'
+                    ";
                 }
                 Database::query($sql);
             }

@@ -29,7 +29,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * @ORM\HasLifecycleCallbacks
- * @ORM\Table(name="user")
+ * @ORM\Table(
+ *  name="user",
+ *  indexes={
+ *      @ORM\Index(name="status", columns={"status"})
+ *  }
+ * )
  * //Vich\Uploadable
  * @UniqueEntity("username")
  * @ORM\Entity(repositoryClass="Chamilo\UserBundle\Entity\Repository\UserRepository")
@@ -337,12 +342,9 @@ class User extends BaseUser //implements ParticipantInterface, ThemeUser
      **/
     protected $curriculumItems;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Chamilo\CoreBundle\Entity\AccessUrl")
-     * @ORM\JoinTable(
-     *      joinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="access_url_id", referencedColumnName="id")}
-     *      )
+    /*
+     * @ORM\OneToMany(targetEntity="Chamilo\CoreBundle\Entity\AccessUrlRelUser", mappedBy="user")
+     *
      */
     protected $portals;
 

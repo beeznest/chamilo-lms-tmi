@@ -85,7 +85,7 @@ $interbreadcrumb[] = array('url' => '#', "name" => $therow['name']);
 $lp_theme_css=$_SESSION['oLP']->get_theme();
 $show_learn_path = true;
 Display::display_header('', 'Path');
-$suredel = trim(get_lang('AreYouSureToDelete'));
+$suredel = trim(get_lang('AreYouSureToDeleteJS'));
 
 ?>
 <script type='text/javascript'>
@@ -147,7 +147,7 @@ echo '</div>';
 
 
 function show_block($link, $title, $subtitle, $icon) {
-    $html = '<li class="span4">';
+    $html = '<li class="col-md-4">';
         $html .=  '<div class="thumbnail">';
         $html .=  '<a href="'.$link.'" title="'.$title.'">';
         $html .=  Display::return_icon($icon, $title, array(), ICON_SIZE_BIG);

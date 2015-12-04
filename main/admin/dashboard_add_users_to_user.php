@@ -40,7 +40,9 @@ $userStatus = api_get_user_status($user_id);
 $firstLetterUser = isset($_POST['firstLetterUser']) ? $_POST['firstLetterUser'] : null;
 
 // setting the name of the tool
-if (UserManager::is_admin($user_id)) {
+$isAdmin = UserManager::is_admin($user_id);
+if ($isAdmin) {
+    $userStatus = PLATFORM_ADMIN;
     $tool_name= get_lang('AssignUsersToPlatformAdministrator');
 } else if ($user_info['status'] == SESSIONADMIN) {
     $tool_name= get_lang('AssignUsersToSessionsAdministrator');
@@ -59,7 +61,7 @@ if (!api_is_platform_admin()) {
     api_not_allowed(true);
 }
 
-function search_users($needle,$type)
+function search_users($needle, $type)
 {
     global $tbl_access_url_rel_user,  $tbl_user, $user_anonymous, $current_user_id, $user_id, $userStatus;
 
@@ -70,6 +72,8 @@ function search_users($needle,$type)
 
         switch ($userStatus) {
             case DRH:
+                //no break;
+            case PLATFORM_ADMIN:
                 $assigned_users_to_hrm = UserManager::get_users_followed_by_drh($user_id);
                 break;
             case STUDENT_BOSS:
@@ -284,9 +288,11 @@ if (isset($_POST['formSent']) && intval($_POST['formSent']) == 1) {
 
     switch ($userStatus) {
         case DRH:
+            //no break;
+        case PLATFORM_ADMIN:
             $affected_rows = UserManager::suscribe_users_to_hr_manager($user_id, $user_list);
             break;
-        case STUDENT_BOSS;
+        case STUDENT_BOSS:
             $affected_rows = UserManager::subscribeUsersToBoss($user_id, $user_list);
             break;
         default:
@@ -313,7 +319,7 @@ if ($userStatus != STUDENT_BOSS) {
     );
 }
 
-$actionsRight = Display::url('<i class="fa fa-search"></i> ' . get_lang('AdvancedSearch'), '#', array('class' => 'btn btn-default advanced_options', 'id' => 'advanced_search'));
+$actionsRight = Display::url('<em class="fa fa-search"></em> ' . get_lang('AdvancedSearch'), '#', array('class' => 'btn btn-default advanced_options', 'id' => 'advanced_search'));
 
 $toolbar = Display::toolbarAction('toolbar-dashboard', $content = array( 0 => $actionsLeft, 1 => $actionsRight ));
 echo $toolbar;
@@ -331,9 +337,11 @@ $assigned_users_to_hrm = array();
 
 switch ($userStatus) {
     case DRH:
+        //no break;
+    case PLATFORM_ADMIN:
         $assigned_users_to_hrm = UserManager::get_users_followed_by_drh($user_id);
         break;
-    case STUDENT_BOSS;
+    case STUDENT_BOSS:
         $assigned_users_to_hrm = UserManager::getUsersFollowedByStudentBoss($user_id);
         break;
 }
@@ -400,23 +408,7 @@ if(!empty($msg)) {
 <div class="row">
     <div class="col-md-4">
         <?php echo get_lang('UserListInPlatform') ?>
-        <?php if($add_type == 'multiple') { ?>
-            <div class="form-group">
-                <label class="col-sm-7 control-label"><?php echo get_lang('FirstLetterUser');?></label>
-                <div class="col-sm-5">
-                <select class="selectpicker show-tick form-control" name="firstLetterUser" onchange = "xajax_search_users(this.value,'multiple')">
-                    <option value="%">--</option>
-                    <?php echo Display::get_alphabet_options($firstLetterUser); ?>
-                </select>
-                </div>
-            </div>
-
-        <!-- <div class="form-group">
-            <input type="text" id="user_to_add" onkeyup="xajax_search_users(this.value,'single')" onclick="moveItem(document.getElementById('user_to_add'), document.getElementById('destination'))" />
-            <div id="ajax_list_users_single"></div>
-        </div> -->
-
-        <?php } ?>
+       
         <div class="form-group">
             <div class="col-sm-12">
                 <div id="ajax_list_users_multiple">
@@ -435,22 +427,41 @@ if(!empty($msg)) {
 
     </div>
     <div class="col-md-4">
+        <div class="code-course">
+            <?php if($add_type == 'multiple') { ?>
+                <p><?php echo get_lang('FirstLetterUser');?></p>
+                <select class="selectpicker show-tick form-control" name="firstLetterUser" onchange = "xajax_search_users(this.value,'multiple')">
+                    <option value="%">--</option>
+                    <?php echo Display::get_alphabet_options($firstLetterUser); ?>
+                </select>
+            <?php } ?>
+        </div>
+        <div class="control-course">
         <?php if ($ajax_search) { ?>
-            <button class="btn btn-primary" type="button" onclick="remove_item(document.getElementById('destination'))"></button>
+            <div class="separate-action">
+                <button class="btn btn-primary" type="button" onclick="remove_item(document.getElementById('destination'))"></button>
+            </div>
           <?php } else { ?>
-            <button class="btn btn-primary" type="button" onclick="moveItem(document.getElementById('origin'), document.getElementById('destination'))" onclick="moveItem(document.getElementById('origin'), document.getElementById('destination'))">
-                <i class="fa fa-chevron-right"></i>
+            <div class="separate-action">
+                <button class="btn btn-primary" type="button" onclick="moveItem(document.getElementById('origin'), document.getElementById('destination'))" onclick="moveItem(document.getElementById('origin'), document.getElementById('destination'))">
+                <em class="fa fa-chevron-right"></em>
             </button>
-            <br /><br />
-            <button class="btn btn-primary" type="button" onclick="moveItem(document.getElementById('destination'), document.getElementById('origin'))" onclick="moveItem(document.getElementById('destination'), document.getElementById('origin'))">
-                <i class="fa fa-chevron-left"></i>
-            </button>
+            </div>
+            <div class="separate-action">
+                <button class="btn btn-primary" type="button" onclick="moveItem(document.getElementById('destination'), document.getElementById('origin'))" onclick="moveItem(document.getElementById('destination'), document.getElementById('origin'))">
+                <em class="fa fa-chevron-left"></em>
+                </button>
+            </div>
+            
           <?php
           }
           ?>
-            <?php
+            <div class="separate-action">
+                <?php
 		echo '<button class="btn btn-success" type="button" value="" onclick="valide()" >'.$tool_name.'</button>';
             ?>
+            </div>
+        </div>
     </div>
     <div class="col-md-4">
         <?php

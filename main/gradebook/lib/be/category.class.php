@@ -22,6 +22,7 @@ class Category implements GradebookItem
     private $grade_model_id;
     private $generateCertificates;
     private $isRequirement;
+    public $studentList;
 
     /**
      * Consctructor
@@ -645,7 +646,7 @@ class Category implements GradebookItem
         $gradebookCategory->setGradeModelId($this->grade_model_id);
         $gradebookCategory->setIsRequirement($this->isRequirement);
 
-        $em->persist($gradebookCategory);
+        $em->merge($gradebookCategory);
         $em->flush();
 
         if (!empty($this->id)) {
@@ -866,109 +867,220 @@ class Category implements GradebookItem
         $course_code = '',
         $session_id = null
     ) {
-        // Get appropriate subcategories, evaluations and links
-        if (!empty($course_code)) {
-            $cats  = $this->get_subcategories($stud_id, $course_code, $session_id);
-            $evals = $this->get_evaluations($stud_id, false, $course_code);
-            $links = $this->get_links($stud_id, false, $course_code);
-        } else {
-            $cats  = $this->get_subcategories($stud_id);
-            $evals = $this->get_evaluations($stud_id);
-            $links = $this->get_links($stud_id);
-        }
-
-        // Calculate score
-        $rescount = 0;
-        $ressum = 0;
-        $weightsum = 0;
-        $bestResult = 0;
-        $students = [];
-
-        if (!empty($cats)) {
-            /** @var Category $cat */
-            foreach ($cats as $cat) {
-                $score = $cat->calc_score(
+        // Classic
+        if (!empty($stud_id) && $type == '') {
+            if (!empty($course_code)) {
+                $cats = $this->get_subcategories(
                     $stud_id,
-                    $type,
                     $course_code,
                     $session_id
                 );
+                $evals = $this->get_evaluations($stud_id, false, $course_code);
+                $links = $this->get_links($stud_id, false, $course_code);
+            } else {
+                $cats = $this->get_subcategories($stud_id);
+                $evals = $this->get_evaluations($stud_id);
+                $links = $this->get_links($stud_id);
+            }
 
-                if ($cat->get_weight() != 0) {
-                    $catweight = $cat->get_weight();
-                    $rescount++;
-                    $weightsum += $catweight;
-                }
+            // Calculate score
+            $count = 0;
+            $ressum = 0;
+            $weightsum = 0;
 
-                if (isset($score)) {
-                    $ressum += $score[0]/$score[1] * $catweight;
-                    $bestResult += $ressum;
+            if (!empty($cats)) {
+                /** @var Category $cat */
+                foreach ($cats as $cat) {
+                    $cat->setStudentList($this->getStudentList());
+                    $score = $cat->calc_score(
+                        $stud_id,
+                        null,
+                        $course_code,
+                        $session_id
+                    );
+
+                    $catweight = 0;
+                    if ($cat->get_weight() != 0) {
+                        $catweight = $cat->get_weight();
+                        $weightsum += $catweight;
+                    }
+
+                    if (isset($score) && !empty($score[1]) && !empty($catweight)) {
+                        $ressum += $score[0]/$score[1] * $catweight;
+                    }
                 }
             }
-        }
 
-        if (!empty($evals)) {
-            /** @var Evaluation $eval */
-            foreach ($evals as $eval) {
-                $evalres = $eval->calc_score($stud_id, $type);
-                $students[$stud_id] = $evalres[0];
-                if (isset($evalres) && $eval->get_weight() != 0) {
-                    $evalweight = $eval->get_weight();
-                    $weightsum += $evalweight;
-                    $rescount++;
-                    $ressum += $evalres[0] / $evalres[1] * $evalweight;
-                } else {
-                    if ($eval->get_weight() != 0) {
+            $students = array();
+
+            if (!empty($evals)) {
+                /** @var Evaluation $eval */
+                foreach ($evals as $eval) {
+                    $eval->setStudentList($this->getStudentList());
+                    $evalres = $eval->calc_score($stud_id, null);
+
+                    if (isset($evalres) && $eval->get_weight() != 0) {
                         $evalweight = $eval->get_weight();
                         $weightsum += $evalweight;
+                        $count++;
+                        if (!empty($evalres[1])) {
+                            $ressum += $evalres[0] / $evalres[1] * $evalweight;
+                        }
+                    } else {
+                        if ($eval->get_weight() != 0) {
+                            $evalweight = $eval->get_weight();
+                            $weightsum += $evalweight;
+                        }
                     }
                 }
             }
-        }
 
-        if (!empty($links)) {
-
-            $bestResult = 0;
-            $weight = 0;
-
-            /** @var EvalLink|ExerciseLink $link */
-           foreach ($links as $link) {
-                $linkres = $link->calc_score($stud_id, $type);
-                if (!empty($linkres) && $link->get_weight() != 0) {
-                    $students[$stud_id] = $linkres[0];
-                    $linkweight = $link->get_weight();
-                    $link_res_denom = $linkres[1] == 0 ? 1 : $linkres[1];
-                    $rescount++;
-                    $weightsum += $linkweight;
-                    $ressum += $linkres[0] / $link_res_denom * $linkweight;
-                } else {
-                    // Adding if result does not exists
-                    if ($link->get_weight() != 0) {
+            if (!empty($links)) {
+                /** @var EvalLink|ExerciseLink $link */
+                foreach ($links as $link) {
+                    $link->setStudentList($this->getStudentList());
+                    $linkres = $link->calc_score($stud_id, null);
+                    if (!empty($linkres) && $link->get_weight() != 0) {
+                        $students[$stud_id] = $linkres[0];
                         $linkweight = $link->get_weight();
+                        $link_res_denom = $linkres[1] == 0 ? 1 : $linkres[1];
+                        $count++;
                         $weightsum += $linkweight;
+                        $ressum += $linkres[0] / $link_res_denom * $linkweight;
+                    } else {
+                        // Adding if result does not exists
+                        if ($link->get_weight() != 0) {
+                            $linkweight = $link->get_weight();
+                            $weightsum += $linkweight;
+                        }
+                    }
+                }
+            }
+        } else {
+            if (!empty($course_code)) {
+                $cats = $this->get_subcategories(
+                    null,
+                    $course_code,
+                    $session_id
+                );
+                $evals = $this->get_evaluations(null, false, $course_code);
+                $links = $this->get_links(null, false, $course_code);
+            } else {
+                $cats = $this->get_subcategories(null);
+                $evals = $this->get_evaluations(null);
+                $links = $this->get_links(null);
+            }
+
+            // Calculate score
+            $count = 0;
+            $ressum = 0;
+            $weightsum = 0;
+            $bestResult = 0;
+
+            if (!empty($cats)) {
+                /** @var Category $cat */
+                foreach ($cats as $cat) {
+                    $cat->setStudentList($this->getStudentList());
+                    $score = $cat->calc_score(
+                        null,
+                        $type,
+                        $course_code,
+                        $session_id
+                    );
+
+                    $catweight = 0;
+                    if ($cat->get_weight() != 0) {
+                        $catweight = $cat->get_weight();
+                        $weightsum += $catweight;
+                    }
+
+                    if (isset($score) && !empty($score[1]) && !empty($catweight)) {
+                        $ressum += $score[0]/$score[1] * $catweight;
+
+                        if ($ressum > $bestResult) {
+                            $bestResult = $ressum;
+                        }
+                    }
+
+                }
+            }
+
+            if (!empty($evals)) {
+                /** @var Evaluation $eval */
+                foreach ($evals as $eval) {
+                    $evalres = $eval->calc_score(null, $type);
+                    $eval->setStudentList($this->getStudentList());
+
+                    if (isset($evalres) && $eval->get_weight() != 0) {
+                        $evalweight = $eval->get_weight();
+                        $weightsum += $evalweight;
+                        $count++;
+                        if (!empty($evalres[1])) {
+                            $ressum += $evalres[0] / $evalres[1] * $evalweight;
+                        }
+
+                        if ($ressum > $bestResult) {
+                            $bestResult = $ressum;
+                        }
+
+                    } else {
+                        if ($eval->get_weight() != 0) {
+                            $evalweight = $eval->get_weight();
+                            $weightsum += $evalweight;
+                        }
+                    }
+                }
+            }
+            if (!empty($links)) {
+                /** @var EvalLink|ExerciseLink $link */
+                foreach ($links as $link) {
+                    $link->setStudentList($this->getStudentList());
+                    $linkres = $link->calc_score($stud_id, $type);
+                    if (!empty($linkres) && $link->get_weight() != 0) {
+                        $students[$stud_id] = $linkres[0];
+                        $linkweight = $link->get_weight();
+                        $link_res_denom = $linkres[1] == 0 ? 1 : $linkres[1];
+
+                        $count++;
+                        $weightsum += $linkweight;
+                        $ressum += $linkres[0] / $link_res_denom * $linkweight;
+
+                        if ($ressum > $bestResult) {
+                            $bestResult = $ressum;
+                        }
+                    } else {
+                        // Adding if result does not exists
+                        if ($link->get_weight() != 0) {
+                            $linkweight = $link->get_weight();
+                            $weightsum += $linkweight;
+                        }
                     }
                 }
             }
         }
 
-        if ($rescount == 0) {
-            return null;
-        } else {
-            switch ($type) {
-                case 'best':
-                    return array($ressum, $weightsum);
-                    break;
-                case 'average':
-                    return array($ressum, $weightsum);
-                    break;
-                case 'ranking':
+        switch ($type) {
+            case 'best':
+                if (empty($bestResult)) {
                     return null;
-                    return AbstractLink::getCurrentUserRanking($stud_id, $students);
-                    break;
-                default:
-                    return array($ressum, $weightsum);
-                    break;
-            }
+                }
+                return array($bestResult, $weightsum);
+                break;
+            case 'average':
+                if (empty($ressum)) {
+                    return null;
+                }
+                return array($ressum, $weightsum);
+                break;
+            case 'ranking':
+                // category ranking is calculated in gradebook_data_generator.class.php
+                // function get_data
+                return null;
+                return AbstractLink::getCurrentUserRanking($stud_id, array());
+                break;
+            default:
+                return array($ressum, $weightsum);
+                break;
         }
     }
 
@@ -1781,6 +1893,7 @@ class Category implements GradebookItem
      */
     public static function register_user_certificate($category_id, $user_id)
     {
+        $courseId = api_get_course_int_id();
         $sessionId = api_get_session_id();
         // Generating the total score for a course
         $cats_course = Category::load(
@@ -1796,26 +1909,13 @@ class Category implements GradebookItem
         /** @var Category $category */
         $category = $cats_course[0];
 
-        if (!$category->getGenerateCertificates()) {
-
-            $skill = new Skill();
-            $skill->add_skill_to_user(
-                $user_id,
-                $category_id,
-                api_get_course_int_id(),
-                $sessionId
-            );
-
-            return false;
-        }
-
         //@todo move these in a function
         $sum_categories_weight_array = array();
         if (isset($cats_course) && !empty($cats_course)) {
             $categories = Category::load(null, null, null, $category_id);
             if (!empty($categories)) {
-                foreach ($categories as $category) {
-                    $sum_categories_weight_array[$category->get_id()] = $category->get_weight();
+                foreach ($categories as $subCategory) {
+                    $sum_categories_weight_array[$subCategory->get_id()] = $subCategory->get_weight();
                 }
             } else {
                 $sum_categories_weight_array[$category_id] = $cats_course[0]->get_weight();
@@ -1837,6 +1937,38 @@ class Category implements GradebookItem
 
         if (!self::userFinishedCourse($user_id, $cats_course[0])) {
             return false;
+        }
+
+        $skillToolEnabled = api_get_setting('allow_skills_tool') == 'true';
+        $userHasSkills = false;
+
+        if ($skillToolEnabled) {
+            if (!$category->getGenerateCertificates()) {
+                $skill = new Skill();
+                $skill->add_skill_to_user(
+                    $user_id,
+                    $category_id,
+                    $courseId,
+                    $sessionId
+                );
+            }
+
+            $objSkillRelUser = new SkillRelUser();
+            $userSkills = $objSkillRelUser->get_user_skills($user_id, $courseId, $sessionId);
+            $userHasSkills = !empty($userSkills);
+
+            if (!$category->getGenerateCertificates() && $userHasSkills) {
+                return [
+                    'badge_link' => Display::url(
+                        get_lang('DownloadBadges'),
+                        api_get_path(WEB_CODE_PATH) . "gradebook/get_badges.php?user=$user_id",
+                        array(
+                            'target' => '_blank',
+                            'class' => 'btn btn-default'
+                        )
+                    )
+                ];
+            }
         }
 
         $my_certificate = GradebookUtils::get_certificate_by_user_id(
@@ -1866,11 +1998,11 @@ class Category implements GradebookItem
                 $url = api_get_path(WEB_PATH) . 'certificates/index.php?id=' . $my_certificate['id'];
 
                 $certificates = Display::url(
-                    '&nbsp;'.get_lang('DownloadCertificate'),
+                    Display::returnFontAwesomeIcon('download').' '.get_lang('DownloadCertificate'),
                     $url,
                     array(
                         'target' => '_blank',
-                        'class' => 'btn btn-default'
+                        'class' => 'btn btn-sm btn-primary'
                     )
                 );
 
@@ -1896,23 +2028,15 @@ class Category implements GradebookItem
                     'pdf_url' => "$url&action=export"
                 );
 
-                if (api_get_setting('allow_skills_tool') == 'true') {
-                    $courseId = api_get_course_int_id();
-                    $sessionId = api_get_session_id();
-
-                    $objSkillRelUser = new SkillRelUser();
-                    $userSkills = $objSkillRelUser->get_user_skills($user_id, $courseId, $sessionId);
-
-                    if (!empty($userSkills)) {
-                        $html['badge_link'] = Display::url(
-                            get_lang('DownloadBadges'),
-                            api_get_path(WEB_CODE_PATH) . "gradebook/get_badges.php?user=$user_id",
-                            array(
-                                'target' => '_blank',
-                                'class' => 'btn'
-                            )
-                        );
-                    }
+                if ($skillToolEnabled && $userHasSkills) {
+                    $html['badge_link'] = Display::url(
+                        get_lang('DownloadBadges'),
+                        api_get_path(WEB_CODE_PATH) . "gradebook/get_badges.php?user=$user_id",
+                        array(
+                            'target' => '_blank',
+                            'class' => 'btn btn-default'
+                        )
+                    );
                 }
             }
             return $html;
@@ -2155,6 +2279,22 @@ class Category implements GradebookItem
                 'registered_at' => api_get_utc_datetime()
             ]
         );
+    }
+
+    /**
+     * @return array
+     */
+    public function getStudentList()
+    {
+        return $this->studentList;
+    }
+
+    /**
+     * @param array $list
+     */
+    public function setStudentList($list)
+    {
+        $this->studentList = $list;
     }
 
 }

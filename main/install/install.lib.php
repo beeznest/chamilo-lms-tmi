@@ -646,7 +646,7 @@ function display_language_selection()
             </div>
             <div class="col-sm-6">
                 <button type="submit" name="step1" class="btn btn-success" value="<?php echo get_lang('Next'); ?>">
-                    <i class="fa fa-forward"> </i>
+                    <em class="fa fa-forward"> </em>
                     <?php echo get_lang('Next'); ?></button>
             </div>
         </div>
@@ -741,10 +741,13 @@ function display_requirements(
                 <td class="requirements-item"><a href="http://php.net/manual/en/book.json.php" target="_blank">JSON</a> '.get_lang('support').'</td>
                 <td class="requirements-value">'.checkExtension('json', get_lang('Yes'), get_lang('No')).'</td>
             </tr>
-
              <tr>
                 <td class="requirements-item"><a href="http://php.net/manual/en/book.image.php" target="_blank">GD</a> '.get_lang('support').'</td>
                 <td class="requirements-value">'.checkExtension('gd', get_lang('Yes'), get_lang('ExtensionGDNotAvailable')).'</td>
+            </tr>
+            <tr>
+                <td class="requirements-item"><a href="http://php.net/manual/en/book.curl.php" target="_blank">cURL</a>'.get_lang('support').'</td>
+                <td class="requirements-value">'.checkExtension('curl', get_lang('Yes'), get_lang('No')).'</td>
             </tr>
 
             <tr>
@@ -763,14 +766,8 @@ function display_requirements(
                 <td class="requirements-item"><a href="http://xapian.org/" target="_blank">Xapian</a> '.get_lang('support').' ('.get_lang('Optional').')</td>
                 <td class="requirements-value">'.checkExtension('xapian', get_lang('Yes'), get_lang('No'), true).'</td>
             </tr>
-
-            <tr>
-                <td class="requirements-item"><a href="http://php.net/manual/en/book.curl.php" target="_blank">cURL</a> '.get_lang('support').' ('.get_lang('Optional').')</td>
-                <td class="requirements-value">'.checkExtension('curl', get_lang('Yes'), get_lang('No'), true).'</td>
-            </tr>
-
-          </table>';
-    echo '  </div>';
+        </table>';
+    echo '</div>';
     echo '</div>';
 
     // RECOMMENDED SETTINGS
@@ -988,11 +985,11 @@ function display_requirements(
                     </p>
                     <p>
                         <button type="submit" class="btn btn-default" name="step1" value="<?php echo get_lang('Back'); ?>" >
-                            <i class="fa fa-backward"> <?php echo get_lang('Back'); ?></i>
+                            <em class="fa fa-backward"> <?php echo get_lang('Back'); ?></em>
                         </button>
                         <input type="hidden" name="is_executable" id="is_executable" value="-" />
                         <button type="submit" class="btn btn-success" name="<?php echo (isset($_POST['step2_update_6']) ? 'step2_update_6' : 'step2_update_8'); ?>" value="<?php echo get_lang('Next'); ?> &gt;" >
-                            <i class="fa fa-forward"> </i> <?php echo get_lang('Next'); ?>
+                            <em class="fa fa-forward"> </em> <?php echo get_lang('Next'); ?>
                         </button>
                     </p>
                 </div>
@@ -1061,17 +1058,17 @@ function display_requirements(
         ?>
         <p align="center" style="padding-top:15px">
         <button type="submit" name="step1" class="btn btn-default" onclick="javascript: window.location='index.php'; return false;" value="<?php echo get_lang('Previous'); ?>" >
-            <i class="fa fa-backward"> </i> <?php echo get_lang('Previous'); ?>
+            <em class="fa fa-backward"> </em> <?php echo get_lang('Previous'); ?>
         </button>
         <button type="submit" name="step2_install" class="btn btn-success" value="<?php echo get_lang("NewInstallation"); ?>" <?php if ($error) echo 'disabled="disabled"'; ?> >
-            <i class="fa fa-forward"> </i> <?php echo get_lang('NewInstallation'); ?>
+            <em class="fa fa-forward"> </em> <?php echo get_lang('NewInstallation'); ?>
         </button>
         <input type="hidden" name="is_executable" id="is_executable" value="-" />
         <?php
         // Real code
         echo '<button type="submit" class="btn btn-default" name="step2_update_8" value="Upgrade from Chamilo 1.9.x"';
         if ($error) echo ' disabled="disabled"';
-        echo ' ><i class="fa fa-forward"> </i> '.get_lang('UpgradeFromLMS19x').'</button>';
+        echo ' ><em class="fa fa-forward"> </em> '.get_lang('UpgradeFromLMS19x').'</button>';
 
         echo '</p>';
     }
@@ -1101,18 +1098,19 @@ function display_license_agreement()
                     <?php echo get_lang('IAccept'); ?>
                 </label>
             </div>
+            <button type="submit" class="btn btn-default" name="step1" value="&lt; <?php echo get_lang('Previous'); ?>" >
+                <em class="fa fa-backward"> </em> <?php echo get_lang('Previous'); ?>
+            </button>
+            <input type="hidden" name="is_executable" id="is_executable" value="-" />
+            <button type="submit" class="btn btn-success" name="step3" onclick="javascript: if(!document.getElementById('accept_licence').checked) { alert('<?php echo get_lang('YouMustAcceptLicence')?>');return false;}" value="<?php echo get_lang('Next'); ?> &gt;" >
+                <em class="fa fa-forward"> </em> <?php echo get_lang('Next'); ?>
+            </button>
+
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
             <p class="alert alert-info"><?php echo get_lang('LMSMediaLicense'); ?></p>
-            <button type="submit" class="btn btn-default" name="step1" value="&lt; <?php echo get_lang('Previous'); ?>" >
-                <i class="fa fa-backward"> </i> <?php echo get_lang('Previous'); ?>
-            </button>
-            <input type="hidden" name="is_executable" id="is_executable" value="-" />
-            <button type="submit" class="btn btn-success" name="step3" onclick="javascript: if(!document.getElementById('accept_licence').checked) { alert('<?php echo get_lang('YouMustAcceptLicence')?>');return false;}" value="<?php echo get_lang('Next'); ?> &gt;" >
-                <i class="fa fa-forward"> </i> <?php echo get_lang('Next'); ?>
-            </button>
         </div>
     </div>
 
@@ -1146,15 +1144,15 @@ function get_contact_registration_form()
     <div id="div_sent_information"></div>
     <div class="form-group">
             <label class="col-sm-3"><span class="form_required">*</span>'.get_lang('Name').'</label>
-            <div class="col-sm-9"><input id="person_name" type="text" name="person_name" size="30" /></div>
+            <div class="col-sm-9"><input id="person_name" class="form-control" type="text" name="person_name" size="30" /></div>
     </div>
     <div class="form-group">
             <label class="col-sm-3"><span class="form_required">*</span>'.get_lang('Email').'</label>
-            <div class="col-sm-9"><input id="person_email" type="text" name="person_email" size="30" /></div>
+            <div class="col-sm-9"><input id="person_email" class="form-control" type="text" name="person_email" size="30" /></div>
     </div>
     <div class="form-group">
             <label class="col-sm-3"><span class="form_required">*</span>'.get_lang('CompanyName').'</label>
-            <div class="col-sm-9"><input id="company_name" type="text" name="company_name" size="30" /></div>
+            <div class="col-sm-9"><input id="company_name" class="form-control" type="text" name="company_name" size="30" /></div>
     </div>
     <div class="form-group">
             <label class="col-sm-3"><span class="form_required">*</span>'.get_lang('CompanyActivity').'</label>
@@ -1207,7 +1205,7 @@ function get_contact_registration_form()
     <div class="form-group">
             <label class="col-sm-3">'.get_lang('CompanyCity').'</label>
             <div class="col-sm-9">
-                    <input type="text" id="company_city" name="company_city" size="30" />
+                    <input type="text" class="form-control" id="company_city" name="company_city" size="30" />
             </div>
     </div>
     <div class="form-group">
@@ -1234,14 +1232,22 @@ function get_contact_registration_form()
     <div class="form-group">
             <label class="col-sm-3">'.get_lang('HaveYouThePowerToTakeFinancialDecisions').'</label>
             <div class="col-sm-9">
-                    <input type="radio" name="financial_decision" id="financial_decision1" value="1" checked />'.get_lang('Yes').'
-                    <input type="radio" name="financial_decision" id="financial_decision2" value="0" />'.get_lang('No').'
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="financial_decision" id="financial_decision1" value="1" checked /> ' . get_lang('Yes') . '
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="financial_decision" id="financial_decision2" value="0" /> '.get_lang('No').'
+                    </label>
+                </div>
             </div>
     </div>
     <div class="clear"></div>
     <div class="form-group">
             <div class="col-sm-3">&nbsp;</div>
-            <div class="col-sm-9"><button type="button" class="btn btn-default" onclick="javascript:send_contact_information();" value="'.get_lang('SendInformation').'" ><i class="fa fa-floppy-o"> </i> '.get_lang('SendInformation').'</button></div>
+            <div class="col-sm-9"><button type="button" class="btn btn-default" onclick="javascript:send_contact_information();" value="'.get_lang('SendInformation').'" ><em class="fa fa-floppy-o"></em> '.get_lang('SendInformation').'</button></div>
     </div>
     <div class="form-group">
             <div class="col-sm-3">&nbsp;</div>
@@ -1287,7 +1293,7 @@ function displayDatabaseParameter(
             echo '<input type="hidden" name="'.$formFieldName.'" id="'.$formFieldName.'" value="'.api_htmlentities($parameterValue).'" />';
             echo api_htmlentities($parameterValue);
         } else {
-            echo '<div class="col-sm-5"><input type="'.$inputType.'" size="'.DATABASE_FORM_FIELD_DISPLAY_LENGTH.'" maxlength="'.$maxLength.'" name="'.$formFieldName.'" id="'.$formFieldName.'" value="'.api_htmlentities($parameterValue).'" />'."</div>";
+            echo '<div class="col-sm-5"><input type="' . $inputType . '" class="form-control" size="' . DATABASE_FORM_FIELD_DISPLAY_LENGTH . '" maxlength="' . $maxLength . '" name="' . $formFieldName . '" id="' . $formFieldName . '" value="' . api_htmlentities($parameterValue) . '" />' . "</div>";
             echo '<div class="col-sm-3">' . $extra_notice . '</div>';
         }
 
@@ -1346,7 +1352,7 @@ function display_database_settings_form(
             <div class="col-sm-3"></div>
             <?php }else{ ?>
             <div class="col-sm-5">
-                <input type="text" size="25" maxlength="50" name="dbHostForm" value="<?php echo htmlentities($dbHostForm); ?>" />
+                <input type="text" class="form-control" size="25" maxlength="50" name="dbHostForm" value="<?php echo htmlentities($dbHostForm); ?>" />
             </div>
             <div class="col-sm-3"><?php echo get_lang('EG').' localhost'; ?></div>
             <?php } ?>
@@ -1360,7 +1366,7 @@ function display_database_settings_form(
             <div class="col-sm-3"></div>
             <?php }else{ ?>
             <div class="col-sm-5">
-                <input type="text" size="25" maxlength="50" name="dbPortForm" value="<?php echo htmlentities($dbPortForm); ?>" />
+                <input type="text" class="form-control" size="25" maxlength="50" name="dbPortForm" value="<?php echo htmlentities($dbPortForm); ?>" />
             </div>
             <div class="col-sm-3"><?php echo get_lang('EG').' 3306'; ?></div>
             <?php } ?>
@@ -1404,7 +1410,7 @@ function display_database_settings_form(
             <div class="col-sm-3"></div>
             <div class="col-sm-9">
             <button type="submit" class="btn btn-primary" name="step3" value="step3">
-                <i class="fa fa-refresh"> </i>
+                <em class="fa fa-refresh"> </em>
                 <?php echo get_lang('CheckDatabaseConnection'); ?>
             </button>
             </div>
@@ -1457,18 +1463,18 @@ function display_database_settings_form(
    <div class="form-group">
        <div class="col-sm-6">
            <button type="submit" name="step2" class="btn btn-default pull-right" value="&lt; <?php echo get_lang('Previous'); ?>" >
-               <i class="fa fa-backward"> </i> <?php echo get_lang('Previous'); ?>
+               <em class="fa fa-backward"> </em> <?php echo get_lang('Previous'); ?>
            </button>
        </div>
       <div class="col-sm-6">
        <input type="hidden" name="is_executable" id="is_executable" value="-" />
        <?php if ($manager) { ?>
            <button type="submit"  class="btn btn-success" name="step4" value="<?php echo get_lang('Next'); ?> &gt;" >
-               <i class="fa fa-forward"> </i> <?php echo get_lang('Next'); ?>
+               <em class="fa fa-forward"> </em> <?php echo get_lang('Next'); ?>
            </button>
        <?php } else { ?>
            <button disabled="disabled" type="submit" class="btn btn-success disabled" name="step4" value="<?php echo get_lang('Next'); ?> &gt;" >
-               <i class="fa fa-forward"> </i> <?php echo get_lang('Next'); ?>
+               <em class="fa fa-forward"> </em> <?php echo get_lang('Next'); ?>
            </button>
        <?php } ?>
       </div>
@@ -1714,11 +1720,11 @@ function display_configuration_settings_form(
  ?>
     <div class='form-group'>
         <div class="col-sm-6">
-            <button type="submit" class="btn btn-default pull-right" name="step3" value="&lt; <?php echo get_lang('Previous'); ?>" ><i class="fa fa-backward"> </i> <?php echo get_lang('Previous'); ?></button>
+            <button type="submit" class="btn btn-default pull-right" name="step3" value="&lt; <?php echo get_lang('Previous'); ?>" ><em class="fa fa-backward"> </em> <?php echo get_lang('Previous'); ?></button>
             <input type="hidden" name="is_executable" id="is_executable" value="-" />
         </div>
         <div class="col-sm-6">
-            <button class="btn btn-success" type="submit" name="step5" value="<?php echo get_lang('Next'); ?> &gt;" ><i class="fa fa-forward"> </i> <?php echo get_lang('Next'); ?></button>
+            <button class="btn btn-success" type="submit" name="step5" value="<?php echo get_lang('Next'); ?> &gt;" ><em class="fa fa-forward"> </em> <?php echo get_lang('Next'); ?></button>
         </div>
     </div>
 
@@ -2012,36 +2018,36 @@ function migrate($chamiloVersion, EntityManager $manager)
         $version->getMigration()->setEntityManager($manager);
     }
 
-    $to = null;
-    // Retrieve SQL queries that should be run to migrate you schema to $to version,
-    // if $to == null - schema will be migrated to latest version
-    $versions = $migration->getSql($to);
+    $to = null; // if $to == null then schema will be migrated to latest version
 
-    if ($debug) {
-        $nl = '<br>';
-        foreach ($versions as $version => $queries) {
-            echo 'VERSION: '.$version.$nl;
-            echo '----------------------------------------------'.$nl.$nl;
-            foreach ($queries as $query) {
-                echo $query.$nl;
-            }
-            echo $nl.$nl;
-        }
-    }
+    echo "<pre>";
 
     try {
         // Execute migration!
-        $migration->migrate($to);
+        $migratedSQL = $migration->migrate($to);
+
         if ($debug) {
-            echo 'DONE'.$nl;
+            foreach ($migratedSQL as $version => $sqlList) {
+                echo "VERSION: $version<br>";
+                echo "----------------------------------------------<br>";
+
+                foreach ($sqlList as $sql) {
+                    echo "<code>$sql</code><br>";
+                }
+            }
+
+            echo "<br>DONE!<br>";
         }
+
         return true;
     } catch (Exception $ex) {
         if ($debug) {
-            echo 'ERROR: '.$ex->getMessage().$nl;
+            echo "ERROR: {$ex->getMessage()}<br>";
             return false;
         }
     }
+
+    echo "</pre>";
 
     return false;
 }
@@ -2058,8 +2064,20 @@ function fixIds(EntityManager $em)
 
     if ($debug) {
         error_log('fixIds');
-        error_log('Update tools');
     }
+
+    // Create temporary indexes to increase speed of the following operations
+    // Adding and removing indexes will usually take much less time than
+    // the execution without indexes of the queries in this function, particularly
+    // for large tables
+    $sql = "ALTER TABLE c_document ADD INDEX tmpidx_doc(c_id, id)";
+    $connection->executeQuery($sql);
+    $sql = "ALTER TABLE c_student_publication ADD INDEX tmpidx_stud (c_id, id)";
+    $connection->executeQuery($sql);
+    $sql = "ALTER TABLE c_quiz ADD INDEX tmpidx_quiz (c_id, id)";
+    $connection->executeQuery($sql);
+    $sql = "ALTER TABLE c_item_property ADD INDEX tmpidx_ip (to_group_id)";
+    $connection->executeQuery($sql);
 
     $sql = "SELECT * FROM c_lp_item";
     $result = $connection->fetchAll($sql);
@@ -2192,70 +2210,88 @@ function fixIds(EntityManager $em)
     if ($debug) {
         error_log('update c_item_property');
     }
-    $sql = "SELECT * FROM c_item_property";
-    $result = $connection->fetchAll($sql);
+
+    $sql = "SELECT * FROM course";
+    $courseList = $connection->fetchAll($sql);
+    if ($debug) {
+        error_log('Getting course list');
+    }
+
+    $totalCourse = count($courseList);
     $counter = 0;
-    error_log("Items to process: ".count($result));
 
-    foreach ($result as $item) {
-        $courseId = $item['c_id'];
-        $sessionId = intval($item['session_id']);
-        $groupId = intval($item['to_group_id']);
-        $iid = $item['iid'];
-        $ref = $item['ref'];
+    foreach ($courseList as $courseData) {
+        $courseId = $courseData['id'];
+        if ($debug) {
+            error_log('Updating course: '.$courseData['code']);
+        }
 
-        // Fix group id
+        $sql = "SELECT * FROM c_item_property WHERE c_id = $courseId";
+        $result = $connection->fetchAll($sql);
 
-        if (!empty($groupId)) {
-            $sql = "SELECT * FROM c_group_info
-                    WHERE c_id = $courseId AND id = $groupId";
-            $data = $connection->fetchAssoc($sql);
-            if (!empty($data)) {
-                $newGroupId = $data['iid'];
-                $sql = "UPDATE c_item_property SET to_group_id = $newGroupId
-                        WHERE iid = $iid";
-                $connection->executeQuery($sql);
-            } else {
-                // The group does not exists clean this record
-                $sql = "DELETE FROM c_item_property WHERE iid = $iid";
+        foreach ($result as $item) {
+            //$courseId = $item['c_id'];
+            $sessionId = intval($item['session_id']);
+            $groupId = intval($item['to_group_id']);
+            $iid = $item['iid'];
+            $ref = $item['ref'];
+
+            // Fix group id
+            if (!empty($groupId)) {
+                $sql = "SELECT * FROM c_group_info
+                        WHERE c_id = $courseId AND id = $groupId";
+                $data = $connection->fetchAssoc($sql);
+                if (!empty($data)) {
+                    $newGroupId = $data['iid'];
+                    $sql = "UPDATE c_item_property SET to_group_id = $newGroupId
+                            WHERE iid = $iid";
+                    $connection->executeQuery($sql);
+                } else {
+                    // The group does not exists clean this record
+                    $sql = "DELETE FROM c_item_property WHERE iid = $iid";
+                    $connection->executeQuery($sql);
+                }
+            }
+
+            $sql = '';
+            $newId = '';
+            switch ($item['tool']) {
+                case TOOL_LINK:
+                    $sql = "SELECT * FROM c_link WHERE c_id = $courseId AND id = $ref ";
+                    break;
+                case TOOL_STUDENTPUBLICATION:
+                    $sql = "SELECT * FROM c_student_publication WHERE c_id = $courseId AND id = $ref";
+                    break;
+                case TOOL_QUIZ:
+                    $sql = "SELECT * FROM c_quiz WHERE c_id = $courseId AND id = $ref";
+                    break;
+                case TOOL_DOCUMENT:
+                    $sql = "SELECT * FROM c_document WHERE c_id = $courseId AND id = $ref";
+                    break;
+                case TOOL_FORUM:
+                    $sql = "SELECT * FROM c_forum_forum WHERE c_id = $courseId AND id = $ref";
+                    break;
+                case 'thread':
+                    $sql = "SELECT * FROM c_forum_thread WHERE c_id = $courseId AND id = $ref";
+                    break;
+            }
+
+            if (!empty($sql) && !empty($newId)) {
+                $data = $connection->fetchAssoc($sql);
+                if (isset($data['iid'])) {
+                    $newId = $data['iid'];
+                }
+                $sql = "UPDATE c_item_property SET ref = $newId WHERE iid = $iid";
+                error_log($sql);
                 $connection->executeQuery($sql);
             }
-        }
 
-        $sql = '';
-        $newId = '';
-        switch ($item['tool']) {
-            case TOOL_LINK:
-                $sql = "SELECT * FROM c_link WHERE c_id = $courseId AND id = $ref ";
-                break;
-            case TOOL_STUDENTPUBLICATION:
-                $sql = "SELECT * FROM c_student_publication WHERE c_id = $courseId AND id = $ref";
-                break;
-            case TOOL_QUIZ:
-                $sql = "SELECT * FROM c_quiz WHERE c_id = $courseId AND id = $ref";
-                break;
-            case TOOL_DOCUMENT:
-                $sql = "SELECT * FROM c_document WHERE c_id = $courseId AND id = $ref";
-                break;
-            case TOOL_FORUM:
-                $sql = "SELECT * FROM c_forum_forum WHERE c_id = $courseId AND id = $ref";
-                break;
-            case 'thread':
-                $sql = "SELECT * FROM c_forum_thread WHERE c_id = $courseId AND id = $ref";
-                break;
-        }
-
-        if (!empty($sql) && !empty($newId)) {
-            $data = $connection->fetchAssoc($sql);
-            if (isset($data['iid'])) {
-                $newId = $data['iid'];
+            if ($debug) {
+                // Print a status in the log once in a while
+                error_log("Process item #$counter/$totalCourse");
             }
-            $sql = "UPDATE c_item_property SET ref = $newId WHERE iid = $iid";
-            error_log($sql);
-            $connection->executeQuery($sql);
+            $counter++;
         }
-        error_log("Process item #$counter");
-        $counter++;
     }
 
     if ($debug) {
@@ -2291,7 +2327,7 @@ function fixIds(EntityManager $em)
                 //$sql = "SELECT * FROM c_document WHERE c_id = $courseId AND id = $ref";
                 break;
             case LINK_FORUM_THREAD:
-                $sql = "SELECT * FROM c_forum_thread WHERE c_id = $courseId AND id = $ref";
+                $sql = "SELECT * FROM c_forum_thread WHERE c_id = $courseId AND thread_id = $ref";
                 break;
         }
 
@@ -2316,12 +2352,29 @@ function fixIds(EntityManager $em)
 
     $oldGroups = array();
 
-    if (!empty($groups )) {
+    if (!empty($groups)) {
         foreach ($groups as $group) {
+            if (empty($group['name'])) {
+                continue;
+            }
+
+            /*$group['description'] = Database::escape_string($group['description']);
+            $group['name'] = Database::escape_string($group['name']);
             $sql = "INSERT INTO usergroup (name, group_type, description, picture, url, visibility, updated_at, created_at)
                     VALUES ('{$group['name']}', '1', '{$group['description']}', '{$group['picture_uri']}', '{$group['url']}', '{$group['visibility']}', '{$group['updated_on']}', '{$group['created_on']}')";
-
-            $connection->executeQuery($sql);
+            */
+            $params = [
+                'name' => $group['name'],
+                'description' => $group['description'],
+                'group_type' => 1,
+                'picture' => $group['picture_uri'],
+                'url' => $group['url'],
+                'visibility' => $group['visibility'],
+                'updated_at' => $group['updated_on'],
+                'created_at' => $group['created_on']
+            ];
+            $connection->insert('usergroup', $params);
+            //$connection->executeQuery($sql);
             $id = $connection->lastInsertId('id');
             $oldGroups[$group['id']] = $id;
         }
@@ -2333,8 +2386,8 @@ function fixIds(EntityManager $em)
                 $oldId,
                 'system'
             );
-            if (!empty($path)) {
 
+            if (!empty($path)) {
                 $newPath = str_replace(
                     "groups/$oldId/",
                     "groups/$newId/",
@@ -2384,7 +2437,7 @@ function fixIds(EntityManager $em)
             foreach ($dataList as $data) {
                 if (isset($oldGroups[$data['group_id']])) {
                     // Deleting relation
-                    $sql = "DELETE FROM announcement_rel_group WHERE id = {$data['id']}";
+                    $sql = "DELETE FROM announcement_rel_group WHERE group_id = {$data['group_id']}";
                     $connection->executeQuery($sql);
 
                     // Add new relation
@@ -2429,10 +2482,16 @@ function fixIds(EntityManager $em)
     foreach ($extraFieldTables as $type => $table) {
         //continue;
         $sql = "SELECT * FROM $table ";
+        if ($debug) {
+            error_log($sql);
+        }
         $result = $connection->query($sql);
         $fields = $result->fetchAll();
 
         foreach ($fields as $field) {
+            if ($debug) {
+                error_log("Loading field: ".$field['field_variable']);
+            }
             $originalId = $field['id'];
             $extraField = new ExtraField();
             $extraField
@@ -2450,6 +2509,7 @@ function fixIds(EntityManager $em)
             $em->flush();
 
             $values = array();
+            $handlerId = null;
             switch ($type) {
                 case ExtraField::USER_FIELD_TYPE:
                     $optionTable = Database::get_main_table(
@@ -2481,7 +2541,6 @@ function fixIds(EntityManager $em)
             }
 
             if (!empty($optionTable)) {
-
                 $sql = "SELECT * FROM $optionTable WHERE field_id = $originalId ";
                 $result = $connection->query($sql);
                 $options = $result->fetchAll();
@@ -2500,20 +2559,61 @@ function fixIds(EntityManager $em)
                 $sql = "SELECT * FROM $valueTable WHERE field_id = $originalId ";
                 $result = $connection->query($sql);
                 $values = $result->fetchAll();
+                if ($debug) {
+                    error_log("Fetch all values for field");
+                }
             }
 
             if (!empty($values)) {
+                if ($debug) {
+                    error_log("Saving field value in new table");
+                }
+                $k = 0;
                 foreach ($values as $value) {
-                    $extraFieldValue = new ExtraFieldValues();
-                    $extraFieldValue
-                        ->setValue($value['field_value'])
-                        ->setField($extraField)
-                        ->setItemId($value[$handlerId]);
-                    $em->persist($extraFieldValue);
-                    $em->flush();
+                    if (isset($value[$handlerId])) {
+                        /*
+                        $extraFieldValue = new ExtraFieldValues();
+                        $extraFieldValue
+                            ->setValue($value['field_value'])
+                            ->setField($extraField)
+                            ->setItemId($value[$handlerId]);
+                        $em->persist($extraFieldValue);
+                        $em->flush();
+                        */
+                        // Insert without the use of the entity as it reduces
+                        // speed to 2 records per second (much too slow)
+                        $params = [
+                            'field_id' => $extraField->getId(),
+                            'value' => $value['field_value'],
+                            'item_id' => $value[$handlerId]
+                        ];
+                        $connection->insert('extra_field_values', $params);
+                        if ($debug && ($k % 10000 == 0)) {
+                            error_log("Saving field $k");
+                        }
+                        $k++;
+                    }
                 }
             }
         }
+    }
+
+    if ($debug) {
+        error_log('Remove index');
+    }
+
+    // Drop temporary indexes added to increase speed of this function's queries
+    $sql = "ALTER TABLE c_document DROP INDEX tmpidx_doc";
+    $connection->executeQuery($sql);
+    $sql = "ALTER TABLE c_student_publication DROP INDEX tmpidx_stud";
+    $connection->executeQuery($sql);
+    $sql = "ALTER TABLE c_quiz DROP INDEX tmpidx_quiz";
+    $connection->executeQuery($sql);
+    $sql = "ALTER TABLE c_item_property DROP INDEX tmpidx_ip";
+    $connection->executeQuery($sql);
+
+    if ($debug) {
+        error_log('Finish fixId function');
     }
 }
 

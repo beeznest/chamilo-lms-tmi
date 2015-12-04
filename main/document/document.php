@@ -433,7 +433,7 @@ switch ($action) {
         $fileInfo = pathinfo($file);
         if ($fileInfo['extension'] == $formatTarget) {
             Display::addFlash(Display::return_message(
-                get_lang('ErrorSameFormat'),
+                get_lang('ConversionToSameFileFormat'),
                 'warning'
             ));
         } elseif (
@@ -456,7 +456,7 @@ switch ($action) {
             )
         ) {
             Display::addFlash(Display::return_message(
-                get_lang('FormatNotSupported'),
+                get_lang('FileFormatNotSupported'),
                 'warning'
             ));
         } else {
@@ -685,7 +685,7 @@ $tool_visibility = $tool_row['visibility'];*/
 
 $htmlHeadXtra[] = '<script>
 function confirmation (name) {
-    if (confirm(" '.get_lang('AreYouSureToDelete').' "+ name + " ?")) {
+    if (confirm(" '.get_lang('AreYouSureToDeleteJS').' "+ name + " ?")) {
         return true;
     } else {
         return false;
@@ -1356,18 +1356,32 @@ if ($is_allowed_to_edit ||
         $document_id_for_template = intval($_GET['add_as_template']);
 
         // Create the form that asks for the directory name
-        $templateForm .= '<form name="set_document_as_new_template" enctype="multipart/form-data" action="'.api_get_self().'?add_as_template='.$document_id_for_template.'" method="post">';
-        $templateForm .= '<input type="hidden" name="curdirpath" value="'.$curdirpath.'" />';
-        $templateForm .= '<table><tr><td>';
-        $templateForm .= get_lang('TemplateName').' : </td>';
-        $templateForm .= '<td><input type="text" name="template_title" /></td></tr>';
-        //$templateForm .= '<tr><td>'.get_lang('TemplateDescription').' : </td>';
-        //$templateForm .= '<td><textarea name="template_description"></textarea></td></tr>';
-        $templateForm .= '<tr><td>'.get_lang('TemplateImage').' : </td>';
-        $templateForm .= '<td><input type="file" name="template_image" id="template_image" /></td></tr>';
-        $templateForm .= '</table>';
-        $templateForm .= '<button type="submit" class="btn-default" name="create_template">'.get_lang('CreateTemplate').'</button>';
-        $templateForm .= '</form>';
+        $templateForm .= '
+            <form name="set_document_as_new_template" class="form-horizontal" enctype="multipart/form-data" action="' . api_get_self() . '?add_as_template=' . $document_id_for_template . '" method="post">
+                <fieldset>
+                    <legend>' . get_lang('AddAsTemplate') . '</legend>
+                    <div class="form-group">
+                        <label for="template_title" class="col-sm-2 control-label">' . get_lang('TemplateName') . '</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="template_title" name="template_title">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="template_image" class="col-sm-2 control-label">' . get_lang('TemplateImage') . '</label>
+                        <div class="col-sm-10">
+                            <input type="file" name="template_image" id="template_image">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" name="create_template" class="btn btn-primary">' . get_lang('CreateTemplate') . '</button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="curdirpath" value="' . $curdirpath . '" />
+                </fieldset>
+            </form>
+            <hr>
+        ';
     } elseif (isset($_GET['add_as_template']) && isset($_POST['create_template'])) {
 
         $document_id_for_template = intval($_GET['add_as_template']);
@@ -1416,7 +1430,7 @@ if ($is_allowed_to_edit ||
 
         DocumentManager::set_document_as_template(
             $title,
-            $description,
+            '',
             $document_id_for_template,
             $course_code,
             $user_id,
@@ -2008,40 +2022,42 @@ if (!empty($table_footer)) {
 
 echo '
     <div id="convertModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header" style="text-align: center;">
-            <button type="button" class="close" data-dismiss="modal">
-              <span aria-hidden="true">&times;</span>
-              <span class="sr-only">' . get_lang('Close') . '</span>
-            </button>
-            <h4 class="modal-title">' . get_lang('PleaseSelectConvertFormat') . '</h4>
-          </div>
-          <div class="modal-body" style="text-align: center;">
-            <p>' . get_lang('ConvertFormats') . '&hellip;</p>
-            <select id="convertSelect" class="input-lg text-center">
-                <option value="">
-                    ' . get_lang('SelectConvertFormat') . '
-                </option>
-                <option value="pdf">
-                    PDF - Portable Document File
-                </option>
-                <option value="odt" style="display:none;" class="textFormatType">
-                    ODT - Open Document Text
-                </option>
-                <option value="odp" style="display:none;" class="presentationFormatType">
-                    ODP - Open Document Portable
-                </option>
-                <option value="ods" style="display:none;" class="spreadsheetFormatType">
-                    ODS - Open Document Spreadsheet
-                </option>
-            </select>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">' . get_lang('Close') . '</button>
-          </div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="text-align: center;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="' . get_lang('Close') . '">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">' . get_lang('Convert') . '</h4>
+            </div>
+            <div class="modal-body">
+              <form action="#" class="form-horizontal">
+                  <div class="form-group">
+                      <label class="col-sm-4 control-label" for="convertSelect">' . get_lang('ConvertFormats') . '</label>
+                      <div class="col-sm-8">
+                          <select id="convertSelect">
+                              <option value="">' . get_lang('Select') . '</option>
+                              <option value="pdf">
+                                  PDF - Portable Document File
+                              </option>
+                              <option value="odt" style="display:none;" class="textFormatType">
+                                  ODT - Open Document Text
+                              </option>
+                              <option value="odp" style="display:none;" class="presentationFormatType">
+                                  ODP - Open Document Portable
+                              </option>
+                              <option value="ods" style="display:none;" class="spreadsheetFormatType">
+                                  ODS - Open Document Spreadsheet
+                              </option>
+                          </select>
+                      </div>
+                  </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">' . get_lang('Close') . '</button>
+            </div>
         </div>
-      </div>
     </div>';
 
 // Footer

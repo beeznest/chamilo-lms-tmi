@@ -569,12 +569,12 @@ class GroupPortalManager
 
         $sql = "SELECT
                     picture_uri as image,
-                    u.user_id,
+                    u.id,
                     u.firstname,
                     u.lastname,
                     relation_type
     		    FROM $tbl_user u INNER JOIN $table_group_rel_user gu
-    			ON (gu.user_id = u.user_id)
+    			ON (gu.user_id = u.id)
     			WHERE
     			    gu.group_id= $group_id
     			    $where_relation_condition
@@ -584,10 +584,10 @@ class GroupPortalManager
         $array = array();
         while ($row = Database::fetch_array($result, 'ASSOC')) {
             if ($with_image) {
-                $picture = UserManager::getUserPicture($row['user_id']);
+                $picture = UserManager::getUserPicture($row['id']);
                 $row['image'] = '<img src="'.$picture.'" />';
             }
-            $array[$row['user_id']] = $row;
+            $array[$row['id']] = $row;
         }
 
         return $array;
@@ -607,17 +607,17 @@ class GroupPortalManager
         if (empty($group_id)) {
             return array();
         }
-        $sql = "SELECT u.user_id, u.firstname, u.lastname, relation_type
+        $sql = "SELECT u.id, u.firstname, u.lastname, relation_type
                 FROM $tbl_user u
                 INNER JOIN $table_group_rel_user gu
-                ON (gu.user_id = u.user_id)
+                ON (gu.user_id = u.id)
                 WHERE gu.group_id= $group_id
                 ORDER BY relation_type, firstname";
 
         $result = Database::query($sql);
         $array = array();
         while ($row = Database::fetch_array($result, 'ASSOC')) {
-            $array[$row['user_id']] = $row;
+            $array[$row['id']] = $row;
         }
         return $array;
     }
@@ -1256,7 +1256,7 @@ class GroupPortalManager
                 break;
             case GROUP_USER_PERMISSION_HRM:
                 $relation_group_title = get_lang('IAmAHRM');
-                $links .= '<li><a href="'.api_get_path(WEB_CODE_PATH).'social/message_for_group_form.inc.php?view_panel=1&height=400&width=610&&user_friend='.api_get_user_id().'&group_id='.$group_id.'&action=add_message_group" class="ajax" data-title="'.get_lang('ComposeMessage').' title="'.get_lang('ComposeMessage').'">'.Display::return_icon('compose_message.png', get_lang('NewTopic'), array('hspace' => '6')).'<span class="social-menu-text4" >'.get_lang('NewTopic').'</span></a></li>';
+                $links .= '<li><a href="'.api_get_path(WEB_CODE_PATH).'social/message_for_group_form.inc.php?view_panel=1&height=400&width=610&&user_friend='.api_get_user_id().'&group_id='.$group_id.'&action=add_message_group" class="ajax" data-size="lg" data-title="'.get_lang('ComposeMessage').' title="'.get_lang('ComposeMessage').'">'.Display::return_icon('compose_message.png', get_lang('NewTopic'), array('hspace' => '6')).'<span class="social-menu-text4" >'.get_lang('NewTopic').'</span></a></li>';
                 $links .= '<li><a href="group_view.php?id='.$group_id.'">'.Display::return_icon('message_list.png', get_lang('MessageList'), array('hspace' => '6')).'<span class="'.($show == 'messages_list' ? 'social-menu-text-active' : 'social-menu-text4').'" >'.get_lang('MessageList').'</span></a></li>';
                 $links .= '<li><a href="group_invitation.php?id='.$group_id.'">'.Display::return_icon('invitation_friend.png', get_lang('InviteFriends'), array('hspace' => '6')).'<span class="'.($show == 'invite_friends' ? 'social-menu-text-active' : 'social-menu-text4').'" >'.get_lang('InviteFriends').'</span></a></li>';
                 $links .= '<li><a href="group_members.php?id='.$group_id.'">'.Display::return_icon('member_list.png', get_lang('MemberList'), array('hspace' => '6')).'<span class="'.($show == 'member_list' ? 'social-menu-text-active' : 'social-menu-text4').'" >'.get_lang('MemberList').'</span></a></li>';

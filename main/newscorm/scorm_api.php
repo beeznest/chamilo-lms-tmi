@@ -1363,6 +1363,26 @@ function update_progress_bar(nbr_complete, nbr_total, mode) {
 }
 
 /**
+ * Update the gamification values (number of stars and score)
+ */
+function updateGamificationValues() {
+    var fetchValues = $.ajax('<?php echo api_get_path(WEB_AJAX_PATH) ?>lp.ajax.php', {
+        dataType: 'json',
+        data: {
+            a: 'update_gamification'
+        }
+    });
+
+    $.when(fetchValues).done(function (values) {
+        if (values.stars > 0) {
+            $('#scorm-gamification .fa-star:nth-child(' + values.stars + ')').addClass('level');
+        }
+
+        $('#scorm-gamification .col-xs-4').text(values.score);
+    });
+}
+
+/**
  * Analyses the variables that have been modified through this SCO's life and
  * put them into an array for later shipping to lp_ajax_save_item.php
  * @return  array   Array of SCO variables
@@ -2170,48 +2190,130 @@ function attach_glossary_into_scorm(type) {
             });
         }
 
-if (type == 'fix_links') {
-$(document).ready(function() {
-var objects = $("iframe").contents().find('object');
+        if (type == 'fix_links') {
+            $(document).ready(function() {
+                var objects = $("iframe").contents().find('object');
 
-var pathname = location.pathname;
-var coursePath = pathname.substr(0, pathname.indexOf('/main/'));
-var url = "http://"+location.host + coursePath+"/courses/proxy.php?";
+                var pathname = location.pathname;
+                var coursePath = pathname.substr(0, pathname.indexOf('/main/'));
+                var url = "http://"+location.host + coursePath+"/courses/proxy.php?";
 
-objects.each(function (value, obj) {
+                objects.each(function (value, obj) {
+                    var dialogId = this.id +'_dialog';
+                    var openerId = this.id +'_opener';
 
-var dialogId = this.id +'_dialog';
-var openerId = this.id +'_opener';
+                    var link = '<a id="'+openerId+'" href="#" class="generated btn">'+
+                        '<div style="text-align: center"><img src="<?php echo api_get_path(WEB_CODE_PATH).'img/play-circle-8x.png'; ?>"/><br />If video does not work, try clicking here.</div></a>';
+                    var embed = $("iframe").contents().find("#"+this.id).find('embed').first();
 
-var link = '<a id="'+openerId+'" href="#" class="btn">'+
-    '<div style="text-align: center"><img src="<?php echo api_get_path(WEB_CODE_PATH).'img/play-circle-8x.png'; ?>"/><br />If video does not work, try clicking here.</div></a>';
-var embed = $("iframe").contents().find("#"+this.id).find('embed').first();
+                    var hasHttp = embed.attr('src').indexOf("http");
 
-var height = embed.attr('height');
-var width = embed.attr('width');
-var src = embed.attr('src').replace('https', 'http');
+                    if (hasHttp < 0) {
+                        return true;
+                    }
 
-var completeUrl =  url + 'width='+embed.attr('width')+
-'&height='+height+
-'&id='+this.id+
-'&flashvars='+encodeURIComponent(embed.attr('flashvars'))+
-'&src='+src+
-'&width='+width;
+                    var height = embed.attr('height');
+                    var width = embed.attr('width');
+                    var src = embed.attr('src').replace('https', 'http');
 
-var iframe = '<iframe ' +
-'style="border: 0px;"  width="100%" height="100%" ' +
-'src="'+completeUrl+
-'">' +
-'</iframe>';
+                    var completeUrl =  url + 'width='+embed.attr('width')+
+                        '&height='+height+
+                        '&id='+this.id+
+                        '&flashvars='+encodeURIComponent(embed.attr('flashvars'))+
+                        '&src='+src+
+                        '&width='+width;
 
+                    var iframe = '<iframe ' +
+                        'style="border: 0px;"  width="100%" height="100%" ' +
+                        'src="'+completeUrl+
+                        '">' +
+                        '</iframe>';
 
-$("iframe").contents().find("#"+this.id).append('<br />' + link);
-$("iframe").contents().find('#' + openerId).click(function() {
-var w = window.open(completeUrl, "Video", "width="+width+", "+"height="+height+"");
-w = window.document.title = 'Video';
-});
-});
-});
-}
+                    $("iframe").contents().find("#"+this.id).append(link + '<br />');
+                    $("iframe").contents().find('#' + openerId).click(function() {
+                        var w = window.open(completeUrl, "Video", "width="+width+", "+"height="+height+"");
+                        w = window.document.title = 'Video';
+                    });
+                });
+
+                var iframes = $("iframe").contents().find('iframe');
+
+                iframes.each(function (value, obj) {
+                    var randLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                    var uniqid = randLetter + Date.now();
+                    var openerId = uniqid +'_opener';
+                    var link = '<a id="'+openerId+'" class="generated" href="#">Open website <img src="<?php echo api_get_path(WEB_CODE_PATH).'img/link-external.png'; ?>"/></a>';
+                    var embed = $(this);
+                    var height = embed.attr('height');
+                    var width = embed.attr('width');
+                    var src = embed.attr('src');
+                    var completeUrl =  url + 'width='+embed.attr('width')+
+                        '&height='+height+
+                        '&type=iframe'+
+                        '&id='+uniqid+
+                        '&src='+src+
+                        '&width='+width;
+                    var result = $("iframe").contents().find('#'+openerId);
+
+                    var n = src.indexOf("youtube.com");
+                    if (n > 0) {
+                        return true;
+                    }
+
+                    if (result.length == 0) {
+                        if (embed.prev().attr('class') != 'generated') {
+                            $(this).parent().prepend(link + '<br />');
+                            $("iframe").contents().find('#' + openerId).click(function() {
+                                width = 1280;
+                                height = 640;
+                                var win = window.open(completeUrl, "Video", "width=" + width + ", " + "height=" + height + "");
+                                win.document.title = 'Video';
+                            });
+                        }
+                    }
+                });
+
+                var anchors = $("iframe").contents().find('a').not('.generated');
+                anchors.each(function (value, obj) {
+                    if ($(this).next().attr('class') != 'generated') {
+                        var content = $(this).html();
+                        content = content.replace('<br />', '');
+                        content = content.replace('<br>', '');
+                        content = $.trim(content);
+                        if (content == '') {
+                            return true;
+                        }
+
+                        if ($(this).attr('href')) {
+                            var hasLocalhost = $(this).attr('href').indexOf(location.host);
+                            if (hasLocalhost > 0) {
+                                return true;
+                            }
+
+                            var hasJs = $(this).attr('href').indexOf('javascript');
+                            if (hasJs >= 0) {
+                                return true;
+                            }
+                        }
+
+                        if ($(this).attr('class')) {
+                            var hasAccordion = $(this).attr('class').indexOf('accordion-toggle');
+                            if (hasAccordion >= 0) {
+                                return true;
+                            }
+                        }
+
+                        var src = $(this).attr('href');
+                        src = url+'&type=link&src='+src;
+                        src = src.replace('https', 'http');
+                        $(this).attr('href', src);
+                        var myAnchor = $('<a><img src="<?php echo api_get_path(WEB_CODE_PATH).'img/link-external.png'; ?>"/></a>').attr("href", src).attr('target', '_blank').attr('class', 'generated');
+                        $(this).after(myAnchor);
+                        $(this).after('-');
+                    }
+                });
+            });
+        }
+
     }
 }

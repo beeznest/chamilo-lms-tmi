@@ -2299,7 +2299,7 @@ class SurveyUtil
                     array_push($chartData, array('option' => $optionText, 'votes' => $votes));
                 }
                 $chartContainerId = 'chartContainer'.$question['question_id'];
-                echo '<div id="'.$chartContainerId.'" class="span12">';
+                echo '<div id="'.$chartContainerId.'" class="col-md-12">';
                 echo self::drawChart($chartData, false, $chartContainerId);
 
                 // displaying the table: headers
@@ -2446,7 +2446,7 @@ class SurveyUtil
                 );
             }
         }
-        echo '<div id="chartContainer" class="span12">';
+        echo '<div id="chartContainer" class="col-md-12">';
         echo self::drawChart($chartData, true);
         echo '</div>';
 
@@ -3517,7 +3517,7 @@ class SurveyUtil
                 }
             }
             $tableHtml .=  '</table>';
-            echo '<div id="chartContainer" class="span12">';
+            echo '<div id="chartContainer" class="col-md-12">';
             echo self::drawChart($chartData, true);
             echo '</div>';
             echo $tableHtml;
@@ -4905,5 +4905,52 @@ class SurveyUtil
                 </script>';
         }
         return $htmlChart;
+    }
+
+    /**
+     * Set a flag to the current survey as answered by the current user
+     * @param string $surveyCode The survey code
+     * @param int $courseId The course ID
+     */
+    public static function flagSurveyAsAnswered($surveyCode, $courseId)
+    {
+        $currenUserId = api_get_user_id();
+        $flag = sprintf("%s-%s-%d", $courseId, $surveyCode, $currenUserId);
+
+        if (!isset($_SESSION['filled_surveys'])) {
+            $_SESSION['filled_surveys'] = array();
+        }
+
+        $_SESSION['filled_surveys'][] = $flag;
+    }
+
+    /**
+     * Check whether a survey was answered by the current user
+     * @param string $surveyCode The survey code
+     * @param int $courseId The course ID
+     * @return boolean
+     */
+    public static function isSurveyAnsweredFlagged($surveyCode, $courseId)
+    {
+        $currenUserId = api_get_user_id();
+        $flagToCheck = sprintf("%s-%s-%d", $courseId, $surveyCode, $currenUserId);
+
+        if (!isset($_SESSION['filled_surveys'])) {
+            return false;
+        }
+
+        if (!is_array($_SESSION['filled_surveys'])) {
+            return false;
+        }
+
+        foreach ($_SESSION['filled_surveys'] as $flag) {
+            if ($flagToCheck != $flag) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
