@@ -11,16 +11,21 @@
                 <dd>{{ user.email}}</dd>
                 <dt>{{ "Password" | get_lang }}</dt>
                 <dd>*********</dd>
+                
                 {% for extra_field in user.extra %}
+                    {% if extra_field.value.getValue() != '' and extra_field.value.getValue() != 'true' %}
                     <dt>{{ extra_field.value.getField().getDisplayText() }}</dt>
                     <dd>
+                        
                         {% if extra_field.option %}
                             {{ extra_field.option.getDisplayText() }}
                         {% else %}
                             {{ extra_field.value.getValue() }}
                         {% endif %}
                     </dd>
+                    {% endif %}
                 {% endfor %}
+                
             </dl>
             <div class="tool-profile">
                 <a href="{{ profile_edition_link }}" class="btn btn-press btn-sm">{{ "EditProfile" | get_lang }}</a>
