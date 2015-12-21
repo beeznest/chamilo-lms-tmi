@@ -208,7 +208,7 @@
                     <div class="social-share">
                         <div class="heading"><h4>¡{{ "ShareWithYourFriends"|get_lang }}!</h4></div>
                         <div class="panel-body">
-                            <div class="icons-social text-center">
+                            <div class="icons-social">
                                 <a href="https://www.facebook.com/sharer/sharer.php?{{ {'u': pageUrl}|url_encode }}" target="_blank"  class="btn-social">
                                     <i class="fa fa-facebook"></i>
                                 </a>
