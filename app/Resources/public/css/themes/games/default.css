@@ -15,7 +15,7 @@ body{
 }
 #footer{
   width: 100%;
-  height: 170px;
+  height: 175px;
   margin: -170px auto 0;
   position: absolute;
   line-height: 25px;
@@ -69,6 +69,9 @@ body{
 #view_as_link{
   padding-top: 5px;
   padding-right: 5px;
+}
+#slider-sessions{
+    margin-bottom: 50px !important;
 }
 .my-courses-ranking .title-course,
 #slider-sessions .title-course{
