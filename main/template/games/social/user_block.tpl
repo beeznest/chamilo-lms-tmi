@@ -13,7 +13,8 @@
                 <dd>*********</dd>
                 
                 {% for extra_field in user.extra %}
-                    {% if extra_field.value.getValue() != '' and extra_field.value.getValue() != 'true' %}
+                    
+                    {% if extra_field.value.field.visible == true %}
                     <dt>{{ extra_field.value.getField().getDisplayText() }}</dt>
                     <dd>
                         
