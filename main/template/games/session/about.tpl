@@ -68,7 +68,7 @@
             <div class="{{ course_video ? 'col-sm-6 col-md-5' : 'col-sm-12' }}">
                 <div class="block">
                     <div class="description-course">
-                        <i class="fa fa-square"></i>
+                        
                         {{ course_data.description.getContent }}
                     </div>
 
