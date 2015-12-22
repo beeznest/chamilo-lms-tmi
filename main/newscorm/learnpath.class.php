@@ -5869,7 +5869,7 @@ class learnpath
                                 'comments-o',
                                 'success',
                                 [
-                                    'title' => get_lang('CreateForum'),
+                                    'title' => get_lang('DissociateForumToLPItem'),
                                     'class' => 'lp-btn-dissociate-forum'
                                 ]
                             );
