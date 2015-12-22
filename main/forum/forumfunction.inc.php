@@ -3532,6 +3532,7 @@ function display_user_image($user_id, $name, $origin = '', $attributes = array()
     $userInfo = api_get_user_info($user_id);
     $link = '<a href="'.$userInfo['profile_url'].'" '.(!empty($origin) ? 'target="_self"' : '').'>';
     if ($user_id != 0) {
+        $attributes['class'] = isset($attributes['class']) ? $attributes['class'] : null;
 
         return $link.'<img src="'.$userInfo['avatar'].'"  alt="'.$name.'"  title="'.$name.'"  class="'. $attributes['class'] .'" /></a>';
     } else {
