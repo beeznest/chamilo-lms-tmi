@@ -5863,7 +5863,7 @@ class learnpath
                                 'success',
                                 [
                                     'title' => get_lang('CreateForum'),
-                                    'class' => 'disabled'
+                                    'class' => 'disabled lp-btn-dissociate-forum'
                                 ]
                             );
                         } else {
@@ -5879,7 +5879,10 @@ class learnpath
                                 $forumIconUrl,
                                 'comments-o',
                                 'default',
-                                ['title' => get_lang('CreateForum')]
+                                [
+                                    'title' => get_lang('CreateForum'),
+                                    'class' => 'lp-btn-associate-forum'
+                                ]
                             );
                         }
                     } else {
