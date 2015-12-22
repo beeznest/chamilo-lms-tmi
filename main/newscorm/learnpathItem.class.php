@@ -4496,4 +4496,31 @@ class learnpathItem
         return $threadId;
     }
 
+    /**
+     * Allow dissociate a forum to this LP item
+     * @param int $threadIid The thread id
+     * @return boolean
+     */
+    public function dissociateForumThread($threadIid)
+    {
+        $threadIid = intval($threadIid);
+        $em = Database::getManager();
+
+        $forumThread = $em->find('ChamiloCourseBundle:CForumThread', $threadIid);
+
+        if (!$forumThread) {
+            return false;
+        }
+
+        $forumThread->setThreadTitle(
+            "{$this->get_title()}-{$this->db_id}"
+        );
+        $forumThread->setLpItemId(0);
+
+        $em->persist($forumThread);
+        $em->flush();
+
+        return true;
+    }
+
 }

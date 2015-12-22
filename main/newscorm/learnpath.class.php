@@ -5856,14 +5856,21 @@ class learnpath
                             $this->course_int_id,
                             $this->lp_session_id
                         )) {
+                            $forumIconUrl = api_get_self() . '?'
+                                . api_get_cidreq() . '&'
+                                . http_build_query([
+                                    'action' => 'dissociate_forum',
+                                    'id' => $arrLP[$i]['id'],
+                                    'lp_id' => $this->lp_id
+                                ]);
                             $forumIcon .= Display::toolbarButton(
                                 null,
-                                '#',
+                                $forumIconUrl,
                                 'comments-o',
                                 'success',
                                 [
                                     'title' => get_lang('CreateForum'),
-                                    'class' => 'disabled lp-btn-dissociate-forum'
+                                    'class' => 'lp-btn-dissociate-forum'
                                 ]
                             );
                         } else {
