@@ -1,5 +1,5 @@
-<p>{{ 'Dear' }} {{ complete_user_name }}</p>
-<p>Para modificar la contraseña de tu cuenta de DUHEM, sólo tienes que hacer clic en el enlace que aparece a continuación, que te dirigirá a una página web en la que puedes establecer una contraseña nueva.
+<p>{{ 'Hi' }} {{ complete_user_name }}</p>
+<p>Para modificar la contraseña de tu cuenta de Tademi, sólo tienes que hacer clic en el enlace que aparece a continuación, que te dirigirá a una página web en la que puedes establecer una contraseña nueva.
     Ten en cuenta que el enlace caducará transcurrida 1 hora desde el envío de este correo electrónico.</p>
 <p><a href="{{ link }}">{{ link }}</a></p>
 <p>Si no has solicitado cambiar tu contraseña, no te preocupes, tu cuenta sigue siendo segura y no hemos facilitado los datos de acceso a nadie.
@@ -8,4 +8,6 @@
 <p>¡Que tengas un buen día!</p>
 <p>Atte.</p>
 <p>{{ 'XTeam'|get_lang|format(_s.site_name) }}</p>
+<p>Rio de la Plata 167 Of. 503</p>
+<p>San Isidro - Lima, Perú</p>
 <p>{{ _admin.telephone }}</p>
