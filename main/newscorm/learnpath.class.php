@@ -5939,12 +5939,14 @@ class learnpath
             }
             if ($update_audio != 'true') {
                 $row = "$move_icon $icon " . Display::span($title_cut);
-                $row .= Display::span(
+                $row .= Display::tag(
+                    'div',
                     "$audio $edit_icon $forumIcon $prerequisities_icon $move_item_icon $audio_icon $delete_icon",
                     array('class' => 'button_actions btn-group btn-group-xs')
                 );
             } else {
-                $row = Display::span("$title $icon ") . Display::span(
+                $row = Display::span("$title $icon ") . Display::tag(
+                    'div',
                     $audio,
                     array('class' => 'button_actions btn-group btn-group-xs')
                 );

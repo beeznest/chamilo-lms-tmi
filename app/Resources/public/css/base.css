@@ -1738,6 +1738,7 @@ div.admin_section h4 {
 }
 
 #lp_item_list .item_data {
+    clear: both;
     padding:5px 0px 5px 0px;
     /* float:left;*/
 }
