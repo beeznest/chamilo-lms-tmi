@@ -4452,7 +4452,7 @@ class learnpathItem
                     'ft.c_id = ? AND ' => intval($lpCourseId),
                     '(ft.lp_item_id = ? OR (ft.thread_title = ? AND ft.lp_item_id = ?))' => [
                         intval($this->db_id),
-                        "{$this->title}-{$this->db_id}",
+                        "{$this->title} - {$this->db_id}",
                         intval($this->db_id)
                     ]
                 ]
@@ -4479,7 +4479,7 @@ class learnpathItem
         $em = Database::getManager();
         $threadRepo = $em->getRepository('ChamiloCourseBundle:CForumThread');
         $forumThread = $threadRepo->findOneBy([
-            'threadTitle' => "{$this->title}-{$this->db_id}",
+            'threadTitle' => "{$this->title} - {$this->db_id}",
             'forumId' => intval($currentForumId)
         ]);
 
@@ -4492,7 +4492,7 @@ class learnpathItem
                     'forum_id' => intval($currentForumId),
                     'thread_id' => 0,
                     'gradebook' => 0,
-                    'post_title' => "{$this->name}-{$this->db_id}",
+                    'post_title' => "{$this->name} - {$this->db_id}",
                     'post_text' => $this->description,
                     'category_id' => 1,
                     'numeric_calification' => 0,
@@ -4531,7 +4531,7 @@ class learnpathItem
         }
 
         $forumThread->setThreadTitle(
-            "{$this->get_title()}-{$this->db_id}"
+            "{$this->get_title()} - {$this->db_id}"
         );
         $forumThread->setLpItemId(0);
 
