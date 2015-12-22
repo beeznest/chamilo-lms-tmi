@@ -107,6 +107,44 @@ function confirmation(name) {
         return false;
     }
 }
+
+jQuery(document).ready(function(){
+    jQuery('.scrollbar-inner').scrollbar();
+});
+
+$(document).ready(function() {
+    $("#doc_form").removeClass( "col-md-8" ).addClass( "col-md-7" );
+    
+    $("#hide_bar_template").click(function() {
+        $("#lp_sidebar").toggleClass("hide");
+        
+        if ($('#doc_form').is('.col-md-7')) {
+            $('#doc_form').removeClass('col-md-7');
+            $('#doc_form').addClass('col-md-11');
+        } else {
+            $('#doc_form').removeClass('col-md-11');
+            $('#doc_form').addClass('col-md-7');
+        }
+       
+        $("#hide_bar_template").toggleClass("hide_bar_template_not_hide");
+    });
+
+    $('.lp-btn-associate-forum').on('click', function (e) {
+        var associate = confirm('<?php echo get_lang('ConfirmAssociateForumToLPItem') ?>');
+
+        if (!associate) {
+            e.preventDefault();
+        }
+    });
+
+    $('.lp-btn-dissociate-forum').on('click', function (e) {
+        var dissociate = confirm('<?php echo get_lang('ConfirmDissociateForumToLPItem') ?>');
+
+        if (!dissociate) {
+            e.preventDefault();
+        }
+    });
+});
 </script>
 <?php
 
@@ -132,7 +170,7 @@ if (Database::num_rows($res_doc) > 0 && $path_parts['extension'] == 'html') {
     echo $_SESSION['oLP']->return_new_tree();
 
     // Show the template list
-    echo '<div id="frmModel" class="lp-add-item"></div>';
+    echo '<div id="frmModel" class="scrollbar-inner lp-add-item"></div>';
 } else {
     echo $_SESSION['oLP']->return_new_tree();
 }
