@@ -10675,6 +10675,42 @@ EOD;
     }
 
     /**
+     * Check if this LP has a created forum in the basis course
+     * @return boolean
+     */
+    public function lpHasForum()
+    {
+        $forumTable = Database::get_course_table(TABLE_FORUM);
+        $itemProperty = Database::get_course_table(TABLE_ITEM_PROPERTY);
+
+        $fakeFrom = "
+            $forumTable f
+            INNER JOIN $itemProperty ip
+            ON (f.forum_id = ip.ref AND f.c_id = ip.c_id)
+        ";
+
+        $resultData = Database::select(
+            'COUNT(f.iid) AS qty',
+            $fakeFrom,
+            [
+                'where' => [
+                    'ip.visibility != ? AND ' => 2,
+                    'ip.tool = ? AND ' => TOOL_FORUM,
+                    'f.c_id = ? AND ' => intval($this->course_int_id),
+                    'f.lp_id = ?' => intval($this->lp_id)
+                ]
+            ],
+            'first'
+        );
+
+        if ($resultData['qty'] > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get the forum for this learning path
      * @return boolean
      */

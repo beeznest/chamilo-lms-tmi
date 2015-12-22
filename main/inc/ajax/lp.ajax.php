@@ -199,6 +199,15 @@ switch ($action) {
             break;
         }
 
+        $lpHasForum = $learningPath->lpHasForum();
+
+        if (!$lpHasForum) {
+            echo json_encode([
+                'error' => true
+            ]);
+            break;
+        }
+
         $forum = $learningPath->getForum($sessionId);
 
         if (empty($forum)) {
@@ -227,6 +236,15 @@ switch ($action) {
             $forumId = $learningPath->createForum($forumCategoryId);
         } else {
             $forumId = $forum['forum_id'];
+        }
+        
+        $lpItemHasThread = $lpItem->lpItemHasThread($course_id);
+        
+        if (!$lpItemHasThread) {
+            echo json_encode([
+                'error' => true
+            ]);
+            break;
         }
 
         $forumThread = $lpItem->getForumThread($course_id, $sessionId);
