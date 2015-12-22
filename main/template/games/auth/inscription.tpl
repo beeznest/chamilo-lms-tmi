@@ -40,6 +40,8 @@
                                     changeMonth: true,
                                     changeYear: true
                                 });
+                                
+                                $('#ui-datepicker-div').appendTo($('#global-modal'));
                             });
                         </script>
                     <input id="extra_date_of_birth" class="form-control" name="extra_date_of_birth" type="text">
