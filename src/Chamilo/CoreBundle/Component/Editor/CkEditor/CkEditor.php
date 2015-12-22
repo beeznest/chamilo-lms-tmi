@@ -239,8 +239,8 @@ class CkEditor extends Editor
                 . 'home/default_platform_document/template_thumb/noimage.gif';
             $templateItem['html'] = file_get_contents(api_get_path(SYS_COURSE_PATH)
                 . $courseDirectory . '/document' . $templateData['path']);
-
-            if (!empty($template->getImage())) {
+            $image = $template->getImage();
+            if (!empty($image)) {
                 $templateItem['image'] = api_get_path(WEB_COURSE_PATH)
                     . $courseDirectory . '/upload/template_thumbnails/' . $template->getImage();
             }
