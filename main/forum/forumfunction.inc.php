@@ -754,6 +754,7 @@ function store_forum($values, $courseInfo = array(), $returnId = false)
             'forum_group_public_private'=> isset($values['public_private_group_forum_group']['public_private_group_forum']) ? $values['public_private_group_forum_group']['public_private_group_forum'] : null,
             'forum_order'=> isset($new_max) ? $new_max : null,
             'session_id'=> $session_id,
+            'lp_id' => isset($values['lp_id']) ? intval($values['lp_id']) : 0
         ];
         $last_id = Database::insert($table_forums, $params);
         if ($last_id > 0) {
