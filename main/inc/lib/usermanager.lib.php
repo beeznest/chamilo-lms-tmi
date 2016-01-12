@@ -592,10 +592,6 @@ class UserManager
         $sql = "DELETE FROM $course_cat_table WHERE user_id = '".$user_id."'";
         Database::query($sql);
 
-        // Delete user from database
-        $sql = "DELETE FROM $table_user WHERE id = '".$user_id."'";
-        Database::query($sql);
-
         // Delete user from the admin table
         $sql = "DELETE FROM $table_admin WHERE user_id = '".$user_id."'";
         Database::query($sql);
@@ -641,6 +637,10 @@ class UserManager
         $sql = "DELETE FROM $table_work WHERE user_id = $user_id AND c_id <> 0";
         Database::query($sql);
 
+        // Delete user from database
+        $sql = "DELETE FROM $table_user WHERE id = '".$user_id."'";
+        Database::query($sql);
+
         // Add event to system log
         $user_id_manager = api_get_user_id();
         Event::addEvent(
@@ -657,6 +657,7 @@ class UserManager
             api_get_utc_datetime(),
             $user_id_manager
         );
+
         return true;
     }
 
