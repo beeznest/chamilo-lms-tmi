@@ -19,7 +19,7 @@
                 </div>
                 <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
                     <div class="red-social">
-                        <h3 class="social-footer">¡Síguienos en redes sociales!</h3>
+                        <h3 class="social-footer">¡Síguenos en redes sociales!</h3>
                         <a class="media" href="https://www.facebook.com/tademiperu?fref=ts"><img src="{{ _p.web_css_theme }}images/facebook.png"></a>
                         <a class="media" href="https://twitter.com/tademi_pe"><img src="{{ _p.web_css_theme }}images/twitter.png"></a>
                         <a class="media" href="https://www.youtube.com/channel/UCWPiBeRKzt97-6RMDslP7YQ"><img src="{{ _p.web_css_theme }}images/youtube.png"></a>
@@ -27,7 +27,7 @@
                 </div>
                 <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
                     <div class="direction">
-                        <p>Rio de la plata 167 Of.503<br>
+                        <p>Río de la plata 167 Of.503<br>
                             San Isidro - Lima Perú<br>
                             (511) 221 - 2721<br>
                             contacto@tademi.com
