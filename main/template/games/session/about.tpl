@@ -172,9 +172,6 @@
                                         <div class="row">
                                             <div class="col-xs-7 col-md-7">
                                                 <h4><i class="fa fa-circle"></i> {{ coach.complete_name }}</h4>
-                                                {% for extra_field in coach.extra_fields %}
-                                                    <div class="extras-field">{{ extra_field.value.getValue() }}</div>
-                                                {% endfor %}
                                             </div>
                                             <div class="col-xs-5 col-md-5">
                                                 <div class="text-center">
