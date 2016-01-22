@@ -630,6 +630,7 @@ class Skill extends Model
                 FROM {$this->table} s
                 INNER JOIN {$this->table_skill_rel_skill} ss
                 ON (s.id = ss.skill_id) $id_condition
+                WHERE s.status IS TRUE
                 ORDER BY ss.id, ss.parent_id";
 
         $result = Database::query($sql);
@@ -895,7 +896,7 @@ class Skill extends Model
                 FROM '.$this->table_skill_rel_user.' u
                 INNER JOIN '.$this->table.' s
                 ON u.skill_id = s.id
-                WHERE user_id = '.$user_id;
+                WHERE user_id = '.$user_id . " AND s.status IS TRUE";
 
         $result = Database::query($sql);
         $skills = Database::store_result($result, 'ASSOC');
@@ -1099,7 +1100,7 @@ class Skill extends Model
             foreach ($tree['children'] as $element) {
                 $simple_tree[] = array(
                     'name' => $element['name'],
-                    'children' => $this->get_skill_json($element['children'], 1, $main_depth)
+                    'children' => isset($element['children']) ? $this->get_skill_json($element['children'], 1, $main_depth) : null
                 );
             }
         }
@@ -1160,7 +1161,7 @@ class Skill extends Model
         $sql = "SELECT count(skill_id) count FROM {$this->table} s
                 INNER JOIN {$this->table_skill_rel_user} su
                 ON (s.id = su.skill_id)
-                WHERE user_id = $user_id";
+                WHERE user_id = $user_id AND s.status IS TRUE";
         $result  = Database::query($sql);
         if (Database::num_rows($result)) {
             $result = Database::fetch_row($result);
@@ -1186,7 +1187,7 @@ class Skill extends Model
                     SELECT u.user_id, firstname, lastname, count(username) skills_acquired
                     FROM {$this->table} s INNER JOIN {$this->table_skill_rel_user} su ON (s.id = su.skill_id)
                     INNER JOIN {$this->table_user} u ON u.user_id = su.user_id, (SELECT @rownum:=0) r
-                    WHERE 1=1 $where_condition
+                    WHERE 1=1 $where_condition AND s.status IS TRUE
                     GROUP BY username
                     ORDER BY skills_acquired desc
                     LIMIT $start , $limit)  AS T1, (SELECT @rownum:=0) r";
@@ -1210,6 +1211,7 @@ class Skill extends Model
                         ON (s.id = su.skill_id)
                         INNER JOIN {$this->table_user} u
                         ON u.user_id = su.user_id
+                        WHERE s.status IS TRUE
                         GROUP BY username
                      ) as T1";
         $result = Database::query($sql);
@@ -1371,7 +1373,7 @@ class Skill extends Model
                 ON sru.user_id = user.user_id
                 INNER JOIN {$this->table}
                 ON sru.skill_id = skill.id
-                WHERE course.id = $courseId";
+                WHERE course.id = $courseId skill.status IS TRUE";
 
         $result = Database::query($sql);
 
@@ -1416,7 +1418,7 @@ class Skill extends Model
                 ON sru.user_id = user.user_id
                 INNER JOIN {$this->table}
                 ON sru.skill_id = skill.id
-                WHERE skill.id = $skillId ";
+                WHERE skill.id = $skillId AND skill.status IS TRUE";
 
         $result = Database::query($sql);
 
