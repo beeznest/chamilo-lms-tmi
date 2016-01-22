@@ -3111,6 +3111,14 @@ class learnpath
 
         foreach ($learnpath->items as $item) {
             if (empty($item->parent)) {
+                $list[$item->db_id] = [
+                    'id' => $item->db_id,
+                    'title' => $item->title,
+                    'level' => $item->level,
+                    'status' => $item->status,
+                    'type' => $item->type
+                ];
+
                 continue;
             }
 
@@ -3121,18 +3129,6 @@ class learnpath
                 'status' => $item->status,
                 'type' => $item->type
             ];
-        }
-
-        foreach ($learnpath->items as $item) {
-            if (!empty($item->parent)) {
-                continue;
-            }
-
-            $list[$item->db_id]['id'] = $item->db_id;
-            $list[$item->db_id]['title'] = $item->title;
-            $list[$item->db_id]['level'] = $item->level;
-            $list[$item->db_id]['status'] = $item->status;
-            $list[$item->db_id]['type'] = $item->type;
         }
 
         return $list;
