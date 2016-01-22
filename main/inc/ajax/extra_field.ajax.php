@@ -21,6 +21,8 @@ switch ($action) {
         }
         break;
     case 'search_tags':
+        header('Content-Tpe: application/json');
+
         $type = isset($_REQUEST['type']) ? $_REQUEST['type'] : null;
         $fieldId = isset($_REQUEST['field_id']) ? $_REQUEST['field_id'] : null;
         $tag = isset($_REQUEST['tag']) ? $_REQUEST['tag'] : null;
@@ -39,7 +41,7 @@ switch ($action) {
 
         foreach ($tags as $tag) {
             $result[] = [
-                'caption' => $tag->getTag(),
+                'key' => $tag->getTag(),
                 'value' => $tag->getTag()
             ];
         }

@@ -334,7 +334,9 @@ $(document).ready(function() {
         complete_text:"{{ 'StartToType' | get_lang }}",
         firstselected: true,
         //onremove: "testme",
-        onselect:"check_skills_sidebar",
+        onselect:function () {
+            check_skills_sidebar();
+        },
         filter_selected: true,
         newel: true
     });
