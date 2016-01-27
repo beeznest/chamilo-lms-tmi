@@ -83,6 +83,7 @@ $dateElementTemplate = <<<HTML
                     $('#date-trigger img').on('click', function () {
                         $( "#extra_date_of_birth" ).datepicker( "widget" ).datepicker( "refresh" );
                     });
+                    $('#ui-datepicker-div').appendTo($('#global-modal'));
                 });
             </script>
         </div>
