@@ -218,7 +218,18 @@ switch ($action) {
         if (empty($sequence)) {
             exit;
         }
+        
+        $checkSequencesResources = $repository->findBy(
+            ['sequence' => $sequence]
+        );
 
+        if (count($checkSequencesResources) === 1) {
+            $em->remove($checkSequencesResources[0]);
+            $em->flush();
+            echo Display::return_message(get_lang('Saved'), 'success');
+            break;
+        }
+        
         $parents = str_replace($id, '', $parents);
         $parents = explode(',', $parents);
         $parents = array_filter($parents);
