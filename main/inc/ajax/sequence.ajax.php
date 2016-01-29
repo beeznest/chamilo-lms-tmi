@@ -122,19 +122,82 @@ switch ($action) {
         if ($sequenceResource->getSequence()->hasGraph()) {
             $graph = $sequenceResource->getSequence()->getUnSerializeGraph();
             if ($graph->hasVertex($vertexId)) {
-                $vertex = $graph->getVertex($vertexId);
-                $vertex->destroy();
-
-                /** @var SequenceResource $sequenceResource */
-                $sequenceResourceToDelete = $repository->findOneBy(
-                    [
-                        'resourceId' => $vertexId,
-                        'type' => $type,
-                        'sequence' => $sequence
-                    ]
-                );
-
-                $em->remove($sequenceResourceToDelete);
+                
+                $edgeIterator = $graph->getEdges()->getIterator();
+                $edgeToDelete = null;
+                foreach ($edgeIterator as $edge) {
+                    if ($edge->getVertexStart()->getId() == $vertexId && $edge->getVertexEnd()->getId() == $id) {
+                        $edgeToDelete = $edge;
+                        $vertexFromTo = null;
+                        $vertexToFrom = null;
+                        foreach ($edgeIterator as $edge) {
+                             if ($edge->getVertexEnd()->getId() == $vertexId) {
+                                 $vertexFromTo = $edge;
+                             }
+                             
+                             if ($edge->getVertexStart()->getId() == $id) {
+                                 $vertexToFrom = $edge;
+                             }
+                        }
+                        
+                        if ($vertexFromTo && !$vertexToFrom) {
+                            $_SESSION['sr_vertex'] = true;
+                            $vertex = $graph->getVertex($id);
+                            $vertex->destroy();
+                            $em->remove($sequenceResource);
+                        }
+                        
+                        if ($vertexToFrom && $vertexFromTo) {
+                            $vertex = $graph->getVertex($vertexId);
+                            $edgeToDelete->destroy();
+                        }
+                        
+                        if ($vertexToFrom && !$vertexFromTo) {
+                            $vertex = $graph->getVertex($vertexId);
+                            $vertex->destroy();
+                            $sequenceResourceToDelete = $repository->findOneBy(
+                                [
+                                    'resourceId' => $vertexId,
+                                    'type' => $type,
+                                    'sequence' => $sequence
+                                ]
+                            );
+                            $em->remove($sequenceResourceToDelete);
+                        }
+                        
+                        if (!$vertexToFrom && !$vertexFromTo) {
+                            $_SESSION['sr_vertex'] = true;
+                            $vertexTo = $graph->getVertex($id);
+                            $vertexFrom = $graph->getVertex($vertexId);
+                            if ($vertexTo->getVerticesEdgeFrom()->count() > 1) {
+                                $vertexFrom->destroy();
+                                $sequenceResourceToDelete = $repository->findOneBy(
+                                    [
+                                        'resourceId' => $vertexId,
+                                        'type' => $type,
+                                        'sequence' => $sequence
+                                    ]
+                                );
+                                $em->remove($sequenceResourceToDelete);
+                            } else {
+                                $vertexTo->destroy();
+                                $vertexFrom->destroy();
+                                $sequenceResourceToDelete = $repository->findOneBy(
+                                    [
+                                        'resourceId' => $vertexId,
+                                        'type' => $type,
+                                        'sequence' => $sequence
+                                    ]
+                                );
+                                $em->remove($sequenceResource);
+                                $em->remove($sequenceResourceToDelete);
+                            }
+                            
+                        }
+                        
+                        
+                    }
+                }
 
                 $sequence->setGraphAndSerialize($graph);
                 $em->merge($sequence);
@@ -219,15 +282,10 @@ switch ($action) {
             exit;
         }
         
-        $checkSequencesResources = $repository->findBy(
-            ['sequence' => $sequence]
-        );
-
-        if (count($checkSequencesResources) === 1) {
-            $em->remove($checkSequencesResources[0]);
-            $em->flush();
+        if ($_SESSION['sr_vertex']) {
+            unset($_SESSION['sr_vertex']);
             echo Display::return_message(get_lang('Saved'), 'success');
-            break;
+            break;            
         }
         
         $parents = str_replace($id, '', $parents);
