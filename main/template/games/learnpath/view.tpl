@@ -165,7 +165,7 @@
                 heightFrame = this.contentWindow.document.body.scrollHeight + x;
             }
             
-            this.style.height = heightFrame.toString() + 'px';
+            this.style.height = heightFrame .toString() + 'px';
             //$('.panel-forum').css("top", heightFrame);
             $('#body-forum').css("display", "none");
         });
