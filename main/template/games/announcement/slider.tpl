@@ -1,6 +1,6 @@
 <!-- Inicia el slider -->
 
-    <div id="slider-banner" class="carousel slide" data-ride="carousel">
+    <div id="slider-banner" class="carousel slide container" data-ride="carousel">
         <!-- Indicators -->
         <ol class="carousel-indicators">
             {% for announcement in announcements %}
