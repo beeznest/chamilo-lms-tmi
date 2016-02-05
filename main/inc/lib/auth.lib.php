@@ -770,7 +770,7 @@ SQL;
                 continue;
             }
 
-            $sessionsToBrowse[] = $session;
+            $sessionsToBrowse[$session->getId()] = $session;
         }
 
         return $sessionsToBrowse;
@@ -802,7 +802,7 @@ SQL;
                 continue;
             }
 
-            $sessionsToBrowse[] = $session;
+            $sessionsToBrowse[$session->getId()] = $session;
         }
 
         return $sessionsToBrowse;

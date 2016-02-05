@@ -696,7 +696,11 @@ class CoursesController
         $courseUrl = getCourseCategoryUrl(1, $limit['length'], null, 0, 'subscribe');
         $searchDate = isset($_POST['date']) ? $_POST['date'] : date('Y-m-d');
 
-        $sessions = $this->model->browseSessionsBySearch($q, $limit);
+        $sessionsBySearch = $this->model->browseSessionsBySearch($q, $limit);
+        $sessionsByTags = $this->model->browseSessionsByTags($q, $limit);
+
+        $sessions = $sessionsBySearch + $sessionsByTags;
+
         $sessionsBlocks = $this->getFormatedSessionsBlock($sessions);
 
         $tpl = new Template();
