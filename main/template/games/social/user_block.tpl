@@ -30,7 +30,7 @@
     <div class="col-md-5">
         <div class="profile-user">
             <div class="username">{{ user.complete_name }}</div>
-            {{ socialAvatarBlock }}
+            {{ social_avatar_block }}
 
             {% if gamification_points %}
                 <div class="points">{{ 'XPoints'|get_lang|format(gamification_points) }}</div>
