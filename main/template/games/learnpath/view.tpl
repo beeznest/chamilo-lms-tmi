@@ -154,26 +154,24 @@
 
 
 //Function heigth frame content document items
-    function updateResizeFrame(x) {
-        var scorm = $('#content_id');
-
-        scorm.load(function () {
-            this.style.overflow = 'hidden';
-            if(x==null){
-                heightFrame = this.contentWindow.document.body.scrollHeight + 30;
-            }else{
-                heightFrame = this.contentWindow.document.body.scrollHeight + x;
-            }
-            
-            this.style.height = heightFrame .toString() + 'px';
-            //$('.panel-forum').css("top", heightFrame);
-            $('#body-forum').css("display", "none");
-        });
-
-    }
+    function updateResizeFrame() {
+        var scorm = $('#content_id'),
+            heightFrame = 0;
     
+        function scormLoad() {
+            this.style.overflow = 'hidden';
+            heightFrame = $(this.contentWindow.document.body).outerHeight(true) ; 
+            this.style.height = (heightFrame + 10).toString() + 'px';
+            $('#body-forum').css("display", "none");
+            scorm.off('load', scormLoad);
+        }
+        function timeLoad(){
+            $(scorm).on('load', scormLoad); 
+        }
+        setTimeout(timeLoad,20);
+    }
+ 
     $(document).ready(function () {
-
         updateResizeFrame();
         $('#touch-button').children().click(function () {
             updateResizeFrame();
@@ -184,51 +182,25 @@
         $('#forum-container').hide();
 
         loadForumThead({{ lp_id }}, {{ lp_current_item_id }});
-
+        
         $("#icon-down").click(function () {
             $("#icon-up").removeClass("hidden");
             $(this).addClass("hidden");
-
-            $('#panel-scorm').slideDown("slow", function () {
-                updateResizeFrame();
-            });
         });
 
         $("#icon-up").click(function () {
             $("#icon-down").removeClass("hidden");
             $(this).addClass("hidden");
-            $('#panel-scorm').slideUp("slow", function () {
-                updateResizeFrame();
-            });
         });
 
-        $(".scorm-items-accordion .scorm_type_document").click(function () {
+        $(".scorm-items-accordion .scorm_type_document").on('click', function () {
             updateResizeFrame();
+            
         });
         $(".scorm-items-accordion .scorm_type_quiz").click(function () {
             updateResizeFrame();
         });
 
-        /* $(".open-forum").click(function () {
-            $('.panel-forum').animate({
-                top: "0px",
-                height: "100%"
-            }, 800);
-            $('#body-forum').css("display", "block");
-            $(".open-forum").css("display", "none");
-            $(".closed-forum").css("display", "block");
-            $("#chamilo-disqus").css("height", heightFrame);
-        });
-        $(".closed-forum").click(function () {
-            $('.panel-forum').animate({
-                top: heightFrame,
-                height: "100%"
-            }, 800);
-            $('#body-forum').css("display", "none");
-            $(".closed-forum").css("display", "none");
-            $(".open-forum").css("display", "block");
-        });
-        */
         $(".open-forum").click(function () {
             $('#body-forum').css("display", "block");
             $(".open-forum").css("display", "none");
