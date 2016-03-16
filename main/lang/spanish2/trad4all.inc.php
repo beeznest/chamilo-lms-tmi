@@ -13,3 +13,4 @@ $MailCronCourseFinishedSubject="¡Fin del curso %s! Gracias por tu participació
 $MailCronCourseFinishedBody="Hola %s,<br><br>Gracias por participar en el curso %s. Esperamos que hayas aprendido y disfrutado del curso.<br><br>Sigue en contacto con la comunidad de tu curso en Foro: %s<br><br>Puedes ver tu rendimiento a lo largo del curso en la sección Mi Avance.<br><br>Saludos cordiales,";
 $YouCanStartSubscribingToCoursesEnteringToXUrl="Puedes iniciar inscribiéndote a los cursos que más te gusten, ingresando a %s,";
 $YouAreRegisterToSessionX="Estamos contentos con tu participación en el curso %s.";
+$ThanksForYourSubscription = "¡Gracias por su inscripción!";
