@@ -41,28 +41,27 @@
 
                     {% if is_allowed_to_session_edit %}
                         {% if not locked %}
-                            <div class="btn-group btn-group-xs" role="toolbar">
-                                <a href="editpost_data.post.php?{{ _p.web_cid_query ~ '&' ~ {'forum': forum.forum_id, 'thread': thread_id, 'post': post_data.post.id, 'edit': 'edition', 'id_attach': ''}|url_encode }}" class="btn btn-default">
-                                    <i class="fa fa-pencil"></i>&nbsp;
-                                </a>
-
-                                <a id="{{ post_data.post.id }}" href="#" class="btn btn-default" onclick="javascript:if (!confirm('{{ delete_confirm_message }}')) return false;">
-                                    <i class="fa fa-trash-o"></i>&nbsp;
-                                </a>
-                                <script>
-                                    $(document).ready(function() {
-                                        $( "#{{ post_data.post.id }}" ).click(function() {
-                                            $.ajax({
-                                                url: '{{ _p.web_self ~ '?' ~ _p.web_cid_query ~ '&' ~ {'a': 'delete_post', 'id': post_data.post.id}|url_encode }}',
-                                                type: 'POST',
-                                                success: function() {
-                                                    location.reload();
-                                                }
-                                            })
+                            {% if post_data.user.id == _u.id %}
+                                <div class="btn-group btn-group-xs" role="toolbar">
+                                    
+                                    <a id="{{ post_data.post.id }}" href="#" class="btn btn-default" onclick="javascript:if (!confirm('{{ delete_confirm_message }}')) return false;">
+                                        <i class="fa fa-trash-o"></i>&nbsp;
+                                    </a>
+                                    <script>
+                                        $(document).ready(function() {
+                                            $( "#{{ post_data.post.id }}" ).click(function() {
+                                                $.ajax({
+                                                    url: '{{ _p.web_self ~ '?' ~ _p.web_cid_query ~ '&' ~ {'a': 'delete_post', 'id': post_data.post.id}|url_encode }}',
+                                                    type: 'POST',
+                                                    success: function() {
+                                                        location.reload();
+                                                    }
+                                                })
+                                            });
                                         });
-                                    });
-                                </script>
-                            </div>
+                                    </script>
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </div>

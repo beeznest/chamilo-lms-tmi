@@ -302,6 +302,7 @@ if (!empty($action)) {
                     'user' => [
                         'image' => display_user_image($user->getId(), $user->getCompleteName(),null,array('class'=>'media-object')),
                         'link' => display_user_link($user->getId(), $user->getCompleteName()),
+                        'id' => $user->getId()
                     ]
                 ]);
 

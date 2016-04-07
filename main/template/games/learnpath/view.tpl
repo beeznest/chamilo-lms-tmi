@@ -205,7 +205,11 @@
             $('#body-forum').css("display", "block");
             $(".open-forum").css("display", "none");
             $(".closed-forum").css("display", "block");
-            $("#chamilo-disqus").css("height", (100).toString() + 'px');
+            var iFrameId = document.getElementById('chamilo-disqus');
+            var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
+            if (iFrameId) {
+                $("#chamilo-disqus").css("height", (heightFrame + 100).toString() + 'px');
+            }
         });
         $(".closed-forum").click(function () {
             $('#body-forum').css("display", "none");
