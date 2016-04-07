@@ -314,6 +314,14 @@ if (!empty($action)) {
             $json['error'] = false;
             $json['posts'] = $list;
             break;
+        case 'delete_post':
+            $postId = isset($_REQUEST['id']) ? $_REQUEST['id'] : 0 ;
+            if ($postId) {
+                delete_post($postId);
+                $json['error'] = false;
+                $json['errorMessage'] = 'Success';
+            }
+            break;
     }
 }
 
