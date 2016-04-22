@@ -80,6 +80,7 @@ class ExtraField extends Model
         $this->table = Database::get_main_table(TABLE_EXTRA_FIELD);
         $this->table_field_options = Database::get_main_table(TABLE_EXTRA_FIELD_OPTIONS);
         $this->table_field_values = Database::get_main_table(TABLE_EXTRA_FIELD_VALUES);
+        $this->handler_id = 'item_id';
 
         switch ($this->type) {
             case 'calendar_event':
@@ -87,12 +88,15 @@ class ExtraField extends Model
                 break;
             case 'course':
                 $this->extraFieldType = EntityExtraField::COURSE_FIELD_TYPE;
+                $this->primaryKey = 'id';
                 break;
             case 'user':
                 $this->extraFieldType = EntityExtraField::USER_FIELD_TYPE;
+                $this->primaryKey = 'id';
                 break;
             case 'session':
                 $this->extraFieldType = EntityExtraField::SESSION_FIELD_TYPE;
+                $this->primaryKey = 'id';
                 break;
             case 'question':
                 $this->extraFieldType = EntityExtraField::QUESTION_FIELD_TYPE;
@@ -707,7 +711,7 @@ class ExtraField extends Model
 
         if (!empty($extra)) {
             foreach ($extra as $field_details) {
-                
+
                 // Getting default value id if is set
                 $defaultValueId = null;
                 if (isset($field_details['options']) && !empty($field_details['options'])) {
@@ -736,7 +740,7 @@ class ExtraField extends Model
                         continue;
                     }
                 }
-                
+
                 switch ($field_details['field_type']) {
                     case ExtraField::FIELD_TYPE_TEXT:
                         $form->addElement(
@@ -806,7 +810,7 @@ class ExtraField extends Model
                         if (isset($field_details['options']) && !empty($field_details['options'])) {
                             foreach ($field_details['options'] as $option_details) {
                                 $options[$option_details['option_value']] = $option_details['display_text'];
-                                $group[]                                  = $form->createElement(
+                                $group[] = $form->createElement(
                                     'checkbox',
                                     'extra_'.$field_details['variable'],
                                     $option_details['option_value'],
@@ -820,7 +824,9 @@ class ExtraField extends Model
                             $checkboxAttributes = array();
 
                             if (is_array($extraData) && array_key_exists($fieldVariable, $extraData)) {
-                                $checkboxAttributes['checked'] = true;
+                                if (!empty($extraData[$fieldVariable])) {
+                                    $checkboxAttributes['checked'] = 1;
+                                }
                             }
 
                             // We assume that is a switch on/off with 1 and 0 as values
@@ -833,6 +839,7 @@ class ExtraField extends Model
                                 $checkboxAttributes
                             );
                         }
+
                         $form->addGroup(
                             $group,
                             'extra_'.$field_details['variable'],
@@ -1086,6 +1093,7 @@ class ExtraField extends Model
                                                 text: value
                                             }));
                                         });
+                                        $("#second_extra_'.$field_details['variable'].'").selectpicker("refresh");
                                     },
                                 });
                             } else {
@@ -1158,13 +1166,13 @@ class ExtraField extends Model
                     case ExtraField::FIELD_TYPE_TAG:
                         $variable = $field_details['variable'];
                         $field_id = $field_details['id'];
-                        
+
                         //Added for correctly translate the extra_field
                         $get_lang_variables = false;
                         if (in_array($variable, ['tags'])) {
                             $get_lang_variables = true;
                         }
-                        
+
                         if ($get_lang_variables) {
                             $field_details['display_text'] = get_lang($field_details['display_text']);
                         }
@@ -1464,7 +1472,7 @@ EOF;
                         if (in_array($field_details['variable'], ['video_url'])) {
                             $get_lang_variables = true;
                         }
-                        
+
                         if ($get_lang_variables) {
                             $field_details['display_text'] = get_lang($field_details['display_text']);
                         }
@@ -2125,7 +2133,7 @@ EOF;
                 if (strpos($rule->field, '_second') === false) {
                     //No _second
                     $original_field = str_replace($stringToSearch, '', $rule->field);
-                    $field_option = $this->get_handler_field_info_by_variable($original_field);
+                    $field_option = $this->get_handler_field_info_by_field_variable($original_field);
 
                     if ($field_option['field_type'] == ExtraField::FIELD_TYPE_DOUBLE_SELECT) {
 

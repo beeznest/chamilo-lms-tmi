@@ -53,7 +53,7 @@ function show_icon_delete(element_html) {
 	elem_id=$(element_html).attr("id");
 	id_elem=elem_id.split("_");
 	ident="#img_"+id_elem[1];
-	$(ident).attr("src","../img/delete.png");
+	$(ident).attr("src","'.Display::returnIconPath('delete.png').'");
 	$(ident).attr("alt","'.get_lang('Delete', '').'");
 	$(ident).attr("title","'.get_lang('Delete', '').'");
 }
@@ -62,7 +62,7 @@ function hide_icon_delete(element_html)  {
 	elem_id=$(element_html).attr("id");
 	id_elem=elem_id.split("_");
 	ident="#img_"+id_elem[1];
-	$(ident).attr("src","../img/blank.gif");
+	$(ident).attr("src","'.Display::returnIconPath('blank.gif').'");
 	$(ident).attr("alt","");
 	$(ident).attr("title","");
 }
@@ -134,7 +134,7 @@ if (count($friends) == 0) {
                 $friend_html .= '
                     <div class="col-md-3">
                         <div class="thumbnail text-center" id="div_' . $friends[$j]['friend_user_id'] . '">
-                            <img src="' . $userPicture . '" class="img-responsive" id="imgfriend_' . $friend['friend_user_id'] . '" title="$user_name">
+                            <img src="' . $userPicture . '" class="img-responsive" id="imgfriend_' . $friend['friend_user_id'] . '" title="'.$user_name.'">
                             <div class="caption">
                                 <h3>
                                     <a href="profile.php?u=' . $friend['friend_user_id'] . '">' . $user_name . '</a>

@@ -25,13 +25,12 @@ if ($lp_controller_touched != 1) {
 }
 
 require_once '../inc/global.inc.php';
-
 //To prevent the template class
 $show_learnpath = true;
 
 api_protect_course_script();
 
-$lp_id = intval($_GET['lp_id']);
+$lp_id = !empty($_GET['lp_id']) ? intval($_GET['lp_id']) : 0;
 $sessionId = api_get_session_id();
 
 // Check if the learning path is visible for student - (LP requisites)
@@ -80,11 +79,10 @@ $my_style = $platform_theme;
 
 $htmlHeadXtra[] = '<script type="text/javascript">
 <!--
-var jQueryFrameReadyConfigPath = \''.api_get_path(WEB_LIBRARY_PATH).'javascript/jquery.min.js\';
+var jQueryFrameReadyConfigPath = \''.api_get_jquery_web_path().'\';
 -->
 </script>';
 $htmlHeadXtra[] = '<script type="text/javascript" src="'.api_get_path(WEB_LIBRARY_PATH).'javascript/jquery.frameready.js"></script>';
-$htmlHeadXtra[] = '<script src="' . api_get_path(WEB_LIBRARY_PATH) .'javascript/jquery.lp_minipanel.js" type="text/javascript" language="javascript"></script>';
 $htmlHeadXtra[] = '<script>
 $(document).ready(function() {
     $("div#log_content_cleaner").bind("click", function() {
@@ -95,7 +93,7 @@ var chamilo_xajax_handler = window.oxajax;
 </script>';
 
 if ($_SESSION['oLP']->mode == 'embedframe' || $_SESSION['oLP']->get_hide_toc_frame() == 1) {
-    $htmlHeadXtra[] = 'hello';
+    $htmlHeadXtra[] = '';
 }
 
 //Impress js
@@ -127,7 +125,7 @@ $htmlHeadXtra[] = '<script src="js/documentapi.js" type="text/javascript" langua
 $htmlHeadXtra[] = '<script>
 var sv_user = \'' . api_get_user_id() . '\';
 var sv_course = chamilo_courseCode;
-var sv_sco = \'' . intval($_REQUEST['lp_id']) . '\';
+var sv_sco = \'' . $lp_id . '\';
 </script>'; // FIXME fetch sco and userid from a more reliable source directly in sotrageapi.js
 $htmlHeadXtra[] = '<script type="text/javascript" src="js/storageapi.js"></script>';
 
@@ -156,6 +154,7 @@ if (!isset($src)) {
             $_SESSION['oLP']->stop_previous_item();
             $htmlHeadXtra[] = '<script src="scorm_api.php" type="text/javascript" language="javascript"></script>';
             $preReqCheck = $_SESSION['oLP']->prerequisites_match($lp_item_id);
+
             if ($preReqCheck === true) {
                 $src = $_SESSION['oLP']->get_link(
                     'http',
@@ -427,7 +426,7 @@ if (api_get_course_setting('lp_return_link') == 1) {
     $buttonHomeText = get_lang('LearningPathList');
 }
 
-$lpPreviewImagePath = api_get_path(WEB_CODE_PATH).'img/icons/64/unknown.png';
+$lpPreviewImagePath = Display::returnIconPath('unknown.png', ICON_SIZE_BIG);
 if ($_SESSION['oLP']->get_preview_image()) {
     $lpPreviewImagePath = $_SESSION['oLP']->get_preview_image_path();
 }
@@ -513,7 +512,7 @@ $template->assign(
     Display::img(
         $lpPreviewImagePath,
         $_SESSION['oLP']->name,
-        array('class' => 'img-circle'),
+        [],
         ICON_SIZE_BIG
     )
 );

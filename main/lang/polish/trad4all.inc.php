@@ -1010,7 +1010,6 @@ $NomPageAdmin = "Administracja";
 $SysInfo = "Informacja o Systemie";
 $DiffTranslation = "Porównaj tłumaczenia";
 $StatOf = "Raportowanie";
-$SpeeSubscribe = "Szybka subskrypcja w celu sprawdzenia kursu";
 $LogIdentLogout = "Logowanie i wylogowanie";
 $ServerStatus = "Status servera Mysql :";
 $DataBase = "Baza danych";
@@ -2710,7 +2709,6 @@ $ModifyQuestion = "Zapisz pytanie";
 $Example = "Przykład";
 $CheckAll = "Zaznacz wszystkie";
 $NbAnnoucement = "Ogłoszenie";
-$OtherCourses = "inne kursy";
 $Doc = "Kurs";
 $PlataformAdmin = "Platforma administratora";
 $Groups = "Grupy";
@@ -5667,7 +5665,7 @@ $SSOServerProtocolTitle = "Protokół serwera Rejestracji jednokrotnej";
 $SSOServerProtocolComment = "Ciąg protokołu poprzedzającego domenę serwera Rejestracji jednokrotnej (zalecamy użycie https://, jeśli serwer jest w stanie zapewnić tą funkcję, ponieważ wszystkie niezabezpieczone protokoły są niebezpieczne dla spraw uwierzytelniania)";
 $EnabledWirisTitle = "Edytor matematyczny WIRIS";
 $EnabledWirisComment = "Włącz edytor matematyczny WIRIS. Instalując tą wtyczkę dostajesz edytor WIRIS i WIRIS CAS.
-Aktywacja ta nie jest w pełni wykorzystywana, jeżeli nie została wcześniej pobrana wtyczka PHP dla FCKeditor WIRIS i rozpakowana jej zawartość w katalogu głównym na Chamilo /inc/lib/fckeditor/editor/plugins/fckeditor_wiris/
+Aktywacja ta nie jest w pełni wykorzystywana, jeżeli nie została wcześniej pobrana wtyczka PHP dla CKeditor WIRIS i rozpakowana jej zawartość w katalogu głównym na Chamilo /inc/lib/fckeditor/editor/plugins/fckeditor_wiris/
 Jest to konieczne, ponieważ Wiris jest własnym oprogramowaniem i jego usługi są ​​płatne. Aby dokonać zmiany ustawień wtyczki, edytuj plik configuration.ini lub wymień jego treść przez plik Chamilo configuration.ini.default.";
 $FileSavedAs = "Plik zapisany jako";
 $FileExportAs = "Plik eksportowano jako";

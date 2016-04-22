@@ -301,7 +301,10 @@ class Attendance
 			'description' => $this->description,
 			'attendance_qualify_title' => $title_gradebook,
 			'attendance_weight' => $weight_calification,
-			'session_id' => $session_id
+			'session_id' => $session_id,
+			'active' => 1,
+			'attendance_qualify_max' => 0,
+			'locked' => 0
 		];
 		$last_id = Database::insert($tbl_attendance, $params);
 
@@ -395,13 +398,13 @@ class Attendance
 			// add link to gradebook
 			if ($link_to_gradebook && !empty($this->category_id)) {
 				$description = '';
-				$link_id = GradebookUtils::is_resource_in_course_gradebook(
+				$link_info = GradebookUtils::is_resource_in_course_gradebook(
 					$course_code,
 					7,
 					$attendance_id,
 					$session_id
 				);
-				if (!$link_id) {
+				if (!$link_info) {
 					GradebookUtils::add_resource_to_course_gradebook(
 						$this->category_id,
 						$course_code,
@@ -415,7 +418,7 @@ class Attendance
 						$session_id
 					);
 				} else {
-					Database::query('UPDATE '.$table_link.' SET weight='.$weight_calification.' WHERE id='.$link_id.'');
+					Database::query('UPDATE '.$table_link.' SET weight='.$weight_calification.' WHERE id='.$link_info['id'].'');
 				}
 			}
 			return $attendance_id;
@@ -636,16 +639,16 @@ class Attendance
 				'',
 				'lastname'
 			);
-
-			if (!empty($groupId)) {
-				$students = GroupManager::getStudents($groupId);
-				if (!empty($students)) {
-					foreach ($students as $student) {
-						$studentInGroup[$student['user_id']] = true;
-					}
-				}
-			}
 		}
+
+        if (!empty($groupId)) {
+            $students = GroupManager::getStudents($groupId);
+            if (!empty($students)) {
+                foreach ($students as $student) {
+                    $studentInGroup[$student['user_id']] = true;
+                }
+            }
+        }
 
 		// get registered users inside current course
 		$a_users = array();
@@ -693,7 +696,7 @@ class Attendance
 				$value['result_color_bar'] 	= $user_faults['color_bar'];
 			}
 
-			$photo = '<img src ="'.$userInfo['avatar_small'].'" />';
+            $photo = Display::img($userInfo['avatar_small'], $userInfo['complete_name'], [], false);
 
 			$value['photo'] = $photo;
 			$value['firstname'] = $user_data['firstname'];
@@ -1340,10 +1343,10 @@ class Attendance
 		$groupCondition = null;
 
 		if ($showAll) {
-			$sql = "SELECT * FROM $tbl_attendance_calendar
+			$sql = "SELECT * FROM $tbl_attendance_calendar c
 					WHERE c_id = $course_id AND attendance_id = '$attendance_id'";
 		} else {
-			$sql = "SELECT * FROM $tbl_attendance_calendar
+			$sql = "SELECT * FROM $tbl_attendance_calendar c
 					WHERE
 						c_id = $course_id AND
 						attendance_id = '$attendance_id' AND
@@ -1374,7 +1377,7 @@ class Attendance
 			case 'calendar_id':
 				$calendar_id = intval($calendar_id);
 				if (!empty($calendar_id)) {
-					$sql.= " AND id = $calendar_id";
+					$sql.= " AND c.id = $calendar_id";
 				}
 				break;
 			case 'today':

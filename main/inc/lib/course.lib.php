@@ -776,6 +776,7 @@ class CourseManager
             'user_id' => $user_id,
             'status' => $status,
             'sort' => $max_sort + 1,
+            'relation_type' => 0,
             'user_course_cat' => $userCourseCategoryId
         ];
         $insertId = Database::insert($course_user_table, $params);
@@ -1254,6 +1255,7 @@ class CourseManager
         if (!empty($session_id) || !empty($sessionIdList)) {
             $sql = 'SELECT DISTINCT
                         user.user_id,
+                        user.email,
                         session_course_user.status as status_session,
                         session_id,
                         user.*,
@@ -1307,12 +1309,14 @@ class CourseManager
                                 course.code,
                                 course_rel_user.status as status_rel,
                                 user.user_id,
+                                user.email,
                                 course_rel_user.is_tutor,
                                 user.*  ';
                 } else {
                     $sql = 'SELECT DISTINCT
                                 course_rel_user.status as status_rel,
                                 user.user_id,
+                                user.email,
                                 course_rel_user.is_tutor,
                                 user.*  ';
                 }
@@ -1512,6 +1516,7 @@ class CourseManager
                         $sessionName = !empty($sessionId) ? ' - '.$user['session_name'] : '';
                         $report_info['course'] = $user['title'].$sessionName;
                         $report_info['user'] = api_get_person_name($user['firstname'], $user['lastname']);
+                        $report_info['email'] = $user['email'];
                         $report_info['time'] = api_time_to_hms(
                             Tracking::get_time_spent_on_the_course(
                                 $user['user_id'],
@@ -2513,8 +2518,7 @@ class CourseManager
         if ($adminGetsAllCourses && UserManager::is_admin($user_id)) {
             // get the whole courses list
             $sql = "SELECT DISTINCT(course.code), course.id as real_id
-                FROM $tbl_course course";
-
+                    FROM $tbl_course course";
         } else {
 
             $with_special_courses = $without_special_courses = '';
@@ -2526,14 +2530,17 @@ class CourseManager
 
             if (!empty($with_special_courses)) {
                 $sql = "SELECT DISTINCT(course.code), course.id as real_id
-                    FROM    " . $tbl_course_user . " course_rel_user
-                    LEFT JOIN " . $tbl_course . " course
-                    ON course.id = course_rel_user.c_id
-                    LEFT JOIN " . $tbl_user_course_category . " user_course_category
-                    ON course_rel_user.user_course_cat = user_course_category.id
-                    WHERE  $with_special_courses
-                    GROUP BY course.code
-                    ORDER BY user_course_category.sort,course.title,course_rel_user.sort ASC";
+                        FROM $tbl_course_user  course_rel_user
+                        LEFT JOIN $tbl_course  course
+                        ON course.id = course_rel_user.c_id
+                        LEFT JOIN $tbl_user_course_category user_course_category
+                        ON course_rel_user.user_course_cat = user_course_category.id
+                        WHERE  $with_special_courses
+                        GROUP BY course.code
+                        ORDER BY user_course_category.sort, course.title, course_rel_user.sort ASC
+
+                    ";
+                //
                 $rs_special_course = Database::query($sql);
                 if (Database::num_rows($rs_special_course) > 0) {
                     while ($result_row = Database::fetch_array($rs_special_course)) {
@@ -3136,7 +3143,7 @@ class CourseManager
         //Crop the image to adjust 4:3 ratio
         $image = new Image($source_file);
         $image->crop($cropParameters);
-        
+
         //Resize the images in two formats
         $medium = new Image($source_file);
         $medium->resize(85);
@@ -3144,7 +3151,7 @@ class CourseManager
         $normal = new Image($source_file);
         $normal->resize(300);
         $normal->send_image($course_image, -1, 'png');
-        
+
         $result = $medium && $normal;
 
         return $result ? $result : false;
@@ -3270,7 +3277,6 @@ class CourseManager
             $html .= $params['icon'];
             $html .= '</div>';
         }
-
         $html .= '</div>';
         $notifications = isset($params['notifications']) ? $params['notifications'] : '';
         $param_class = isset($params['class']) ? $params['class'] : '';
@@ -3388,7 +3394,7 @@ class CourseManager
                     $params['right_actions'] = '';
                     if (api_is_platform_admin()) {
                         if ($load_dirs) {
-                            $params['right_actions'] .= '<a id="document_preview_' . $course['real_id'] . '_0" class="document_preview" href="javascript:void(0);">' .
+                            $params['right_actions'] .= '<a id="document_preview_' . $course['id'] . '_0" class="document_preview" href="javascript:void(0);">' .
                                 Display::return_icon(
                                     'folder.png',
                                     get_lang('Documents'),
@@ -3403,7 +3409,7 @@ class CourseManager
                                     ICON_SIZE_SMALL
                                 ).'</a>';
                             $params['right_actions'] .= Display::div('', array(
-                                    'id' => 'document_result_' . $course['real_id'] . '_0',
+                                    'id' => 'document_result_' . $course['id'] . '_0',
                                     'class' => 'document_preview_container'
                                 ));
                         } else {
@@ -3417,7 +3423,7 @@ class CourseManager
                     } else {
                         if ($course_info['visibility'] != COURSE_VISIBILITY_CLOSED) {
                             if ($load_dirs) {
-                                $params['right_actions'] .= '<a id="document_preview_' . $course['real_id'] . '_0" class="document_preview" href="javascript:void(0);">' .
+                                $params['right_actions'] .= '<a id="document_preview_' . $course['id'] . '_0" class="document_preview" href="javascript:void(0);">' .
                                     Display::return_icon(
                                         'folder.png',
                                         get_lang('Documents'),
@@ -3425,7 +3431,7 @@ class CourseManager
                                         ICON_SIZE_SMALL
                                     ).'</a>';
                                 $params['right_actions'] .= Display::div('', array(
-                                        'id' => 'document_result_' . $course['real_id'] . '_0',
+                                        'id' => 'document_result_' . $course['id'] . '_0',
                                         'class' => 'document_preview_container'
                                     ));
                             }
@@ -4380,6 +4386,8 @@ class CourseManager
             'session_id' => $session_id,
             'url_id' => $url_id,
             'creation_date' => $now,
+            'total_score' => 0,
+            'users' => 0
         );
 
         $result = Database::select(
@@ -5341,7 +5349,7 @@ class CourseManager
      * @param FormValidator $form
      * @param array $to_already_selected
      *
-     * @param HTML_QuickForm_element
+     * @return HTML_QuickForm_element
      */
     public static function addUserGroupMultiSelect(&$form, $to_already_selected)
     {
@@ -5399,9 +5407,7 @@ class CourseManager
     }
 
     /**
-     * this function shows the form for sending a message to a specific group or user.
-     */
-    /**
+     * Shows the form for sending a message to a specific group or user.
      * @param FormValidator $form
      * @param int $group_id
      * @param array $to
@@ -5409,7 +5415,6 @@ class CourseManager
     public static function addGroupMultiSelect($form, $group_id, $to = array())
     {
         $group_users = GroupManager::get_subscribed_users($group_id);
-
         $array = self::buildSelectOptions(null, $group_users, $to);
 
         $result = array();
@@ -5783,5 +5788,27 @@ class CourseManager
         }
 
         return $params;
+    }
+
+    /**
+     * Get the course id based on the original id and field name in the extra fields.
+     * Returns 0 if course was not found
+     *
+     * @param string $original_course_id_value Original course id
+     * @param string $original_course_id_name Original field name
+     * @return int Course id
+     */
+    public static function get_course_id_from_original_id($original_course_id_value, $original_course_id_name)
+    {
+        $extraFieldValue = new ExtraFieldValue('course');
+        $value = $extraFieldValue->get_item_id_from_field_variable_and_field_value(
+            $original_course_id_name,
+            $original_course_id_value
+        );
+
+        if ($value) {
+            return $value['item_id'];
+        }
+        return 0;
     }
 }

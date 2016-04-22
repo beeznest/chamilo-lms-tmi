@@ -58,13 +58,13 @@ $_configuration['url_append'] = '{URL_APPEND_PATH}';
 // CAS IMPLEMENTATION
 // -> Go to your portal Chamilo > Administration > CAS to activate CAS
 // You can leave these lines uncommented even if you don't use CAS authentification
-//$extAuthSource["cas"]["login"] = $_configuration['root_sys'].$_configuration['code_append']."auth/cas/login.php";
-//$extAuthSource["cas"]["newUser"] = $_configuration['root_sys'].$_configuration['code_append']."auth/cas/newUser.php";
+//$extAuthSource["cas"]["login"] = $_configuration['root_sys']."main/auth/cas/login.php";
+//$extAuthSource["cas"]["newUser"] = $_configuration['root_sys']."main/auth/cas/newUser.php";
 
 // NEW LDAP IMPLEMENTATION BASED ON external_login info
 // -> Uncomment the two lines bellow to activate LDAP AND edit main/auth/external_login/ldap.conf.php for configuration
-// $extAuthSource["extldap"]["login"] = $_configuration['root_sys'].$_configuration['code_append']."auth/external_login/login.ldap.php";
-// $extAuthSource["extldap"]["newUser"] = $_configuration['root_sys'].$_configuration['code_append']."auth/external_login/newUser.ldap.php";
+// $extAuthSource["extldap"]["login"] = $_configuration['root_sys']."main/auth/external_login/login.ldap.php";
+// $extAuthSource["extldap"]["newUser"] = $_configuration['root_sys']."main/auth/external_login/newUser.ldap.php";
 //
 // FACEBOOK IMPLEMENTATION BASED ON external_login info
 // -> Uncomment the line bellow to activate Facebook Auth AND edit main/auth/external_login/ldap.conf.php for configuration
@@ -72,8 +72,8 @@ $_configuration['url_append'] = '{URL_APPEND_PATH}';
 //
 // OTHER EXTERNAL LOGIN INFORMATION
 // To fetch external login information, uncomment those 2 lines and modify  files auth/external_login/newUser.php and auth/external_login/updateUser.php files
-// $extAuthSource["external_login"]["newUser"] = $_configuration['root_sys'].$_configuration['code_append']."auth/external_login/newUser.php";
-// $extAuthSource["external_login"]["updateUser"] = $_configuration['root_sys'].$_configuration['code_append']."auth/external_login/updateUser.php";
+// $extAuthSource["external_login"]["newUser"] = $_configuration['root_sys']."main/auth/external_login/newUser.php";
+// $extAuthSource["external_login"]["updateUser"] = $_configuration['root_sys']."main/auth/external_login/updateUser.php";
 
 /**
  *
@@ -230,3 +230,11 @@ $_configuration['system_stable'] = NEW_VERSION_STABLE;
 //$_configuration['document_manage_deleted_files'] = false;
 // Hide tabs in the main/session/index.php page
 //$_configuration['session_hide_tab_list'] = array();
+// Show invisible exercise in LP list
+//$_configuration['show_invisible_exercise_in_lp_list'] = false;
+//Allow send a push notification when an email are sent
+//$_configuration['messaging_allow_send_push_notification'] = 'true';
+//Project number in the Google Developer Console
+//$_configuration['messaging_gdc_project_number'] = '';
+//Api Key in the Google Developer Console
+//$_configuration['messaging_gdc_api_key'] = '';

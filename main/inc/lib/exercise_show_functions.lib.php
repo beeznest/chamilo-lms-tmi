@@ -64,16 +64,16 @@ class ExerciseShowFunctions
      * @param int       Question ID
      * @return void
      */
-    static function display_calculated_answer($feedback_type, $answer, $id, $questionId)
+    public static function display_calculated_answer($feedback_type, $answer, $id, $questionId)
     {
         if (empty($id)) {
-            echo '<tr><td>'. (Security::remove_XSS($answer)).'</td></tr>';
+            echo '<tr><td>'. Security::remove_XSS($answer).'</td></tr>';
         } else {
         ?>
             <tr>
                 <td>
                     <?php
-                    echo (Security::remove_XSS($answer));
+                    echo Security::remove_XSS($answer);
                     ?>
                 </td>
 
@@ -97,7 +97,7 @@ class ExerciseShowFunctions
 	 * @param int       Question ID
 	 * @return void
 	 */
-	static function display_free_answer($feedback_type, $answer, $exe_id, $questionId, $questionScore = null)
+	public static function display_free_answer($feedback_type, $answer, $exe_id, $questionId, $questionScore = null)
     {
         $comments = Event::get_comments($exe_id, $questionId);
 
@@ -117,7 +117,7 @@ class ExerciseShowFunctions
         }
 	}
 
-	static function display_oral_expression_answer($feedback_type, $answer, $id, $questionId, $nano = null)
+	public static function display_oral_expression_answer($feedback_type, $answer, $id, $questionId, $nano = null)
     {
         if (isset($nano)) {
             echo $nano->show_audio_file();
@@ -153,14 +153,24 @@ class ExerciseShowFunctions
 
 	/**
 	 * Displays the answer to a hotspot question
-	 *
-	 * @param int $answerId
-	 * @param string $answer
-	 * @param string $studentChoice
-	 * @param string $answerComment
-	 */
-	static function display_hotspot_answer($feedback_type, $answerId, $answer, $studentChoice, $answerComment, $in_results_disabled)
-	 {
+     * @param int $feedback_type
+     * @param int $answerId
+     * @param string $answer
+     * @param string $studentChoice
+     * @param string $answerComment
+     * @param string $in_results_disabled
+     * @param int $orderColor
+     */
+	public static function display_hotspot_answer(
+        $feedback_type,
+        $answerId,
+        $answer,
+        $studentChoice,
+        $answerComment,
+        $in_results_disabled,
+        $orderColor
+    )
+    {
         $hide_expected_answer = false;
         if ($feedback_type == 0 && $in_results_disabled == 2) {
             $hide_expected_answer = true;
@@ -184,16 +194,13 @@ class ExerciseShowFunctions
 		?>
 		<table class="data_table">
 		<tr>
-			<td width="100px" valign="top" align="left">
-				<div style="width:100%;">
-					<div style="height:11px; width:11px; background-color:<?php echo $hotspot_colors[$answerId]; ?>; display:inline; float:left; margin-top:3px;"></div>
-					<div style="float:left; padding-left:5px;">
-					<?php echo $answerId; ?>
-					</div>
-					<div><?php echo '&nbsp;'.$answer ?></div>
-				</div>
+            <td class="text-center" width="5%">
+                <span class="fa fa-square fa-fw fa-2x" aria-hidden="true" style="color: <?php echo $hotspot_colors[$orderColor]; ?>"></span>
+            </td>
+			<td class="text-left" width="25%">
+                <?php echo "$answerId - $answer"; ?>
 			</td>
-			<td width="50px" style="padding-right:15px" valign="top" align="left">
+			<td class="text-left" width="10%">
 				<?php
                 if (!$hide_expected_answer) {
     				$my_choice = ($studentChoice)?get_lang('Correct'):get_lang('Fault');
@@ -202,7 +209,7 @@ class ExerciseShowFunctions
 				?>
 			</td>
 			<?php if ($feedback_type != EXERCISE_FEEDBACK_TYPE_EXAM) { ?>
-			<td valign="top" align="left" >
+			<td class="text-left" width="60%">
 				<?php
                 if ($studentChoice) {
                     echo '<span style="font-weight: bold; color: #008000;">'.nl2br($answerComment).'</span>';
@@ -210,7 +217,7 @@ class ExerciseShowFunctions
 				?>
 			</td>
 			<?php } else { ?>
-				<td>&nbsp;</td>
+				<td class="text-left" width="60%">&nbsp;</td>
 			<?php } ?>
 		</tr>
 		<?php
@@ -229,7 +236,7 @@ class ExerciseShowFunctions
 	 * @param boolean Whether to show the answer comment or not
 	 * @return void
 	 */
-	static function display_unique_or_multiple_answer(
+	public static function display_unique_or_multiple_answer(
         $feedback_type,
         $answerType,
         $studentChoice,
@@ -246,19 +253,25 @@ class ExerciseShowFunctions
         if ($feedback_type == 0 && $in_results_disabled == 2) {
             $hide_expected_answer = true;
         }
+        $icon = in_array($answerType, array(UNIQUE_ANSWER, UNIQUE_ANSWER_NO_OPTION)) ? 'radio':'checkbox';
+		$icon .= $studentChoice?'_on':'_off';
+		$icon .= '.gif';
+
+		$iconAnswer = in_array($answerType, array(UNIQUE_ANSWER, UNIQUE_ANSWER_NO_OPTION)) ? 'radio':'checkbox';
+		$iconAnswer .= $answerCorrect?'_on':'_off';
+		$iconAnswer .= '.gif';
+
 		?>
 		<tr>
 		<td width="5%">
-			<img src="../img/<?php echo (in_array($answerType, array(UNIQUE_ANSWER, UNIQUE_ANSWER_NO_OPTION))) ? 'radio':'checkbox'; echo $studentChoice?'_on':'_off'; ?>.gif"
-			border="0" alt="" />
+			<?php echo Display::return_icon($icon); ?>
 		</td>
 		<td width="5%">
-            <?php if (!$hide_expected_answer) { ?>
-			    <img src="../img/<?php echo (in_array($answerType, array(UNIQUE_ANSWER, UNIQUE_ANSWER_NO_OPTION))) ? 'radio':'checkbox'; echo $answerCorrect?'_on':'_off'; ?>.gif" border="0" alt=" " />
-            <?php }
-            else {
+            <?php if (!$hide_expected_answer) {
+                echo Display::return_icon($iconAnswer);
+            } else {
                 echo "-";
-            }?>
+            } ?>
 		</td>
 		<td width="40%">
 			<?php
@@ -313,7 +326,7 @@ class ExerciseShowFunctions
      * @param boolean Whether to show the answer comment or not
      * @return void
      */
-    static function display_multiple_answer_true_false(
+    public static function display_multiple_answer_true_false(
         $feedback_type,
         $answerType,
         $studentChoice,

@@ -20,7 +20,7 @@ use ChamiloSession as Session;
  */
 class Display
 {
-    /* The main template*/
+    /** @var Template */
     public static $global_template;
     public static $preview_style = null;
 
@@ -132,6 +132,14 @@ class Display
     public static function display_footer()
     {
         echo self::$global_template->show_footer_template();
+    }
+
+    /**
+     * Display the page footer
+     */
+    public static function display_reduced_footer()
+    {
+        echo self::$global_template->show_footer_js_template();
     }
 
     public static function page()
@@ -515,6 +523,10 @@ class Display
      */
     public static function return_message($message, $type = 'normal', $filter = true)
     {
+        if (empty($message)) {
+            return '';
+        }
+
         if ($filter) {
         	$message = api_htmlentities($message, ENT_QUOTES, api_is_xml_http_request() ? 'UTF-8' : api_get_system_encoding());
         }
@@ -685,6 +697,19 @@ class Display
     }
 
     /**
+     * Gets the path of an icon
+     *
+     * @param string $icon
+     * @param string $size
+     *
+     * @return string
+     */
+    public static function returnIconPath($icon, $size = ICON_SIZE_SMALL)
+    {
+        return Display::return_icon($icon, null, null, $size, null, true, false);
+    }
+
+    /**
      * This public function returns the htmlcode for an icon
      *
      * @param string   The filename of the file (in the main/img/ folder
@@ -704,7 +729,8 @@ class Display
         $additional_attributes = array(),
         $size = ICON_SIZE_SMALL,
         $show_text = true,
-        $return_only_path = false
+        $return_only_path = false,
+        $loadThemeIcon = true
     ) {
         $code_path = api_get_path(SYS_CODE_PATH);
         $w_code_path = api_get_path(WEB_CODE_PATH);
@@ -712,25 +738,34 @@ class Display
         $alternateWebCssPath = api_get_path(WEB_CSS_PATH);
 
         $image = trim($image);
-        $theme = 'themes/' . api_get_visual_theme() . '/icons/';
-        $size_extra = '';
 
         if (isset($size)) {
             $size = intval($size);
-            $size_extra = $size . '/';
         } else {
             $size = ICON_SIZE_SMALL;
         }
 
-        //Checking the theme icons folder example: app/Resources/public/css/themes/chamilo/icons/XXX
-        if (is_file($alternateCssPath.$theme.$size_extra.$image)) {
-            $icon = $alternateWebCssPath.$theme.$size_extra.$image;
-        } elseif (is_file($code_path.'img/icons/'.$size_extra.$image)) {
-            //Checking the main/img/icons/XXX/ folder
-            $icon = $w_code_path.'img/icons/'.$size_extra.$image;
+        $size_extra = $size . '/';
+
+        // Checking the img/ folder
+        $icon = $w_code_path.'img/'.$image;
+
+        $theme = 'themes/chamilo/icons/';
+
+        if ($loadThemeIcon) {
+            $theme = 'themes/' . api_get_visual_theme() . '/icons/';
+            // Checking the theme icons folder example: app/Resources/public/css/themes/chamilo/icons/XXX
+            if (is_file($alternateCssPath.$theme.$size_extra.$image)) {
+                $icon = $alternateWebCssPath.$theme.$size_extra.$image;
+            } elseif (is_file($code_path.'img/icons/'.$size_extra.$image)) {
+                //Checking the main/img/icons/XXX/ folder
+                $icon = $w_code_path.'img/icons/'.$size_extra.$image;
+            }
         } else {
-            //Checking the img/ folder
-            $icon = $w_code_path . 'img/' . $image;
+            if (is_file($code_path.'img/icons/'.$size_extra.$image)) {
+                // Checking the main/img/icons/XXX/ folder
+                $icon = $w_code_path.'img/icons/'.$size_extra.$image;
+            }
         }
 
         // Special code to enable SVG - refs #7359 - Needs more work
@@ -738,8 +773,8 @@ class Display
         // it checks if there is an SVG version. If so, it uses it.
         // When moving this to production, the return_icon() calls should
         // ask for the SVG version directly
-        $testServer = api_get_setting('server_type');
-        if ($testServer == 'test') {
+        /*$testServer = api_get_setting('server_type');
+        if ($testServer == 'test' && $return_only_path == false) {
             $svgImage = substr($image, 0, -3) . 'svg';
             if (is_file($code_path . $theme . 'svg/' . $svgImage)) {
                 $icon = $w_code_path . $theme . 'svg/' . $svgImage;
@@ -753,15 +788,17 @@ class Display
             if (empty($additional_attributes['width'])) {
                 $additional_attributes['width'] = $size;
             }
-        }
+        }*/
 
         $icon = api_get_cdn_path($icon);
+
         if ($return_only_path) {
             return $icon;
+
         }
 
         $img = self::img($icon, $alt_text, $additional_attributes);
-        if (SHOW_TEXT_NEAR_ICONS == true and !empty($alt_text)) {
+        if (SHOW_TEXT_NEAR_ICONS == true && !empty($alt_text)) {
             if ($show_text) {
                 $img = "$img $alt_text";
             }
@@ -773,15 +810,18 @@ class Display
     /**
      * Returns the htmlcode for an image
      *
-     * @param string $image the filename of the file (in the main/img/ folder
+     * @param string $image_path the filename of the file (in the main/img/ folder
      * @param string $alt_text the alt text (probably a language variable)
      * @param array  $additional_attributes (for instance height, width, onclick, ...)
+     * @param boolean $filterPath Optional. Whether filter the image path. Default is true
      * @author Julio Montoya 2010
      */
-    public static function img($image_path, $alt_text = '', $additional_attributes = array())
+    public static function img($image_path, $alt_text = '', $additional_attributes = array(), $filterPath = true)
     {
         // Sanitizing the parameter $image_path
-        $image_path = Security::filter_img_path($image_path);
+        if ($filterPath) {
+            $image_path = Security::filter_img_path($image_path);
+        }
 
         // alt text = the image name if there is none provided (for XHTML compliance)
         if ($alt_text == '') {
@@ -1991,6 +2031,153 @@ class Display
     }
 
     /**
+     *
+     * @param int $nextValue
+     * @param array $list
+     * @param int $current
+     * @param int $fixedValue
+     * @param array $conditions
+     * @param string $link
+     * @param bool $isMedia
+     * @param bool $addHeaders
+     * @return string
+     */
+    public static function progressPaginationBar(
+        $nextValue,
+        $list,
+        $current,
+        $fixedValue = null,
+        $conditions = array(),
+        $link = null,
+        $isMedia = false,
+        $addHeaders = true,
+        $linkAttributes = array()
+    ) {
+        if ($addHeaders) {
+            $pagination_size = 'pagination-mini';
+            $html = '<div class="exercise_pagination pagination '.$pagination_size.'"><ul>';
+        } else {
+            $html = null;
+        }
+        $affectAllItems = false;
+        if ($isMedia && isset($fixedValue) && ($nextValue + 1 == $current)) {
+            $affectAllItems = true;
+        }
+        $localCounter = 0;
+        foreach ($list as $itemId) {
+            $isCurrent = false;
+            if ($affectAllItems) {
+                $isCurrent = true;
+            } else {
+                if (!$isMedia) {
+                    $isCurrent = $current == ($localCounter + $nextValue + 1) ? true : false;
+                }
+            }
+            $html .= self::parsePaginationItem(
+                $itemId,
+                $isCurrent,
+                $conditions,
+                $link,
+                $nextValue,
+                $isMedia,
+                $localCounter,
+                $fixedValue,
+                $linkAttributes
+            );
+            $localCounter++;
+        }
+        if ($addHeaders) {
+            $html .= '</ul></div>';
+        }
+        return $html;
+    }
+    /**
+     *
+     * @param int $itemId
+     * @param bool $isCurrent
+     * @param array $conditions
+     * @param string $link
+     * @param int $nextValue
+     * @param bool $isMedia
+     * @param int $localCounter
+     * @param int $fixedValue
+     * @return string
+     */
+    static function parsePaginationItem(
+        $itemId,
+        $isCurrent,
+        $conditions,
+        $link,
+        $nextValue = 0,
+        $isMedia = false,
+        $localCounter = null,
+        $fixedValue = null,
+        $linkAttributes = array())
+    {
+        $defaultClass = "before";
+        $class = $defaultClass;
+        foreach ($conditions as $condition) {
+            $array = isset($condition['items']) ? $condition['items'] : array();
+            $class_to_applied = $condition['class'];
+            $type = isset($condition['type']) ? $condition['type'] : 'positive';
+            $mode = isset($condition['mode']) ? $condition['mode'] : 'add';
+            switch ($type) {
+                case 'positive':
+                    if (in_array($itemId, $array)) {
+                        if ($mode == 'overwrite') {
+                            $class = " $defaultClass $class_to_applied";
+                        } else {
+                            $class .= " $class_to_applied";
+                        }
+                    }
+                    break;
+                case 'negative':
+                    if (!in_array($itemId, $array)) {
+                        if ($mode == 'overwrite') {
+                            $class = " $defaultClass $class_to_applied";
+                        } else {
+                            $class .= " $class_to_applied";
+                        }
+                    }
+                    break;
+            }
+        }
+        if ($isCurrent) {
+            $class = "before current";
+        }
+        if ($isMedia && $isCurrent) {
+            $class = "before current";
+        }
+        if (empty($link)) {
+            $link_to_show = "#";
+        } else {
+            $link_to_show = $link.($nextValue + $localCounter);
+        }
+        $label = $nextValue + $localCounter + 1;
+        if ($isMedia) {
+            $label = ($fixedValue + 1) .' '.chr(97 + $localCounter);
+            $link_to_show = $link.$fixedValue.'#questionanchor'.$itemId;
+        }
+        $link = Display::url($label.' ', $link_to_show, $linkAttributes);
+        return  '<li class = "'.$class.'">'.$link.'</li>';
+    }
+    
+    /**
+     * @param int $current
+     * @param int $total
+     * @return string
+     */
+    public static function paginationIndicator($current, $total)
+    {
+        $html = null;
+        if (!empty($current) && !empty($total)) {
+            $label = sprintf(get_lang('PaginationXofY'), $current, $total);
+            $html = self::url($label, '#', array('class' => 'btn disabled'));
+        }
+        return $html;
+    }
+
+    /**
      * Adds a message in the queue
      * @param string $message
      */
@@ -2135,11 +2322,16 @@ class Display
         $url,
         $icon = 'check',
         $type = 'default',
-        array $attributes = []
+        array $attributes = [],
+        $includeText = true
     ) {
         $buttonClass = "btn btn-$type";
-        $icon = self::tag('i', null, ['class' => "fa fa-$icon"]);
+        $icon = self::tag('i', null, ['class' => "fa fa-$icon fa-fw", 'aria-hidden' => 'true']);
         $attributes['class'] = isset($attributes['class']) ? "$buttonClass {$attributes['class']}" : $buttonClass;
+
+        if (!$includeText) {
+            $text = '<span class="sr-only">' . $text . '</span>';
+        }
 
         return self::url("$icon $text", $url, $attributes);
     }
@@ -2165,7 +2357,7 @@ class Display
                 if ( $col == 2 && $i == 1 ) {
                     if ($right === true) {
                         $html .= '<div class="pull-right">';
-                        $html .= (isset($content[$i])?$content[$i]:'');
+                        $html .= (isset($content[$i]) ? $content[$i] : '');
                         $html .= '</div>';
                     } else {
                         $html .= $content[$i];
@@ -2235,7 +2427,7 @@ class Display
      * @param null $idAccordion
      * @param null $idCollapse
      * @param bool|true $open
-     * @param bool|false $arrow
+     * @param bool|false $fullClickable
      * @return null|string
      */
     public static function panelCollapse(
@@ -2246,19 +2438,30 @@ class Display
         $idAccordion = null,
         $idCollapse = null,
         $open = true,
-        $arrow = false
+        $fullClickable = false
     ) {
         if (!empty($idAccordion)) {
-            $html = null;
-            $html .= '<div class="panel-group" id="'.$idAccordion.'" role="tablist" aria-multiselectable="true">' . PHP_EOL;
-            $html .= '<div class="panel panel-default" id="'.$id.'">' . PHP_EOL;
-            $html .= '<div class="panel-heading" role="tab"><h4 class="panel-title">' . PHP_EOL;
-            $html .= '<a class="' . ($arrow===true?'arrow':'') . ' '.($open===true?'':'collapsed').'" role="button" data-toggle="collapse" data-parent="#'.$idAccordion.'" href="#'.$idCollapse.'" aria-expanded="true" aria-controls="'.$idCollapse.'">'.$title.'</a>' . PHP_EOL;
-            $html .= '</h4></div>' . PHP_EOL;
-            $html .= '<div id="'.$idCollapse.'" class="panel-collapse collapse '.($open===true?'in':'').'" role="tabpanel">' . PHP_EOL;
-            $html .= '<div class="panel-body">'.$content.'</div>' . PHP_EOL;
-            $html .= '</div></div></div>' . PHP_EOL;
+            $headerClass = '';
+            $headerClass .= $fullClickable ? 'center-block ' : '';
+            $headerClass .= $open ? '' : 'collapsed';
+            $contentClass = 'panel-collapse collapse ';
+            $contentClass .= $open ? 'in' : '';
+            $ariaExpanded = $open ? 'true' : 'false';
 
+            $html = <<<HTML
+                <div class="panel-group" id="$idAccordion" role="tablist" aria-multiselectable="true">
+                    <div class="panel panel-default" id="$id">
+                        <div class="panel-heading" role="tab">
+                            <h4 class="panel-title">
+                                <a class="$headerClass" role="button" data-toggle="collapse" data-parent="#$idAccordion" href="#$idCollapse" aria-expanded="$ariaExpanded" aria-controls="$idCollapse">$title</a>
+                            </h4>
+                        </div>
+                        <div id="$idCollapse" class="$contentClass" role="tabpanel">
+                            <div class="panel-body">$content</div>
+                        </div>
+                    </div>
+                </div>
+HTML;
         } else {
             if (!empty($id)) {
                 $params['id'] = $id;

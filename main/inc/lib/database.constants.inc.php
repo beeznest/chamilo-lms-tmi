@@ -129,12 +129,14 @@ define('TABLE_MAIN_BLOCK', 'block');
 
 // Statistic database tables
 define('TABLE_STATISTIC_TRACK_E_LASTACCESS', 'track_e_lastaccess');
+// Access to specific tools inside a course
 define('TABLE_STATISTIC_TRACK_E_ACCESS', 'track_e_access');
 define('TABLE_STATISTIC_TRACK_E_LOGIN', 'track_e_login');
 define('TABLE_STATISTIC_TRACK_E_DOWNLOADS', 'track_e_downloads');
 define('TABLE_STATISTIC_TRACK_E_LINKS', 'track_e_links');
 define('TABLE_STATISTIC_TRACK_E_ONLINE', 'track_e_online');
 define('TABLE_STATISTIC_TRACK_E_HOTPOTATOES', 'track_e_hotpotatoes');
+// Access date data (in and out dates in course)
 define('TABLE_STATISTIC_TRACK_E_COURSE_ACCESS', 'track_e_course_access');
 define('TABLE_STATISTIC_TRACK_E_EXERCISES', 'track_e_exercises');
 define('TABLE_STATISTIC_TRACK_E_ATTEMPT', 'track_e_attempt');
@@ -195,7 +197,7 @@ define('TABLE_DROPBOX_POST', 'dropbox_post');
 define('TABLE_DROPBOX_FILE', 'dropbox_file');
 define('TABLE_DROPBOX_PERSON', 'dropbox_person');
 
-// Course quiz (or test, or exercice) tables
+// Course quiz (or test, or exercise) tables
 define('TABLE_QUIZ_QUESTION', 'quiz_question');
 define('TABLE_QUIZ_TEST', 'quiz');
 define('TABLE_QUIZ_ORDER', 'quiz_order');
@@ -204,6 +206,7 @@ define('TABLE_QUIZ_TEST_QUESTION', 'quiz_rel_question');
 define('TABLE_QUIZ_QUESTION_OPTION', 'quiz_question_option');
 define('TABLE_QUIZ_QUESTION_CATEGORY', 'quiz_question_category');
 define('TABLE_QUIZ_QUESTION_REL_CATEGORY', 'quiz_question_rel_category');
+define('TABLE_QUIZ_REL_CATEGORY', 'quiz_rel_category');
 
 // Linked resource table
 //@todo table exists?

@@ -229,12 +229,12 @@ function handle_stylesheets()
     $form = new FormValidator(
         'stylesheet_upload',
         'post',
-        'settings.php?category=Stylesheets#tabs-2'
+        'settings.php?category=Stylesheets#tabs-3'
     );
     $form->addElement('text', 'name_stylesheet', get_lang('NameStylesheet'), array('size' => '40', 'maxlength' => '40'));
     $form->addRule('name_stylesheet', get_lang('ThisFieldIsRequired'), 'required');
     $form->addElement('file', 'new_stylesheet', get_lang('UploadNewStylesheet'));
-    $allowed_file_types = array('css', 'zip', 'jpeg', 'jpg', 'png', 'gif', 'ico','psd');
+    $allowed_file_types = array('css', 'zip', 'jpeg', 'jpg', 'png', 'gif', 'ico', 'psd', 'xcf', 'svg', 'webp', 'woff', 'woff2');
 
     $form->addRule('new_stylesheet', get_lang('InvalidExtension').' ('.implode(',', $allowed_file_types).')', 'filetype', $allowed_file_types);
     $form->addRule('new_stylesheet', get_lang('ThisFieldIsRequired'), 'required');
@@ -362,6 +362,67 @@ function handle_stylesheets()
             }
         }
     }
+    
+    $logoForm = new FormValidator(
+        'logo_upload',
+        'post',
+        'settings.php?category=Stylesheets#tabs-2'
+    );
+    
+    $logoForm->addHtml(Display::return_message(sprintf(get_lang('TheLogoMustBeSizeXAndFormatY'), '250 x 70', 'PNG'), 'info'));
+    
+    $dir = api_get_path(SYS_PUBLIC_PATH).'css/themes/' . $selected . '/images/';
+    $url = api_get_path(WEB_CSS_PATH).'themes/' . $selected . '/images/';
+    $logoFileName = 'header-logo.png';
+    $newLogoFileName = 'header-logo-custom.png';
+    
+    if (is_file($dir.$newLogoFileName)) {
+        $logoForm->addLabel(get_lang('CurrentLogo'), '<img id="header-logo-custom" src="'. $url . $newLogoFileName .'?'. time() . '">'); 
+    } else {
+        $logoForm->addLabel(get_lang('CurrentLogo'), '<img id="header-logo-custom" src="'. $url . $logoFileName .'?'. time() . '">');
+    }
+    
+    $logoForm->addFile('new_logo', get_lang('UpdateLogo'));
+    $allowedFileTypes = ['png'];
+    
+    if (isset($_POST['logo_reset'])) {
+        if (is_file($dir.$newLogoFileName)) {
+            unlink($dir.$newLogoFileName);
+            Display::display_normal_message(get_lang('ResetToTheOriginalLogo'));
+            echo '<script>'
+                . '$("#header-logo").attr("src","'.$url.$logoFileName.'");'
+            . '</script>';
+        }
+    } elseif (isset($_POST['logo_upload'])) {
+        
+        $logoForm->addRule('new_logo', get_lang('InvalidExtension').' ('.implode(',', $allowedFileTypes).')', 'filetype', $allowedFileTypes);
+        $logoForm->addRule('new_logo', get_lang('ThisFieldIsRequired'), 'required');
+        
+        if ($logoForm->validate()) {
+            
+            $imageInfo = getimagesize($_FILES['new_logo']['tmp_name']);
+            $width = $imageInfo[0];
+            $height = $imageInfo[1];
+            if ($width <= 250 && $height <= 70 ) {
+                if (is_file($dir.$newLogoFileName)) {
+                    unlink($dir.$newLogoFileName);
+                }
+                
+                $status = move_uploaded_file($_FILES['new_logo']['tmp_name'], $dir.$newLogoFileName);
+
+                if ($status) {
+                    Display::display_normal_message(get_lang('NewLogoUpdated'));
+                    echo '<script>'
+                            . '$("#header-logo").attr("src","'.$url.$newLogoFileName.'");'
+                        . '</script>';
+                } else {
+                    Display::display_error_message('Error - '.get_lang('UplNoFileUploaded'));
+                }
+            } else {
+                Display::display_error_message('Error - '.get_lang('InvalidImageDimensions'));
+            }
+        }
+    }
 
     if ($is_style_changeable) {
         $group = [
@@ -371,6 +432,13 @@ function handle_stylesheets()
         ];
 
         $form_change->addGroup($group);
+        
+        $logoGroup = [
+            $logoForm->addButtonUpload(get_lang('Upload'), 'logo_upload', true),
+            $logoForm->addButtonCancel(get_lang('Reset'), 'logo_reset', true)
+        ];
+        
+        $logoForm->addGroup($logoGroup);
 
         if ($show_upload_form) {
             echo '<script>
@@ -379,11 +447,22 @@ function handle_stylesheets()
             });
             </script>';
             echo Display::tabs(
-                array(get_lang('Update'), get_lang('UploadNewStylesheet')),
-                array($form_change->return_form(), $form->return_form())
+                array(get_lang('Update'),get_lang('UpdateLogo'), get_lang('UploadNewStylesheet')),
+                array($form_change->return_form(), $logoForm->return_form(), $form->return_form())
             );
         } else {
             $form_change->display();
+        }
+        
+        //Little hack to update the logo image in update form when submiting
+        if (isset($_POST['logo_reset'])) {
+            echo '<script>'
+                    . '$("#header-logo-custom").attr("src","'.$url.$logoFileName.'");'
+                . '</script>';
+        } elseif (isset($_POST['logo_upload']) && is_file($dir.$newLogoFileName)) {
+            echo '<script>'
+                    . '$("#header-logo-custom").attr("src","'.$url.$newLogoFileName.'");'
+                . '</script>';
         }
     } else {
         $form_change->freeze();
@@ -434,7 +513,10 @@ function upload_stylesheet($values, $picture)
                 'ico',
                 'psd',
                 'woff',
-                'woff2'
+                'woff2',
+                'xcf',
+                'svg',
+                'webp'
             );
 
             for ($i = 0; $i < $num_files; $i++) {
@@ -676,7 +758,7 @@ function handle_search()
         $group = array();
         $url =  Display::div(Display::url(get_lang('AddSpecificSearchField'), 'specific_fields.php'), array('class'=>'sectioncomment'));
         if (empty($sf_values)) {
-            $form->addElement('html', get_lang('SearchPrefilterPrefix').$url);
+            $form->addElement('label', [get_lang('SearchPrefilterPrefix'), $url]);
         } else {
             $form->addElement('select', 'search_prefilter_prefix', array(get_lang('SearchPrefilterPrefix'), $url), $sf_values, '');
             $default_values['search_prefilter_prefix'] = api_get_setting('search_prefilter_prefix');
@@ -719,26 +801,26 @@ function handle_search()
         }
         */
 
-        $xapian_loaded = Display::return_icon('bullet_green.gif', get_lang('Ok'));
-        $dir_exists = Display::return_icon('bullet_green.gif', get_lang('Ok'));
-        $dir_is_writable = Display::return_icon('bullet_green.gif', get_lang('Ok'));
-        $specific_fields_exists = Display::return_icon('bullet_green.gif', get_lang('Ok'));
+        $xapian_loaded = Display::return_icon('bullet_green.png', get_lang('Ok'));
+        $dir_exists = Display::return_icon('bullet_green.png', get_lang('Ok'));
+        $dir_is_writable = Display::return_icon('bullet_green.png', get_lang('Ok'));
+        $specific_fields_exists = Display::return_icon('bullet_green.png', get_lang('Ok'));
 
         //Testing specific fields
         if (empty($specific_fields)) {
-            $specific_fields_exists = Display::return_icon('bullet_red.gif', get_lang('AddSpecificSearchField'));
+            $specific_fields_exists = Display::return_icon('bullet_red.png', get_lang('AddSpecificSearchField'));
         }
         //Testing xapian extension
         if (!extension_loaded('xapian')) {
-            $xapian_loaded = Display::return_icon('bullet_red.gif', get_lang('Error'));
+            $xapian_loaded = Display::return_icon('bullet_red.png', get_lang('Error'));
         }
         //Testing xapian searchdb path
         if (!is_dir($xapian_path)) {
-            $dir_exists = Display::return_icon('bullet_red.gif', get_lang('Error'));
+            $dir_exists = Display::return_icon('bullet_red.png', get_lang('Error'));
         }
         //Testing xapian searchdb path is writable
         if (!is_writable($xapian_path)) {
-            $dir_is_writable = Display::return_icon('bullet_red.gif', get_lang('Error'));
+            $dir_is_writable = Display::return_icon('bullet_red.png', get_lang('Error'));
         }
 
         $data[] = array(get_lang('XapianModuleInstalled'),$xapian_loaded);
@@ -757,11 +839,17 @@ function handle_search()
             $list_of_programs = array('pdftotext','ps2pdf', 'catdoc','html2text','unrtf', 'catppt', 'xls2csv');
 
             foreach($list_of_programs as $program) {
-                $output = $ret_val = null;
+                $output = [];
+                $ret_val = null;
                 exec("which $program", $output, $ret_val);
-                $icon = Display::return_icon('bullet_red.gif', get_lang('NotInstalled'));
+
+                if (!$output) {
+                    $output[] = '';
+                }
+
+                $icon = Display::return_icon('bullet_red.png', get_lang('NotInstalled'));
                 if (!empty($output[0])) {
-                    $icon = Display::return_icon('bullet_green.gif', get_lang('Installed'));
+                    $icon = Display::return_icon('bullet_green.png', get_lang('Installed'));
                 }
                 $data2[]= array($program, $output[0], $icon);
             }
@@ -1000,6 +1088,7 @@ function add_edit_template() {
     $form->addButtonSave(get_lang('Ok'), 'submit');
 
     // Setting the rules: the required fields.
+    $form->addRule('template_image', get_lang('ThisFieldIsRequired'), 'required');
     $form->addRule('title', get_lang('ThisFieldIsRequired'), 'required');
     $form->addRule('template_text', get_lang('ThisFieldIsRequired'), 'required');
 
@@ -1033,12 +1122,7 @@ function add_edit_template() {
                     $max_width_for_picture = 100;
 
                     if ($picture_info['width'] > $max_width_for_picture) {
-                        $thumbwidth = $max_width_for_picture;
-                        if (empty($thumbwidth) || $thumbwidth == 0) {
-                            $thumbwidth = $max_width_for_picture;
-                        }
-                        $new_height = round(($thumbwidth / $picture_info['width']) * $picture_info['height']);
-                        $temp->resize($thumbwidth, $new_height, 0);
+                        $temp->resize($max_width_for_picture);
                     }
                     $temp->send_image($upload_dir.$new_file_name);
                 }
@@ -1047,7 +1131,7 @@ function add_edit_template() {
             // Store the information in the database (as insert or as update).
             $table_system_template = Database :: get_main_table('system_template');
             if ($_GET['action'] == 'add') {
-                $content_template = '<head>{CSS}<style type="text/css">.text{font-weight: normal;}</style></head><body>'.Database::escape_string($values['template_text']).'</body>';
+                $content_template =  Security::remove_XSS($values['template_text'], COURSEMANAGERLOWSECURITY);
                 $params = [
                     'title' =>  $values['title'],
                     'content' => $content_template,
@@ -1189,10 +1273,17 @@ function generate_settings_form($settings, $settings_by_access_list)
     $default_values = array();
     $url_info = api_get_access_url($url_id);
     $i = 0;
+    $addedSettings = [];
     foreach ($settings as $row) {
         if (in_array($row['variable'], array_keys($settings_to_avoid))) {
             continue;
         }
+
+        if (in_array($row['variable'], $addedSettings)) {
+            continue;
+        }
+
+        $addedSettings[] = $row['variable'];
 
         if (!empty($_configuration['multiple_access_urls'])) {
             if (api_is_global_platform_admin()) {
@@ -1460,7 +1551,7 @@ function search_setting($search)
     }
     $table_settings_current = Database :: get_main_table(TABLE_MAIN_SETTINGS_CURRENT);
     $sql = "SELECT * FROM $table_settings_current
-            WHERE category <> 'Plugins' GROUP BY variable ORDER BY id ASC ";
+            WHERE category <> 'Plugins' ORDER BY id ASC ";
     $result = Database::store_result(Database::query($sql), 'ASSOC');
     $settings = array();
 

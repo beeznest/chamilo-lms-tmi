@@ -718,8 +718,8 @@ function display_requirements(
                 <td class="requirements-value">'.checkExtension('session', get_lang('Yes'), get_lang('ExtensionSessionsNotAvailable')).'</td>
             </tr>
             <tr>
-                <td class="requirements-item"><a href="http://php.net/manual/en/book.mysql.php" target="_blank">MySQL</a> '.get_lang('support').'</td>
-                <td class="requirements-value">'.checkExtension('mysql', get_lang('Yes'), get_lang('ExtensionMySQLNotAvailable')).'</td>
+                <td class="requirements-item"><a href="http://php.net/manual/en/ref.pdo-mysql.php" target="_blank">pdo_mysql</a> '.get_lang('support').'</td>
+                <td class="requirements-value">'.checkExtension('pdo_mysql', get_lang('Yes'), get_lang('ExtensionMySQLNotAvailable')).'</td>
             </tr>
             <tr>
                 <td class="requirements-item"><a href="http://php.net/manual/en/book.zlib.php" target="_blank">Zlib</a> '.get_lang('support').'</td>
@@ -1391,7 +1391,6 @@ function display_database_settings_form(
             //Database Name fix replace weird chars
             if ($installType != INSTALL_TYPE_UPDATE) {
                 $dbNameForm = str_replace(array('-','*', '$', ' ', '.'), '', $dbNameForm);
-                $dbNameForm = api_replace_dangerous_char($dbNameForm);
             }
 
             displayDatabaseParameter(
@@ -2406,8 +2405,18 @@ function fixIds(EntityManager $em)
             foreach ($dataList as $data) {
                 if (isset($oldGroups[$data['group_id']])) {
                     $data['group_id'] = $oldGroups[$data['group_id']];
+
+                    $userId = $data['user_id'];
+
+                    $sql = "SELECT id FROM user WHERE user_id = $userId";
+                    $userResult = $connection->executeQuery($sql);
+                    $userInfo = $userResult->fetch();
+                    if (empty($userInfo)) {
+                        continue;
+                    }
+
                     $sql = "INSERT INTO usergroup_rel_user (usergroup_id, user_id, relation_type)
-                            VALUES ('{$data['group_id']}', '{$data['user_id']}', '{$data['relation_type']}')";
+                            VALUES ('{$data['group_id']}', '{$userId}', '{$data['relation_type']}')";
                     $connection->executeQuery($sql);
                 }
             }
