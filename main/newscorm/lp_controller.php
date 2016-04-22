@@ -364,8 +364,11 @@ if (isset($_POST['title'])) {
     }
 }
 
+$redirectTo = null;
+
 switch ($action) {
     case 'add_item':
+
         if (!$is_allowed_to_edit) {
             api_not_allowed(true);
         }
@@ -403,8 +406,15 @@ switch ($action) {
                         if (isset($_POST['path']) && $_GET['edit'] != 'true') {
                             $document_id = $_POST['path'];
                         } else {
-                            $document_id = $_SESSION['oLP']->create_document($_course);
+                            if ($_POST['content_lp']) {
+                                $document_id = $_SESSION['oLP']->create_document(
+                                    $_course,
+                                    $_POST['content_lp'],
+                                    $_POST['title']
+                                );
+                            }
                         }
+
                         $new_item_id = $_SESSION['oLP']->add_item(
                             $parent,
                             $previous,
@@ -689,7 +699,7 @@ switch ($action) {
                     $is_success = true;
                 }
 
-                $url = api_get_self().'?action=add_item&type=step&lp_id='.intval($_SESSION['oLP']->lp_id);
+                $url = api_get_self().'?action=add_item&type=step&lp_id='.intval($_SESSION['oLP']->lp_id).'&'.api_get_cidreq();
                 header('Location: '.$url);
                 exit;
             } else {
@@ -716,7 +726,7 @@ switch ($action) {
                     $_POST['description']
                 );
                 $is_success = true;
-                $url = api_get_self().'?action=add_item&type=step&lp_id='.intval($_SESSION['oLP']->lp_id);
+                $url = api_get_self().'?action=add_item&type=step&lp_id='.intval($_SESSION['oLP']->lp_id).'&'.api_get_cidreq();
                 header('Location: '.$url);
             }
             if (isset($_GET['view']) && $_GET['view'] == 'build') {
@@ -1298,6 +1308,7 @@ switch ($action) {
                     $_SESSION['oLP']->course_int_id,
                     $_SESSION['oLP']->lp_session_id
                 );
+
                 $forumCategoryId = !empty($forumCategory) ? $forumCategory['cat_id']: 0;
 
                 if (empty($forumCategoryId)) {
@@ -1316,6 +1327,7 @@ switch ($action) {
                     $forum = $_SESSION['oLP']->getForum(
                         $_SESSION['oLP']->lp_session_id
                     );
+
                     $forumId = !empty($forum) ? $forum['forum_id'] : 0;
 
                     if (empty($forumId)) {
@@ -1323,17 +1335,18 @@ switch ($action) {
                     }
 
                     if (!empty($forumId)) {
-                        $selectedItem->createForumTthread($forumId);
+                        $selectedItem->createForumThread($forumId);
                     }
                 }
             }
         }
 
-        header('Location:' . api_get_path(WEB_PATH) . api_get_self() . '?' . http_build_query([
+        header('Location:' . api_get_self() . '?' . http_build_query([
             'action' => 'add_item',
             'type' => 'step',
             'lp_id' => $_SESSION['oLP']->lp_id
         ]));
+
         break;
     case 'report':
         require 'lp_report.php';
@@ -1370,11 +1383,33 @@ switch ($action) {
             }
         }
 
-        header('Location:' . api_get_path(WEB_PATH) . api_get_self() . '?' . http_build_query([
+        header('Location:' . api_get_self() . '?' . http_build_query([
             'action' => 'add_item',
             'type' => 'step',
             'lp_id' => $_SESSION['oLP']->lp_id
         ]));
+        break;
+    case 'add_final_item':
+        if (!$lp_found) {
+            Display::addFlash(
+                Display::return_message(get_lang('NoLPFound'), 'error')
+            );
+            break;
+        }
+
+        $_SESSION['refresh'] = 1;
+
+        if (!isset($_POST['submit']) || empty($post_title)) {
+            break;
+        }
+
+        $_SESSION['oLP']->getFinalItemForm();
+
+        $redirectTo = api_get_self() . '?' . http_build_query([
+            'action' => 'add_item',
+            'type' => 'step',
+            'lp_id' => intval($_SESSION['oLP']->lp_id)
+        ]);
         break;
     default:
         if ($debug > 0) error_log('New LP - default action triggered', 0);
@@ -1385,4 +1420,8 @@ switch ($action) {
 if (!empty($_SESSION['oLP'])) {
     $_SESSION['lpobject'] = serialize($_SESSION['oLP']);
     if ($debug > 0) error_log('New LP - lpobject is serialized in session', 0);
+}
+
+if (!empty($redirectTo)) {
+    header("Location: $redirectTo");
 }

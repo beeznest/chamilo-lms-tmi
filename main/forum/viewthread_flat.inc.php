@@ -15,12 +15,20 @@ if ((isset($_GET['action']) &&
     delete_attachment(0, $_GET['id_attach']);
 }
 
+
+// Are we in a lp ?
+$origin = '';
+if (isset($_GET['origin'])) {
+    $origin = Security::remove_XSS($_GET['origin']);
+}
+
 $sessionId = api_get_session_id();
 $_user = api_get_user_info();
 $userId = api_get_user_id();
 $groupId = api_get_group_id();
 
-$sortDirection = isset($_GET['posts_order']) && $_GET['posts_order'] === 'desc' ? 'DESC' : 'ASC';
+// Decide whether we show the latest post first
+$sortDirection = isset($_GET['posts_order']) && $_GET['posts_order'] === 'desc' ? 'DESC' : ($origin != 'learnpath' ? 'ASC' : 'DESC');
 
 if (isset($current_thread['thread_id'])) {
     $increment = 0;
@@ -111,7 +119,7 @@ if (isset($current_thread['thread_id'])) {
 
             if ($origin != 'learnpath') {
                 if (api_get_course_setting('allow_user_image_forum')) {
-                    $html .= '<div class="thumbnail">' . display_user_image($row['user_id'], $name) . '</div>';
+                    $html .= '<div class="thumbnail">' . display_user_image($row['user_id'], $name, $origin) . '</div>';
                 }
                 $html .= Display::tag(
                     'h4',
@@ -119,20 +127,34 @@ if (isset($current_thread['thread_id'])) {
                     array('class' => 'title-username')
                 );
             } else {
+                if (api_get_course_setting('allow_user_image_forum')) {
+                    $html .= '<div class="thumbnail">' . display_user_image($row['user_id'], $name, $origin) . '</div>';
+                }
+                $name = Display::tag('strong', "#" . $postCount--, ['class' => 'text-info']) . " | $name";
+
                 $html .= Display::tag(
-                    'span',
+                    'p',
                     $name,
                     array(
-                        'title' => api_htmlentities($username, ENT_QUOTES)
+                        'title' => api_htmlentities($username, ENT_QUOTES),
+                        'class' => 'lead'
                     )
                 );
             }
 
-            $html .= Display::tag(
-                'p',
-                api_convert_and_format_date($row['post_date']),
-                array('class' => 'post-date')
-            );
+            if ($origin != 'learnpath') {
+                $html .= Display::tag(
+                    'p',
+                    api_convert_and_format_date($row['post_date']),
+                    array('class' => 'post-date')
+                );
+            } else {
+                $html .= Display::tag(
+                    'p',
+                    api_convert_and_format_date($row['post_date'], DATE_TIME_FORMAT_SHORT),
+                    array('class' => 'text-muted')
+                );
+            }
 
             // get attach id
             $attachment_list = get_attachment($row['post_id']);
@@ -301,7 +323,7 @@ if (isset($current_thread['thread_id'])) {
                         )
                     ) {
                         $html .= '&nbsp;&nbsp;<a href="' . api_get_self() . '?' . api_get_cidreq() . '&origin='
-                            . Security::remove_XSS($_GET['origin']) . '&action=delete_attach&id_attach='
+                            . Security::remove_XSS($origin) . '&action=delete_attach&id_attach='
                             . $attachment['iid'] . '&forum=' . $clean_forum_id . '&thread=' . $clean_thread_id
                             . '" onclick="javascript:if(!confirm(\''
                             . addslashes(api_htmlentities(get_lang('ConfirmYourChoice'), ENT_QUOTES))

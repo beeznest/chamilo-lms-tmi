@@ -164,26 +164,26 @@ class SessionManager
                 );
 
                 if (!empty($startDate)) {
-                    $values['access_start_date'] = $startDate;
+                    $values['access_start_date'] = api_get_utc_datetime($startDate);
                 }
 
                 if (!empty($endDate)) {
-                    $values['access_end_date'] = $endDate;
+                    $values['access_end_date'] = api_get_utc_datetime($endDate);
                 }
 
                 if (!empty($displayStartDate)) {
-                    $values['display_start_date'] = $displayStartDate;
+                    $values['display_start_date'] = api_get_utc_datetime($displayStartDate);
                 }
 
                 if (!empty($displayEndDate)) {
-                    $values['display_end_date'] = $displayEndDate;
+                    $values['display_end_date'] = api_get_utc_datetime($displayEndDate);
                 }
 
                 if (!empty($coachStartDate)) {
-                    $values['coach_access_start_date'] = $coachStartDate;
+                    $values['coach_access_start_date'] = api_get_utc_datetime($coachStartDate);
                 }
                 if (!empty($coachEndDate)) {
-                    $values['coach_access_end_date'] = $coachEndDate;
+                    $values['coach_access_end_date'] = api_get_utc_datetime($coachEndDate);
                 }
 
                 if (!empty($sessionCategoryId)) {
@@ -1256,9 +1256,7 @@ class SessionManager
             $result = Database::query($sql);
             $session = Database::fetch_assoc($result);
 
-            //We are not using this becaouse the range its to small and no other date match the condition of this function
-            //$clicks = Tracking::get_total_clicks($info['user_id'], $courseId, $sessionId, $info['login_course_date'], $info['logout_course_date']);
-            #building array to display
+            // building array to display
             $return[] = array(
                 'user_id' => $info['user_id'],
                 'logindate' => $info['login_course_date'],
@@ -1341,7 +1339,7 @@ class SessionManager
      * @param int       $duration
      * @param array     $extraFields
      * @param int       $sessionAdminId
-     * @param boolean $sendSubscritionNotification Optional.
+     * @param boolean $sendSubscriptionNotification Optional.
      *          Whether send a mail notification to users being subscribed
      * @return mixed
      */
@@ -1362,7 +1360,7 @@ class SessionManager
         $duration = null,
         $extraFields = array(),
         $sessionAdminId = 0,
-        $sendSubscritionNotification = false
+        $sendSubscriptionNotification = false
     ) {
         $name = trim(stripslashes($name));
         $coachId = intval($coachId);
@@ -1371,20 +1369,25 @@ class SessionManager
         $tbl_session = Database::get_main_table(TABLE_MAIN_SESSION);
 
         if (empty($name)) {
-            $msg = get_lang('SessionNameIsRequired');
-            return $msg;
+            Display::return_message(get_lang('SessionNameIsRequired'), 'warning');
+
+            return false;
         } elseif (empty($coachId)) {
-            $msg = get_lang('CoachIsRequired');
-            return $msg;
+            Display::return_message(get_lang('CoachIsRequired'), 'warning');
+
+            return false;
         } elseif (!empty($startDate) && !api_is_valid_date($startDate, 'Y-m-d H:i')) {
-            $msg = get_lang('InvalidStartDate');
-            return $msg;
+            Display::return_message(get_lang('InvalidStartDate'), 'warning');
+
+            return false;
         } elseif (!empty($endDate) && !api_is_valid_date($endDate, 'Y-m-d H:i')) {
-            $msg = get_lang('InvalidEndDate');
-            return $msg;
+            Display::return_message(get_lang('InvalidEndDate'), 'warning');
+
+            return false;
         } elseif (!empty($startDate) && !empty($endDate) && $startDate >= $endDate) {
-            $msg = get_lang('StartDateShouldBeBeforeEndDate');
-            return $msg;
+            Display::return_message(get_lang('StartDateShouldBeBeforeEndDate'), 'warning');
+
+            return false;
         } else {
             $sql = "SELECT id FROM $tbl_session WHERE name='" . Database::escape_string($name) . "'";
             $rs = Database::query($sql);
@@ -1396,8 +1399,9 @@ class SessionManager
             }
 
             if ($exists) {
-                $msg = get_lang('SessionNameAlreadyExists');
-                return $msg;
+                Display::return_message(get_lang('SessionNameAlreadyExists'), 'warning');
+
+                return false;
             } else {
                 $values = [
                     'name' => $name,
@@ -1406,7 +1410,7 @@ class SessionManager
                     'description'=> $description,
                     'show_description' => intval($showDescription),
                     'visibility' => $visibility,
-                    'send_subscription_notification' => $sendSubscritionNotification
+                    'send_subscription_notification' => $sendSubscriptionNotification
                 ];
 
                 if (!empty($sessionAdminId)) {
@@ -1415,26 +1419,26 @@ class SessionManager
                 $values['duration'] = $duration;
 
                 if (!empty($startDate)) {
-                    $values['access_start_date'] = $startDate;
+                    $values['access_start_date'] = api_get_utc_datetime($startDate);
                 }
 
                 if (!empty($endDate)) {
-                    $values['access_end_date'] = $endDate;
+                    $values['access_end_date'] = api_get_utc_datetime($endDate);
                 }
 
                 if (!empty($displayStartDate)) {
-                    $values['display_start_date'] = $displayStartDate;
+                    $values['display_start_date'] = api_get_utc_datetime($displayStartDate);
                 }
 
                 if (!empty($displayEndDate)) {
-                    $values['display_end_date'] = $displayEndDate;
+                    $values['display_end_date'] = api_get_utc_datetime($displayEndDate);
                 }
 
                 if (!empty($coachStartDate)) {
-                    $values['coach_access_start_date'] = $coachStartDate;
+                    $values['coach_access_start_date'] = api_get_utc_datetime($coachStartDate);
                 }
                 if (!empty($coachEndDate)) {
-                    $values['coach_access_end_date'] = $coachEndDate;
+                    $values['coach_access_end_date'] = api_get_utc_datetime($coachEndDate);
                 }
 
                 if (!empty($sessionCategoryId)) {
@@ -1490,6 +1494,13 @@ class SessionManager
             if (Database::result($rs, 0, 0) != $userId) {
                 api_not_allowed(true);
             }
+        }
+
+        // Delete documents inside a session
+        $courses = SessionManager::getCoursesInSession($id_checked);
+        foreach ($courses as $courseId) {
+            $courseInfo = api_get_course_info_by_id($courseId);
+            DocumentManager::deleteDocumentsFromSession($courseInfo, $id_checked);
         }
 
         Database::query("DELETE FROM $tbl_session_rel_course WHERE session_id IN($id_checked)");
@@ -1836,7 +1847,7 @@ class SessionManager
             return false;
         }
 
-        $courseId = $courseInfo['real_id'];
+        is_array($courseInfo) ? $courseId = $courseInfo['real_id'] : $courseId = $courseInfo;
 
         $statusCondition = null;
         if (isset($status) && !is_null($status))  {
@@ -2100,7 +2111,7 @@ class SessionManager
                 FROM $tbl_session_rel_user
                 WHERE
                     session_id = $sessionId AND
-                    relation_type<>" . SESSION_RELATION_TYPE_RRHH . "";
+                    relation_type<>" . SESSION_RELATION_TYPE_RRHH;
         $result = Database::query($sql);
         $user_list = Database::store_result($result);
 
@@ -2598,7 +2609,7 @@ class SessionManager
      * @return array An array with all sessions of the platform.
      * @todo   optional course code parameter, optional sorting parameters...
      */
-    public static function get_sessions_list($conditions = array(), $order_by = array())
+    public static function get_sessions_list($conditions = array(), $order_by = array(), $from = null, $to = null)
     {
         $session_table = Database::get_main_table(TABLE_MAIN_SESSION);
         $session_category_table = Database::get_main_table(TABLE_MAIN_SESSION_CATEGORY);
@@ -2630,6 +2641,7 @@ class SessionManager
         $availableFields = array(
             's.id',
             's.name',
+            'c.id'
         );
 
         $availableOperator = array(
@@ -2665,6 +2677,12 @@ class SessionManager
             if (!empty($order)) {
                 $sql_query .= " ORDER BY $order $direction ";
             }
+        }
+
+        if (!is_null($from) && !is_null($to)) {
+            $to = intval($to);
+            $from = intval($from);
+            $sql_query .= "LIMIT $from, $to";
         }
 
         $sql_result = Database::query($sql_query);
@@ -3145,7 +3163,7 @@ class SessionManager
         if (Database::num_rows($result) > 0) {
             $sysUploadPath = api_get_path(SYS_UPLOAD_PATH). 'sessions/';
             $webUploadPath = api_get_path(WEB_UPLOAD_PATH). 'sessions/';
-            $imgPath = api_get_path(WEB_IMG_PATH) . 'session_default_small.png';
+            $imgPath = Display::returnIconPath('session_default_small.png');
 
             $tableExtraFields = Database::get_main_table(TABLE_EXTRA_FIELD);
             $sql = "SELECT id FROM " . $tableExtraFields . "
@@ -3339,12 +3357,17 @@ class SessionManager
         $course_name = Database::escape_string($course_name);
 
         // select the courses
-        $sql = "SELECT * FROM $tbl_course c
+        $sql = "SELECT c.id, c.title FROM $tbl_course c
                 INNER JOIN $tbl_session_rel_course src
                 ON c.id = src.c_id
-		        WHERE src.session_id LIKE '$session_id'";
+		        WHERE ";
+
+        if (!empty($session_id)) {
+            $sql .= "src.session_id LIKE '$session_id' AND ";
+        }
+
         if (!empty($course_name)) {
-            $sql .= " AND UPPER(c.title) LIKE UPPER('%$course_name%') ";
+            $sql .= "UPPER(c.title) LIKE UPPER('%$course_name%') ";
         }
 
         $sql .= "ORDER BY title;";
@@ -3958,16 +3981,18 @@ class SessionManager
     /**
      * @param int $user_id
      * @param bool $ignore_visibility_for_admins
+     * @param bool $ignoreTimeLimit
+     *
      * @return array
      */
-    public static function get_sessions_by_user($user_id, $ignore_visibility_for_admins = false)
+    public static function get_sessions_by_user($user_id, $ignore_visibility_for_admins = false, $ignoreTimeLimit = false)
     {
         $sessionCategories = UserManager::get_sessions_by_category(
             $user_id,
             false,
-            $ignore_visibility_for_admins
+            $ignore_visibility_for_admins,
+            $ignoreTimeLimit
         );
-
         $sessionArray = array();
         if (!empty($sessionCategories)) {
             foreach ($sessionCategories as $category) {
@@ -6038,7 +6063,7 @@ class SessionManager
      * @param array $extraFields A list of fields to be scanned and returned
      * @return mixed
      */
-    public static function getShortSessionListAndExtraByCategory($categoryId, $target, $extraFields = null)
+    public static function getShortSessionListAndExtraByCategory($categoryId, $target, $extraFields = null, $publicationDate = null)
     {
         // Init variables
         $categoryId = (int) $categoryId;
@@ -6056,6 +6081,16 @@ class SessionManager
                 $fieldsArray[] = Database::escape_string($field);
             }
             $extraFieldType = \Chamilo\CoreBundle\Entity\ExtraField::SESSION_FIELD_TYPE;
+            if (isset ($publicationDate)) {
+                $publicationDateString = $publicationDate->format('Y-m-d H:i:s');
+                $wherePublication = " AND id NOT IN (
+                    SELECT sfv.item_id FROM $joinTable
+                    WHERE
+                        sf.extra_field_type = $extraFieldType AND
+                        ((sf.variable = 'publication_start_date' AND sfv.value > '$publicationDateString' and sfv.value != '') OR
+                        (sf.variable = 'publication_end_date' AND sfv.value < '$publicationDateString' and sfv.value != ''))
+                )";
+            }
             // Get the session list from session category and target
             $sessionList = Database::select(
                 'id, name, access_start_date, access_end_date',
@@ -6069,7 +6104,7 @@ class SessionManager
                                 sfv.item_id = session.id AND
                                 sf.variable = 'target' AND
                                 sfv.value = ?
-                        )" => array($categoryId, $target),
+                        ) $wherePublication" => array($categoryId, $target),
                     ),
                 )
             );

@@ -45,14 +45,28 @@ class PersonalDriver extends Driver implements DriverInterface
                 // Adding user personal files
                 $dir = \UserManager::getUserPathById($userId, 'system');
 
-                $dirWeb = \UserManager::getUserPathById($userId, 'web');
+                $dirWeb = \UserManager::getUserPathById($userId, 'rel');
 
                 $driver = array(
                     'driver' => 'PersonalDriver',
                     'alias' => get_lang('MyFiles'),
                     'path' => $dir.'my_files',
                     'URL' => $dirWeb.'my_files',
-                    'accessControl' => array($this, 'access')
+                    'accessControl' => array($this, 'access'),
+                    'disabled' => array(
+                        'duplicate',
+                        //'rename',
+                        //'mkdir',
+                        'mkfile',
+                        'copy',
+                        'cut',
+                        'paste',
+                        'edit',
+                        'extract',
+                        'archive',
+                        'help',
+                        'resize'
+                    ),
                 );
 
                 return $driver;

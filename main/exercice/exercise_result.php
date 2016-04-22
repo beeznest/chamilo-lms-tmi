@@ -75,6 +75,9 @@ $interbreadcrumb[] = array(
     "name" => get_lang('Exercises'),
 );
 
+$htmlHeadXtra[] = '<script src="' . api_get_path(WEB_LIBRARY_JS_PATH) . 'hotspot/js/hotspot.js"></script>';
+$htmlHeadXtra[] = '<link rel="stylesheet" href="' . api_get_path(WEB_LIBRARY_JS_PATH) . 'hotspot/css/hotspot.css">';
+
 if ($origin != 'learnpath') {
 	// So we are not in learnpath tool
 	Display::display_header($nameTools, get_lang('Exercise'));
@@ -165,12 +168,13 @@ ExerciseLib::exercise_time_control_delete(
 ExerciseLib::delete_chat_exercise_session($exe_id);
 
 if ($origin != 'learnpath') {
-    echo '<hr>';
+    echo '<div class="question-return">';
     echo Display::url(
         get_lang('ReturnToCourseHomepage'),
         api_get_course_url(),
         array('class' => 'btn btn-primary')
     );
+    echo '</div>';
 
     if (api_is_allowed_to_session_edit()) {
         Session::erase('objExercise');

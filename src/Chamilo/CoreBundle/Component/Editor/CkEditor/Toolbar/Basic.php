@@ -100,6 +100,7 @@ class Basic extends Toolbar
 
         if (api_get_setting('enabled_mathjax') == 'true') {
             $plugins[] = 'mathjax';
+            $config['mathJaxLib'] = api_get_path(WEB_PATH).'web/assets/MathJax/MathJax.js?config=AM_HTMLorMML';
         }
 
         if (api_get_setting('enabled_asciisvg') == 'true') {
@@ -108,7 +109,7 @@ class Basic extends Toolbar
 
         if (api_get_setting('enabled_wiris') == 'true') {
             // Commercial plugin
-            //$plugins[] = 'ckeditor_wiris';
+            $plugins[] = 'ckeditor_wiris';
         }
 
         if (api_get_setting('enabled_imgmap') == 'true') {
@@ -204,6 +205,7 @@ class Basic extends Toolbar
             ['BulletedList', 'NumberedList', 'HorizontalRule'],
             ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
             ['Format', 'Font', 'FontSize', 'Bold', 'Italic', 'Underline', 'TextColor', 'BGColor', 'Source'],
+            api_get_setting('enabled_wiris') == 'true' ? ['ckeditor_wiris_formulaEditor', 'ckeditor_wiris_CAS'] : [''],
             ['Toolbarswitch']
         ];
     }
@@ -241,6 +243,7 @@ class Basic extends Toolbar
             [api_get_setting('allow_spellcheck') == 'true' ? 'Scayt' : ''],
             ['Styles', 'Format', 'Font', 'FontSize'],
             ['PageBreak', 'ShowBlocks', 'Source'],
+            api_get_setting('enabled_wiris') == 'true' ? ['ckeditor_wiris_formulaEditor', 'ckeditor_wiris_CAS'] : [''],
             ['Toolbarswitch'],
         ];
     }

@@ -121,6 +121,7 @@ class Template
             new Twig_Filter_Function('Display::page_subheader_and_translate')
         );
         $this->twig->addFilter('icon', new Twig_Filter_Function('Template::get_icon_path'));
+        $this->twig->addFilter('img', new Twig_Filter_Function('Template::get_image'));
         $this->twig->addFilter('format_date', new Twig_Filter_Function('Template::format_date'));
         $this->twig->addFilter('api_get_local_time', new Twig_Filter_Function('api_get_local_time'));
 
@@ -198,6 +199,16 @@ class Template
         return Display::return_icon($image, '', array(), $size, false, true);
     }
 
+    /**
+     * @param string $image
+     * @param int $size
+     * @param string $name
+     * @return string
+     */
+    public static function get_image($image, $size = ICON_SIZE_SMALL, $name)
+    {
+        return Display::return_icon($image, $name, array(), $size);
+    }
     /**
      * @param string $timestamp
      * @param string $format
@@ -606,6 +617,8 @@ class Template
         // Logo
         $logo = return_logo($this->theme);
         $this->assign('logo', $logo);
+
+        $this->assign('show_media_element', 1);
     }
 
     /**
@@ -662,7 +675,7 @@ class Template
             'jquery-timeago/jquery.timeago.js',
             'mediaelement/build/mediaelement-and-player.min.js',
             'jqueryui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js',
-            'imagemap-resizer/js/imageMapResizer.min.js',
+            'image-map-resizer/js/imageMapResizer.min.js',
             'jquery.scrollbar/jquery.scrollbar.min.js'
         ];
 
@@ -846,18 +859,20 @@ class Template
 
         //@todo move this in the template
         $bug_notification_link = '';
+        $iconBug = Display::return_icon('bug.png', get_lang('ReportABug'), null, ICON_SIZE_LARGE);
         if (api_get_setting('show_link_bug_notification') == 'true' && $this->user_is_logged_in) {
             $bug_notification_link = '<li class="report">
-		        						<a href="http://support.chamilo.org/projects/chamilo-18/wiki/How_to_report_bugs" target="_blank">
-		        						<img src="'.api_get_path(WEB_IMG_PATH).'bug.large.png" style="vertical-align: middle;" alt="'.get_lang('ReportABug').'" title="'.get_lang('ReportABug').'"/></a>
-		    						  </li>';
+		<a href="http://support.chamilo.org/projects/chamilo-18/wiki/How_to_report_bugs" target="_blank">
+                    '. $iconBug . '
+                </a>
+		</li>';
         }
 
         $this->assign('bug_notification_link', $bug_notification_link);
 
         $notification = return_notification_menu();
         $this->assign('notification_menu', $notification);
-        
+
         $resize = '';
         if (api_get_setting('accessibility_font_resize') == 'true') {
             $resize .= '<div class="resize_font">';
@@ -869,7 +884,7 @@ class Template
             $resize .= '</div>';
         }
         $this->assign('accessibility', $resize);
-        
+
         // Preparing values for the menu
 
         // Logout link
@@ -967,12 +982,6 @@ class Template
         $metaTitle = api_get_setting('meta_title');
         if (!empty($metaTitle)) {
             $socialMeta .= '<meta name="twitter:card" content="summary" />' . "\n";
-            $socialMeta .= '<meta property="og:title" content="' . $metaTitle . '" />' . "\n";
-            $socialMeta .= '<meta property="og:url" content="' . api_get_path(WEB_PATH) . '" />' . "\n";
-            $metaDescription = api_get_setting('meta_description');
-            if (!empty($metaDescription)) {
-                $socialMeta .= '<meta property="og:description" content="' . $metaDescription . '" />' . "\n";
-            }
             $metaSite = api_get_setting('meta_twitter_site');
             if (!empty($metaSite)) {
                 $socialMeta .= '<meta name="twitter:site" content="' . $metaSite . '" />' . "\n";
@@ -981,11 +990,29 @@ class Template
                     $socialMeta .= '<meta name="twitter:creator" content="' . $metaCreator . '" />' . "\n";
                 }
             }
-            $metaImage = api_get_setting('meta_image_path');
-            if (!empty($metaImage)) {
-                if (is_file(api_get_path(SYS_PATH) . $metaImage)) {
-                    $path = api_get_path(WEB_PATH) . $metaImage;
-                    $socialMeta .= '<meta property="og:image" content="' . $path . '" />' . "\n";
+
+            // The user badge page emits its own meta tags, so if this is
+            // enabled, ignore the global ones
+            $userId = isset($_GET['user']) ? intval($_GET['user']) : 0;
+            $skillId = isset($_GET['skill']) ? intval($_GET['skill']) : 0;
+
+            if (!$userId && !$skillId) {
+                // no combination of user and skill ID has been defined,
+                // so print the normal OpenGraph meta tags
+                $socialMeta .= '<meta property="og:title" content="' . $metaTitle . '" />' . "\n";
+                $socialMeta .= '<meta property="og:url" content="' . api_get_path(WEB_PATH) . '" />' . "\n";
+
+                $metaDescription = api_get_setting('meta_description');
+                if (!empty($metaDescription)) {
+                    $socialMeta .= '<meta property="og:description" content="' . $metaDescription . '" />' . "\n";
+                }
+
+                $metaImage = api_get_setting('meta_image_path');
+                if (!empty($metaImage)) {
+                    if (is_file(api_get_path(SYS_PATH) . $metaImage)) {
+                        $path = api_get_path(WEB_PATH) . $metaImage;
+                        $socialMeta .= '<meta property="og:image" content="' . $path . '" />' . "\n";
+                    }
                 }
             }
         }
@@ -1085,6 +1112,15 @@ class Template
     public function show_footer_template()
     {
         $tpl = $this->get_template('layout/show_footer.tpl');
+        $this->display($tpl);
+    }
+    
+    /**
+     * Show footer js template.
+     */
+    public function show_footer_js_template()
+    {
+        $tpl = $this->get_template('layout/footer.js.tpl');
         $this->display($tpl);
     }
 

@@ -34,10 +34,12 @@ var hide_bar = function() {
     $("#template_col").hide();
     $("#doc_form").removeClass("col-md-9");
     $("#doc_form").addClass("col-md-11");
-    $("#hide_bar_template").css({"background-image" : \'url("../img/hide2.png")\'})
+    $("#hide_bar_template").css({"background-image" : \'url("'.Display::returnIconPath('hide.png').'")\'})
 }
 
 $(document).ready(function() {
+    $(".scrollbar-light").scrollbar();
+
     if ($(window).width() <= 785 ) {
         hide_bar();
     }
@@ -107,6 +109,7 @@ $call_from_tool = isset($_GET['origin']) ? Security::remove_XSS($_GET['origin'])
 $slide_id = isset($_GET['origin_opt']) ? Security::remove_XSS($_GET['origin_opt']) : null;
 $file_name = $doc;
 $group_document = false;
+$_course = api_get_course_info();
 $sessionId = api_get_session_id();
 $user_id = api_get_user_id();
 $doc_tree = explode('/', $file);
@@ -124,7 +127,8 @@ for ($i = 0; $i < ($count_dir); $i++) {
 $editorConfig = array(
     'ToolbarSet' => (api_is_allowed_to_edit(null, true) ? 'Documents' :'DocumentsStudent'),
     'Width' => '100%',
-    'Height' => '600',
+    'Height' => '400',
+    'cols-size' => [2, 10, 0],
     'FullPage' => true,
     'InDocument' => true,
     'CreateDocumentDir' => $relative_url,
@@ -135,9 +139,9 @@ $editorConfig = array(
 );
 
 if ($is_certificate_mode) {
-    $editorConfig['CreateDocumentDir']    = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document/';
-    $editorConfig['CreateDocumentWebDir'] = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document/';
-    $editorConfig['BaseHref']             = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document'.$dir;
+	$editorConfig['CreateDocumentDir'] = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document/';
+	$editorConfig['CreateDocumentWebDir'] = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document/';
+	$editorConfig['BaseHref'] = api_get_path(WEB_COURSE_PATH).$_course['path'].'/document'.$dir;
 }
 
 $is_allowed_to_edit = api_is_allowed_to_edit(null, true) || $_SESSION['group_member_with_upload_rights']||
@@ -151,7 +155,7 @@ $course_id = api_get_course_int_id();
 
 if (!empty($group_id)) {
     $interbreadcrumb[] = array(
-        'url' => '../group/group_space.php?'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'group/group_space.php?'.api_get_cidreq(),
         'name' => get_lang('GroupSpace'),
     );
 	$group_document = true;
@@ -160,14 +164,13 @@ if (!empty($group_id)) {
 
 if (!$is_certificate_mode) {
     $interbreadcrumb[] = array(
-        "url" => "./document.php?curdirpath=".urlencode($currentDirPath).'&'.api_get_cidreq(),
+        "url" => api_get_path(WEB_CODE_PATH)."document/document.php?curdirpath=".urlencode($currentDirPath).'&'.api_get_cidreq(),
         "name" => get_lang('Documents'),
     );
 } else {
     $interbreadcrumb[]= array('url' => '../gradebook/'.$_SESSION['gradebook_dest'], 'name' => get_lang('Gradebook'));
 }
 
-// Interbreadcrumb for the current directory root path
 if (empty($document_data['parents'])) {
     $interbreadcrumb[] = array('url' => '#', 'name' => $document_data['title']);
 } else {
@@ -179,7 +182,10 @@ if (empty($document_data['parents'])) {
     }
 }
 
-if (!api_is_allowed_to_edit()) {
+if (!($is_allowed_to_edit ||
+    $_SESSION['group_member_with_upload_rights'] ||
+    DocumentManager::is_my_shared_folder($user_id, $dir, api_get_session_id()))
+) {
     api_not_allowed(true);
 }
 
@@ -440,7 +446,7 @@ if ($owner_id == api_get_user_id() ||
 	$form->addElement('hidden', 'showedit');
 	$form->addElement('hidden', 'origin');
 	$form->addElement('hidden', 'origin_opt');
-    $form->addText('title', get_lang('Title'));
+    $form->addText('title', get_lang('Title'), true, array('cols-size' => [2, 10, 0], 'autofocus'));
 
 	$defaults['title'] = $document_data['title'];
 
@@ -474,7 +480,7 @@ if ($owner_id == api_get_user_id() ||
 		$form->addElement('static', null, get_lang('UpdatedOn'), $display_date);
 	}
 
-	$form->addElement('textarea', 'comment', get_lang('Comment'));
+	$form->addElement('textarea', 'comment', get_lang('Comment'), ['cols-size' => [2, 10, 0]]);
 
 	if ($owner_id == api_get_user_id() || api_is_platform_admin()) {
 		$checked =& $form->addElement('checkbox', 'readonly', null, get_lang('ReadOnly'));
@@ -527,14 +533,18 @@ if ($owner_id == api_get_user_id() ||
 	if ($extension=='svg' && !api_browser_support('svg') && api_get_setting('enabled_support_svg') == 'true'){
 		Display::display_warning_message(get_lang('BrowserDontSupportsSVG'));
 	}
-	echo '<div class="row-fluid" style="overflow:hidden">
+    echo '<div class="row" style="overflow:hidden">
             <div id="template_col" class="col-md-2">
-                <div id="frmModel"></div>
+                <div class="panel panel-default">
+                <div class="panel-body">
+                    <div id="frmModel" class="items-templates scrollbar-light"></div>
+                </div>
+                </div>
             </div>
             <div class="col-md-1">
                 <div id="hide_bar_template"></div>
             </div>
-            <div id="doc_form" class="col-md-8">
+            <div id="doc_form" class="col-md-9">
 				'.$form->returnForm().'
             </div>
           </div>';

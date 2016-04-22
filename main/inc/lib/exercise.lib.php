@@ -141,7 +141,7 @@ class ExerciseLib
                 $select_items[0]['letter'] = '--';
                 $select_items[0]['answer'] = '';
                 foreach ($answer_matching as $id => $value) {
-                    $select_items[$i]['id'] = $value['id'];
+                    $select_items[$i]['id'] = $value['id_auto'];
                     $select_items[$i]['letter'] = $cpt1[$id];
                     $select_items[$i]['answer'] = $value['answer'];
                     $i++;
@@ -926,12 +926,16 @@ JAVASCRIPT;
                                 <td width="10%">
 HTML;
                         $selectedValue = 0;
+                        $selectedPosition = 0;
                         $questionOptions = [];
+
+                        $iTempt = 0;
 
                         foreach ($select_items as $key => $val) {
                             if ($debug_mark_answer) {
                                 if ($val['id'] == $answerCorrect) {
                                     $selectedValue = $val['id'];
+                                    $selectedPosition = $iTempt;
                                 }
                             }
 
@@ -940,9 +944,11 @@ HTML;
                                 $val['id'] == $user_choice[$matching_correct_answer]['answer']
                             ) {
                                 $selectedValue = $val['id'];
+                                $selectedPosition = $iTempt;
                             }
 
                             $questionOptions[$val['id']] = $val['letter'];
+                            $iTempt++;
                         }
 
                         $s .= Display::select(
@@ -958,21 +964,22 @@ HTML;
 
                         if (!empty($answerCorrect) && !empty($selectedValue)) {
                             // Show connect if is not freeze (question preview)
-
                             if (!$freeze) {
                                 $s .= <<<JAVASCRIPT
                                 <script>
-                                    jsPlumb.ready(function() {
-                                        jsPlumb.connect({
-                                            source: 'window_$windowId',
-                                            target: 'window_{$questionId}_{$selectedValue}_answer',
-                                            endpoint: ['Blank', {radius: 15}],
-                                            anchors: ['RightMiddle', 'LeftMiddle'],
-                                            paintStyle: {strokeStyle: '#8A8888', lineWidth: 8},
-                                            connector: [
-                                                MatchingDraggable.connectorType,
-                                                {curvines: MatchingDraggable.curviness}
-                                            ]
+                                    $(document).on('ready', function () {
+                                        jsPlumb.ready(function() {
+                                            jsPlumb.connect({
+                                                source: 'window_$windowId',
+                                                target: 'window_{$questionId}_{$selectedPosition}_answer',
+                                                endpoint: ['Blank', {radius: 15}],
+                                                anchors: ['RightMiddle', 'LeftMiddle'],
+                                                paintStyle: {strokeStyle: '#8A8888', lineWidth: 8},
+                                                connector: [
+                                                    MatchingDraggable.connectorType,
+                                                    {curvines: MatchingDraggable.curviness}
+                                                ]
+                                            });
                                         });
                                     });
                                 </script>
@@ -1083,6 +1090,7 @@ HTML;
                 return $s;
             }
         } elseif ($answerType == HOT_SPOT || $answerType == HOT_SPOT_DELINEATION) {
+            global $exerciseId, $exe_id;
             // Question is a HOT_SPOT
             //checking document/images visibility
             if (api_is_platform_admin() || api_is_course_admin()) {
@@ -1110,7 +1118,21 @@ HTML;
             $questionDescription = $objQuestionTmp->selectDescription();
 
             if ($freeze) {
-                echo Display::img($objQuestionTmp->selectPicturePath());
+                $relPath = api_get_path(REL_PATH);
+                echo "
+                    <script>
+                        $(document).on('ready', function () {
+                            new " . ($answerType == HOT_SPOT ?  "HotspotQuestion" : "DelineationQuestion" ) . "({
+                                questionId: $questionId,
+                                exerciseId: $exerciseId,
+                                selector: '#hotspot-preview-$questionId',
+                                for: 'preview',
+                                relPath: '$relPath'
+                            });
+                        });
+                    </script>
+                    <div id=\"hotspot-preview-$questionId\"></div>
+                ";
                 return;
             }
 
@@ -1129,25 +1151,31 @@ HTML;
                 );
             }
 
-            // display answers of hotpost order by id
-            $answer_list = '<div style="padding: 10px; margin-left: 0px; border: 1px solid #A4A4A4; height: 408px; width: 200px;"><b>' . get_lang(
-                    'HotspotZones'
-                ) . '</b><dl>';
-            if (!empty($answers_hotspot)) {
-                ksort($answers_hotspot);
-                foreach ($answers_hotspot as $key => $value) {
-                    $answer_list .= '<dt>' . $key . '.- ' . $value . '</dt><br />';
-                }
-            }
-            $answer_list .= '</dl></div>';
+            $answerList = '';
 
-            if ($answerType == HOT_SPOT_DELINEATION) {
-                $answer_list = '';
-                $swf_file = 'hotspot_delineation_user';
-                $swf_height = 405;
-            } else {
-                $swf_file = 'hotspot_user';
-                $swf_height = 436;
+            if ($answerType != HOT_SPOT_DELINEATION) {
+                $answerList = '
+                    <div class="well well-sm">
+                        <h5 class="page-header">' . get_lang('HotspotZones') . '</h5>
+                        <ol>
+                ';
+
+                if (!empty($answers_hotspot)) {
+                    Session::write('hotspot_ordered', array_keys($answers_hotspot));
+
+                    $countAnswers = 1;
+
+                    foreach ($answers_hotspot as $value) {
+                        $answerList .= "<li><p>{$countAnswers} - {$value}</p></li>";
+
+                        $countAnswers++;
+                    }
+                }
+
+                $answerList .= '
+                        </ol>
+                    </div>
+                ';
             }
 
             if (!$only_questions) {
@@ -1156,153 +1184,41 @@ HTML;
                     echo '<div class="question_title">' . $current_item . '. ' . $questionName . '</div>';
                 }
                 //@todo I need to the get the feedback type
-                echo '<input type="hidden" name="hidden_hotspot_id" value="' . $questionId . '" />';
-                echo '<table class="exercise_questions" >
-                      <tr>
-                        <td valign="top" colspan="2">';
-                echo $questionDescription;
-                echo '</td></tr>';
+                echo <<<HOTSPOT
+                    <input type="hidden" name="hidden_hotspot_id" value="$questionId" />
+                    <div class="exercise_questions">
+                        $questionDescription
+                        <div class="row">
+HOTSPOT;
             }
 
             $canClick = isset($_GET['editQuestion']) ? '0' : (isset($_GET['modifyAnswers']) ? '0' : '1');
+            $relPath = api_get_path(REL_PATH);
+            $s .= "
+                            <div class=\"col-sm-8 col-md-9\">
+                                <div class=\"hotspot-image\"></div>
+                                <script>
+                                    $(document).on('ready', function () {
+                                        new " . ($answerType == HOT_SPOT_DELINEATION ? 'DelineationQuestion' : 'HotspotQuestion') . "({
+                                            questionId: $questionId,
+                                            exerciseId: $exe_id,
+                                            selector: '#question_div_' + $questionId + ' .hotspot-image',
+                                            for: 'user',
+                                            relPath: '$relPath'
+                                        });
+                                    });
+                                </script>
+                            </div>
+                            <div class=\"col-sm-4 col-md-3\">
+                                $answerList
+                            </div>
+            ";
 
-            $s .= '<script type="text/javascript" src="../plugin/hotspot/JavaScriptFlashGateway.js"></script>
-                            <script src="../plugin/hotspot/hotspot.js" type="text/javascript" ></script>
-                            <script type="text/javascript">
-                            <!--
-                            // Globals
-                            // Major version of Flash required
-                            var requiredMajorVersion = 7;
-                            // Minor version of Flash required
-                            var requiredMinorVersion = 0;
-                            // Minor version of Flash required
-                            var requiredRevision = 0;
-                            // the version of javascript supported
-                            var jsVersion = 1.0;
-                            // -->
-                            </script>
-                            <script language="VBScript" type="text/vbscript">
-                            <!-- // Visual basic helper required to detect Flash Player ActiveX control version information
-                            Function VBGetSwfVer(i)
-                              on error resume next
-                              Dim swControl, swVersion
-                              swVersion = 0
-
-                              set swControl = CreateObject("ShockwaveFlash.ShockwaveFlash." + CStr(i))
-                              if (IsObject(swControl)) then
-                                swVersion = swControl.GetVariable("$version")
-                              end if
-                              VBGetSwfVer = swVersion
-                            End Function
-                            // -->
-                            </script>
-
-                            <script language="JavaScript1.1" type="text/javascript">
-                            <!-- // Detect Client Browser type
-                            var isIE  = (navigator.appVersion.indexOf("MSIE") != -1) ? true : false;
-                            var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false;
-                            var isOpera = (navigator.userAgent.indexOf("Opera") != -1) ? true : false;
-                            jsVersion = 1.1;
-                            // JavaScript helper required to detect Flash Player PlugIn version information
-                            function JSGetSwfVer(i) {
-                                // NS/Opera version >= 3 check for Flash plugin in plugin array
-                                if (navigator.plugins != null && navigator.plugins.length > 0) {
-                                    if (navigator.plugins["Shockwave Flash 2.0"] || navigator.plugins["Shockwave Flash"]) {
-                                        var swVer2 = navigator.plugins["Shockwave Flash 2.0"] ? " 2.0" : "";
-                                        var flashDescription = navigator.plugins["Shockwave Flash" + swVer2].description;
-                                        descArray = flashDescription.split(" ");
-                                        tempArrayMajor = descArray[2].split(".");
-                                        versionMajor = tempArrayMajor[0];
-                                        versionMinor = tempArrayMajor[1];
-                                        if ( descArray[3] != "" ) {
-                                            tempArrayMinor = descArray[3].split("r");
-                                        } else {
-                                            tempArrayMinor = descArray[4].split("r");
-                                        }
-                                        versionRevision = tempArrayMinor[1] > 0 ? tempArrayMinor[1] : 0;
-                                        flashVer = versionMajor + "." + versionMinor + "." + versionRevision;
-                                    } else {
-                                        flashVer = -1;
-                                    }
-                                }
-                                // MSN/WebTV 2.6 supports Flash 4
-                                else if (navigator.userAgent.toLowerCase().indexOf("webtv/2.6") != -1) flashVer = 4;
-                                // WebTV 2.5 supports Flash 3
-                                else if (navigator.userAgent.toLowerCase().indexOf("webtv/2.5") != -1) flashVer = 3;
-                                // older WebTV supports Flash 2
-                                else if (navigator.userAgent.toLowerCase().indexOf("webtv") != -1) flashVer = 2;
-                                // Can\'t detect in all other cases
-                                else
-                                {
-                                    flashVer = -1;
-                                }
-                                return flashVer;
-                            }
-                            // When called with reqMajorVer, reqMinorVer, reqRevision returns true if that version or greater is available
-
-                            function DetectFlashVer(reqMajorVer, reqMinorVer, reqRevision) {
-                                reqVer = parseFloat(reqMajorVer + "." + reqRevision);
-                                // loop backwards through the versions until we find the newest version
-                                for (i=25;i>0;i--) {
-                                    if (isIE && isWin && !isOpera) {
-                                        versionStr = VBGetSwfVer(i);
-                                    } else {
-                                        versionStr = JSGetSwfVer(i);
-                                    }
-                                    if (versionStr == -1 ) {
-                                        return false;
-                                    } else if (versionStr != 0) {
-                                        if(isIE && isWin && !isOpera) {
-                                            tempArray         = versionStr.split(" ");
-                                            tempString        = tempArray[1];
-                                            versionArray      = tempString .split(",");
-                                        } else {
-                                            versionArray      = versionStr.split(".");
-                                        }
-                                        versionMajor      = versionArray[0];
-                                        versionMinor      = versionArray[1];
-                                        versionRevision   = versionArray[2];
-
-                                        versionString     = versionMajor + "." + versionRevision;   // 7.0r24 == 7.24
-                                        versionNum        = parseFloat(versionString);
-                                        // is the major.revision >= requested major.revision AND the minor version >= requested minor
-                                        if ( (versionMajor > reqMajorVer) && (versionNum >= reqVer) ) {
-                                            return true;
-                                        } else {
-                                            return ((versionNum >= reqVer && versionMinor >= reqMinorVer) ? true : false );
-                                        }
-                                    }
-                                }
-                            }
-                            // -->
-                            </script>';
-            $s .= '<tr><td valign="top" colspan="2" width="520"><table><tr><td width="520">
-                        <script>
-                            <!--
-                            // Version check based upon the values entered above in "Globals"
-                            var hasReqestedVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
-
-                            // Check to see if the version meets the requirements for playback
-                            if (hasReqestedVersion) {  // if we\'ve detected an acceptable version
-                                var oeTags = \'<object type="application/x-shockwave-flash" data="../plugin/hotspot/' . $swf_file . '.swf?modifyAnswers=' . $questionId . '&canClick:' . $canClick . '" width="600" height="' . $swf_height . '">\'
-                                            + \'<param name="wmode" value="transparent">\'
-                                            + \'<param name="movie" value="../plugin/hotspot/' . $swf_file . '.swf?modifyAnswers=' . $questionId . '&canClick:' . $canClick . '" />\'
-                                            + \'<\/object>\';
-                                document.write(oeTags);   // embed the Flash Content SWF when all tests are passed
-                            } else {  // flash is too old or we can\'t detect the plugin
-                                var alternateContent = "Error<br \/>"
-                                    + "Hotspots requires Macromedia Flash 7.<br \/>"
-                                    + "<a href=\"http://www.macromedia.com/go/getflash/\">Get Flash<\/a>";
-                                document.write(alternateContent);  // insert non-flash content
-                            }
-                            // -->
-                        </script>
-                        </td>
-                        <td valign="top" align="left">' . $answer_list . '</td></tr>
-                        </table>
-            </td></tr>';
-            echo $s;
-            echo '</table>';
+            echo <<<HOTSPOT
+                            $s
+                        </div>
+                    </div>
+HOTSPOT;
         }
         return $nbrAnswers;
     }
@@ -2024,14 +1940,11 @@ HTML;
                                     date('Y-m-d h:i:s'),
                                     false
                                 );
-                                $actions .= '<a href="http://www.whatsmyip.org/ip-geo-location/?ip=' . $ip . '" target="_blank"><img src="' . api_get_path(
-                                        WEB_CODE_PATH
-                                    ) . 'img/icons/22/info.png" title="' . $ip . '" /></a>';
+                                $actions .= '<a href="http://www.whatsmyip.org/ip-geo-location/?ip=' . $ip . '" target="_blank">
+                                '.Display::return_icon('info.png', $ip).'
+                                </a>';
 
-                                $delete_link = '<a href="exercise_report.php?' . api_get_cidreq(
-                                    ) . '&filter_by_user=' . intval(
-                                        $_GET['filter_by_user']
-                                    ) . '&filter=' . $filter . '&exerciseId=' . $exercise_id . '&delete=delete&did=' . $id . '"
+                                $delete_link = '<a href="exercise_report.php?' . api_get_cidreq() . '&filter_by_user=' . intval($_GET['filter_by_user']) . '&filter=' . $filter . '&exerciseId=' . $exercise_id . '&delete=delete&did=' . $id . '"
                                 onclick="javascript:if(!confirm(\'' . sprintf(
                                         get_lang('DeleteAttempt'),
                                         $results[$i]['username'],
@@ -2953,6 +2866,53 @@ HTML;
     }
 
     /**
+     * Get the correct answer count for a fill blanks question
+     *
+     * @param int $question_id
+     * @param int $exercise_id
+     * @return int
+     */
+    public static function getNumberStudentsFillBlanksAnwserCount(
+        $question_id,
+        $exercise_id
+    ) {
+        $listStudentsId = [];
+            $listAllStudentInfo = CourseManager::get_student_list_from_course_code(
+                api_get_course_id(),
+                true
+            );
+            foreach ($listAllStudentInfo as $i => $listStudentInfo) {
+                $listStudentsId[] = $listStudentInfo['user_id'];
+            }
+
+            $listFillTheBlankResult = FillBlanks::getFillTheBlankTabResult(
+                $exercise_id,
+                $question_id,
+                $listStudentsId,
+                '1970-01-01',
+                '3000-01-01'
+            );
+
+            $arrayCount = [];
+
+            foreach ($listFillTheBlankResult as $resultCount) {
+                foreach ($resultCount as $index => $count) {
+                    //this is only for declare the array index per answer
+                    $arrayCount[$index] = 0;
+                }
+            }
+
+            foreach ($listFillTheBlankResult as $resultCount) {
+                foreach ($resultCount as $index => $count) {
+                    $count = ($count === 0) ? 1 : 0;
+                    $arrayCount[$index] += $count;
+                }
+            }
+
+            return $arrayCount;
+    }
+
+    /**
      * @param int $question_id
      * @param int $exercise_id
      * @param string $course_code
@@ -2994,7 +2954,7 @@ HTML;
                 $listStudentsId[] = $listStudentInfo['user_id'];
             }
 
-            $listFillTheBlankResult = getFillTheBlankTabResult(
+            $listFillTheBlankResult = FillBlanks::getFillTheBlankTabResult(
                 $exercise_id,
                 $question_id,
                 $listStudentsId,
@@ -3002,7 +2962,7 @@ HTML;
                 '3000-01-01'
             );
 
-            return getNbResultFillBlankAll($listFillTheBlankResult);
+            return FillBlanks::getNbResultFillBlankAll($listFillTheBlankResult);
         }
 
         if (empty($session_id)) {
@@ -3213,7 +3173,8 @@ HTML;
                     while ($row = Database::fetch_array($result, 'ASSOC')) {
                         $fill_blank = self::check_fill_in_blanks(
                             $correct_answer,
-                            $row['answer']
+                            $row['answer'],
+                            $current_answer
                         );
                         if (isset($fill_blank[$current_answer]) && $fill_blank[$current_answer] == 1) {
                             $good_answers++;
@@ -3238,7 +3199,7 @@ HTML;
      * @param string $user_answer
      * @return array
      */
-    public static function check_fill_in_blanks($answer, $user_answer)
+    public static function check_fill_in_blanks($answer, $user_answer, $current_answer)
     {
         // the question is encoded like this
         // [A] B [C] D [E] F::10,10,10@1
@@ -3295,10 +3256,28 @@ HTML;
 
             preg_match_all('#\[([^[]*)\]#', $str, $arr);
             $str = str_replace('\r\n', '', $str);
-            $choice = $arr[1];
-
+            $choices = $arr[1];
+            $choice = [];
+            $check = false;
+            $i = 0;
+            foreach ($choices as $item) {
+                if ($current_answer === $item) {
+                    $check = true;
+                }
+                if ($check) {
+                    $choice[] = $item;
+                    $i++;
+                }
+                if ($i == 3) {
+                    break;
+                }
+            }
             $tmp = api_strrpos($choice[$j], ' / ');
-            $choice[$j] = api_substr($choice[$j], 0, $tmp);
+
+            if ($tmp !== false) {
+                $choice[$j] = api_substr($choice[$j], 0, $tmp);
+            }
+
             $choice[$j] = trim($choice[$j]);
 
             //Needed to let characters ' and " to work as part of an answer

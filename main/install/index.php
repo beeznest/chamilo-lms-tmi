@@ -27,6 +27,7 @@ define('MAX_FORM_FIELD_LENGTH', 80);
 
 // Including necessary libraries.
 require_once '../inc/lib/api.lib.php';
+require_once '../inc/lib/text.lib.php';
 
 api_check_php_version('../inc/');
 
@@ -209,6 +210,9 @@ if ($installType == 'update' && in_array($my_old_version, $update_from_version_8
     }
 }
 
+
+$session_lifetime = 360000;
+
 if (!isset($_GET['running'])) {
     $dbHostForm = 'localhost';
     $dbUsernameForm = 'root';
@@ -246,7 +250,6 @@ if (!isset($_GET['running'])) {
     $allowSelfReg = 1;
     $allowSelfRegProf = 1;
     $encryptPassForm = 'sha1';
-    $session_lifetime = 360000;
     if (!empty($_GET['profile'])) {
         $installationProfile = api_htmlentities($_GET['profile'], ENT_QUOTES);
     }
@@ -343,10 +346,10 @@ if ($encryptPassForm == '1') {
             $(".advanced_parameters").click(function() {
                 if ($("#id_contact_form").css("display") == "none") {
                     $("#id_contact_form").css("display","block");
-                    $("#img_plus_and_minus").html('&nbsp;<img src="<?php echo api_get_path(WEB_IMG_PATH) ?>div_hide.gif" alt="<?php echo get_lang('Hide') ?>" title="<?php echo get_lang('Hide')?>" style ="vertical-align:middle" >&nbsp;<?php echo get_lang('ContactInformation') ?>');
+                    $("#img_plus_and_minus").html('&nbsp;<img src="<?php echo Display::returnIconPath('div_hide.gif'); ?>" alt="<?php echo get_lang('Hide') ?>" title="<?php echo get_lang('Hide')?>" style ="vertical-align:middle" >&nbsp;<?php echo get_lang('ContactInformation') ?>');
                 } else {
                     $("#id_contact_form").css("display","none");
-                    $("#img_plus_and_minus").html('&nbsp;<img src="<?php echo api_get_path(WEB_IMG_PATH) ?>div_show.gif" alt="<?php echo get_lang('Show') ?>" title="<?php echo get_lang('Show') ?>" style ="vertical-align:middle" >&nbsp;<?php echo get_lang('ContactInformation') ?>');
+                    $("#img_plus_and_minus").html('&nbsp;<img src="<?php echo Display::returnIconPath('div_show.gif'); ?>" alt="<?php echo get_lang('Show') ?>" title="<?php echo get_lang('Show') ?>" style ="vertical-align:middle" >&nbsp;<?php echo get_lang('ContactInformation') ?>');
                 }
             });
         });

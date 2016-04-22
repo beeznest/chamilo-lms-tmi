@@ -1674,9 +1674,7 @@ function switch_item(current_item, next_item){
  * Get a forum info when the learning path item has a associated forum
  */
 var loadForumThead = function(lpId, lpItemId) {
-    var loadForum = $.getJSON(
-        '<?php echo api_get_path(WEB_AJAX_PATH) ?>lp.ajax.php',
-        {
+    var loadForum = $.getJSON('<?php echo api_get_path(WEB_AJAX_PATH) ?>lp.ajax.php', {
             a: 'get_forum_thread',
             lp: lpId,
             lp_item: lpItemId
@@ -2203,7 +2201,7 @@ function attach_glossary_into_scorm(type) {
                     var openerId = this.id +'_opener';
 
                     var link = '<a id="'+openerId+'" href="#" class="generated btn">'+
-                        '<div style="text-align: center"><img src="<?php echo api_get_path(WEB_CODE_PATH).'img/play-circle-8x.png'; ?>"/><br />If video does not work, try clicking here.</div></a>';
+                        '<div style="text-align: center"><img src="<?php echo Display::returnIconPath('play-circle-8x.png'); ?>"/><br />If video does not work, try clicking here.</div></a>';
                     var embed = $("iframe").contents().find("#"+this.id).find('embed').first();
 
                     var hasHttp = embed.attr('src').indexOf("http");
@@ -2242,7 +2240,7 @@ function attach_glossary_into_scorm(type) {
                     var randLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
                     var uniqid = randLetter + Date.now();
                     var openerId = uniqid +'_opener';
-                    var link = '<a id="'+openerId+'" class="generated" href="#">Open website <img src="<?php echo api_get_path(WEB_CODE_PATH).'img/link-external.png'; ?>"/></a>';
+                    var link = '<a id="'+openerId+'" class="generated" href="#">Open website <img src="<?php echo Display::returnIconPath('link-external.png'); ?>"/></a>';
                     var embed = $(this);
                     var height = embed.attr('height');
                     var width = embed.attr('width');
@@ -2307,7 +2305,7 @@ function attach_glossary_into_scorm(type) {
                         src = url+'&type=link&src='+src;
                         src = src.replace('https', 'http');
                         $(this).attr('href', src);
-                        var myAnchor = $('<a><img src="<?php echo api_get_path(WEB_CODE_PATH).'img/link-external.png'; ?>"/></a>').attr("href", src).attr('target', '_blank').attr('class', 'generated');
+                        var myAnchor = $('<a><img src="<?php echo Display::returnIconPath('link-external.png'); ?>"/></a>').attr("href", src).attr('target', '_blank').attr('class', 'generated');
                         $(this).after(myAnchor);
                         $(this).after('-');
                     }

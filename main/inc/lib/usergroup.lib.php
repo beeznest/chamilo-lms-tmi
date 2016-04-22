@@ -513,11 +513,12 @@ class UserGroup extends Model
     }
 
     /**
-     * @param int $userId
-     *
+     * Get the group list for a user
+     * @param int $userId The user ID
+     * @param int $filterByType Optional. The type of group
      * @return array
      */
-    public function getUserGroupListByUser($userId)
+    public function getUserGroupListByUser($userId, $filterByType = null)
     {
         if ($this->useMultipleUrl) {
             $urlId = api_get_current_access_url_id();
@@ -534,6 +535,10 @@ class UserGroup extends Model
                 ON (u.usergroup_id = g.id)
                 ";
             $where =  array('where' => array('user_id = ?' => $userId));
+        }
+
+        if ($filterByType !== null) {
+            $where['where'][' AND g.group_type = ?'] = intval($filterByType);
         }
 
         $results = Database::select(
@@ -958,7 +963,7 @@ class UserGroup extends Model
                     $this->add_user_to_group(
                         api_get_user_id(),
                         $id,
-                        $params['relation_type']
+                        $params['group_type']
                     );
                 }
                 $picture = isset($_FILES['picture']) ? $_FILES['picture'] : null;
@@ -966,7 +971,8 @@ class UserGroup extends Model
                 if ($picture) {
                     $params = array(
                         'id' => $id,
-                        'picture' => $picture
+                        'picture' => $picture,
+                        'group_type' => $params['group_type']
                     );
                     $this->update($params);
                 }
@@ -1345,7 +1351,11 @@ class UserGroup extends Model
         $form->setRequiredNote('<span class="form_required">*</span> <small>'.get_lang('ThisFieldIsRequired').'</small>');
 
         // Setting the form elements
-        $form->addButtonCreate($header);
+        if ($type == 'add') {
+            $form->addButtonCreate($header);
+        } else {
+            $form->addButtonUpdate($header);
+        }
     }
 
     /**
@@ -1362,7 +1372,7 @@ class UserGroup extends Model
         $picture = array();
         $picture['style'] = $style;
         if ($picture_file == 'unknown.jpg') {
-            $picture['file'] = api_get_path(WEB_IMG_PATH).$picture_file;
+            $picture['file'] = Display::returnIconPath($picture_file);
             return $picture;
         }
 
@@ -1400,7 +1410,7 @@ class UserGroup extends Model
             if (file_exists($file) && !is_dir($file)) {
                 $picture['file'] = $image_array['dir'].$picture_file;
             } else {
-                $picture['file'] = api_get_path(WEB_IMG_PATH).'unknown_group.png';
+                $picture['file'] = Display::returnIconPath('unknown_group.png');
             }
         }
         return $picture;
@@ -1840,6 +1850,7 @@ class UserGroup extends Model
                 INNER JOIN $table_group_rel_user gu
                 ON gu.usergroup_id = g.id
                 $where_relation_condition
+                GROUP BY g.id
                 ORDER BY created_at DESC
                 LIMIT $num ";
 
@@ -2021,7 +2032,7 @@ class UserGroup extends Model
             case GROUP_USER_PERMISSION_HRM:
                 $relation_group_title = get_lang('IAmAHRM');
                 $links .= '<li><a href="'.api_get_path(WEB_CODE_PATH).'social/message_for_group_form.inc.php?view_panel=1&height=400&width=610&&user_friend='.api_get_user_id().'&group_id='.$group_id.'&action=add_message_group" class="ajax" title="'.get_lang('ComposeMessage').'" data-size="lg" data-title="'.get_lang('ComposeMessage').'">'.
-                            Display::return_icon('compose_message.png', get_lang('NewTopic'), array('hspace'=>'6')).'<span class="social-menu-text4" >'.get_lang('NewTopic').'</span></a></li>';
+                            Display::return_icon('new-message.png', get_lang('NewTopic'), array('hspace'=>'6')).'<span class="social-menu-text4" >'.get_lang('NewTopic').'</span></a></li>';
                 $links .=  '<li><a href="group_view.php?id='.$group_id.'">'.
                             Display::return_icon('message_list.png', get_lang('MessageList'), array('hspace'=>'6')).'<span class="'.($show=='messages_list'?'social-menu-text-active':'social-menu-text4').'" >'.get_lang('MessageList').'</span></a></li>';
                 $links .=  '<li><a href="group_invitation.php?id='.$group_id.'">'.
@@ -2344,6 +2355,44 @@ class UserGroup extends Model
         }
         $res = Database::query($sql);
         return $res;
+    }
+
+    /**
+     * Filter the groups/classes info to get a name list only
+     * @param int $userId The user ID
+     * @param int $filterByType Optional. The type of group
+     * @return array
+     */
+    public function getNameListByUser($userId, $filterByType = null)
+    {
+        $userClasses = $this->getUserGroupListByUser($userId, $filterByType);
+
+        return array_column($userClasses, 'name');
+    }
+
+    /**
+     * Get the HTML necessary for display the groups/classes name list
+     * @param int $userId The user ID
+     * @param int $filterByType Optional. The type of group
+     * @return string
+     */
+    public function getLabelsFromNameList($userId, $filterByType = null)
+    {
+        $groupsNameListParsed = $this->getNameListByUser($userId, $filterByType);
+
+        if (empty($groupsNameListParsed)) {
+            return '';
+        }
+
+        $nameList = '<ul class="list-unstyled">';
+
+        foreach ($groupsNameListParsed as $name) {
+            $nameList .= '<li>' . Display::span($name, ['class' => 'label label-info']) . '</li>';
+        }
+
+        $nameList .= '</ul>';
+
+        return $nameList;
     }
 }
 

@@ -11,7 +11,11 @@ require_once '../inc/global.inc.php';
 api_block_anonymous_users();
 
 if (api_get_setting('allow_social_tool') != 'true') {
-    api_not_allowed();
+    api_not_allowed(true);
+}
+
+if (api_get_setting('allow_my_files') === 'false') {
+    api_not_allowed(true);
 }
 
 $this_section = SECTION_SOCIAL;
@@ -106,6 +110,7 @@ $editor = $tpl->fetch('default/'.$editor->getEditorStandAloneTemplate());
 $tpl->assign('social_right_content', $editor);
 $tpl->assign('social_menu_block', $social_menu_block);
 $tpl->assign('actions', $actions);
+$tpl->assign('show_media_element', 0);
 
 $social_layout = $tpl->get_template('social/myfiles.tpl');
 $tpl->display($social_layout);

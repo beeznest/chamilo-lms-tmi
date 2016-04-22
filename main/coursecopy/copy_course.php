@@ -1,5 +1,6 @@
 <?php
 /* For licensing terms, see /license.txt */
+
 /**
  * @package chamilo.backup
  */
@@ -43,11 +44,8 @@ echo Display::page_header(get_lang('CopyCourse'));
 
 // If a CourseSelectForm is posted or we should copy all resources, then copy them
 if (Security::check_token('post') && (
-        (
-            isset($_POST['action']) &&
-            $_POST['action'] == 'course_select_form') || (
-                isset($_POST['copy_option']) && $_POST['copy_option'] == 'full_copy'
-        )
+        (isset($_POST['action']) && $_POST['action'] == 'course_select_form') ||
+        (isset($_POST['copy_option']) && $_POST['copy_option'] == 'full_copy')
     )
 ) {
     // Clear token
@@ -104,7 +102,7 @@ if (Security::check_token('post') && (
         $options = array();
         while ($obj = Database::fetch_object($res)) {
             $courseInfo = api_get_course_info_by_id($obj->c_id);
-            $options[$courseInfo['code']] = $obj->title;
+            $options[$courseInfo['code']] = $obj->title.' ('.$obj->code.')';
         }
 
         $form = new FormValidator('copy_course', 'post', 'copy_course.php?'.api_get_cidreq());

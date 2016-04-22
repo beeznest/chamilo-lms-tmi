@@ -4,6 +4,7 @@
 // including necessary libraries
 $language_file = array('admin', 'registration');
 $cidReset = true;
+
 require_once '../inc/global.inc.php';
 $libpath = api_get_path(LIBRARY_PATH);
 require_once $libpath.'fileManage.lib.php';
@@ -179,7 +180,8 @@ if ($form->validate()) {
                 api_get_setting('siteName')."\nT. ".
                 api_get_setting('administratorTelephone')."\n" .
                 get_lang('Email') ." : ".api_get_setting('emailAdministrator');
-
+            $emailbody = nl2br($emailbody);
+            
 			api_mail_html(
                 api_get_person_name($userInfo['firstname'], $userInfo['lastname'], null, PERSON_NAME_EMAIL_ADDRESS),
                 $email,

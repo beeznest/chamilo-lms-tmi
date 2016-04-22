@@ -283,7 +283,7 @@ class Wiki
             'max_text' => '',
             'max_version' => '',
             'delayedsubmit' => '',
-            'assignment' => ''
+            'assignment' => 0
         );
 
         $pageId = intval($values['page_id']);
@@ -334,7 +334,7 @@ class Wiki
             $_clean['max_version'] = $values['max_version'];
         }
 
-        $values['assignment'] = isset($values['assignment']) ? $values['assignment'] : '';
+        $values['assignment'] = isset($values['assignment']) ? $values['assignment'] : 0;
         $values['page_id'] = isset($values['page_id']) ? $values['page_id'] : 0;
 
         $params = [
@@ -358,7 +358,9 @@ class Wiki
             'linksto' => $linkTo,
             'user_ip' => $_SERVER['REMOTE_ADDR'],
             'session_id' => $session_id,
-            'page_id' => $values['page_id']
+            'page_id' => $values['page_id'],
+            'editlock' => 0,
+            'is_editing' => 0
         ];
 
         $id = Database::insert($tbl_wiki, $params);
@@ -1086,10 +1088,10 @@ class Wiki
                     array('onclick' => "javascript: goprint();")
                 );
             }
-                        
+
             echo Display::toolbarAction('toolbar-wikistudent', array(0 => $actionsLeft, 1 => $actionsRight));
 
-            
+
 
             if (empty($title)) {
                 $pageTitle = get_lang('DefaultTitle');
@@ -1100,7 +1102,7 @@ class Wiki
             } else {
                 $pageTitle = api_htmlentities($title);
             }
-           
+
 
             $pageWiki = self::make_wiki_link_clickable(
                     self::detect_external_link(
@@ -1115,9 +1117,9 @@ class Wiki
                         )
                     )
                 );
-            
+
             $footerWiki = '<div id="wikifooter">'.get_lang('Progress').': '.($row['progress']*10).'%&nbsp;&nbsp;&nbsp;'.get_lang('Rating').': '.$row['score'].'&nbsp;&nbsp;&nbsp;'.get_lang('Words').': '.self::word_count($content).'</div>';
-            
+
             echo Display::panel($pageWiki, $pageTitle, $footerWiki);
         } //end filter visibility
     }
@@ -2011,7 +2013,14 @@ class Wiki
     public function export_to_pdf($id, $course_code)
     {
         if (!api_is_platform_admin()) {
-            if (api_get_setting('students_export2pdf') == 'true') {
+            if (api_get_setting('students_export2pdf') !== 'true') {
+                self::setMessage(
+                    Display::display_error_message(
+                        get_lang('PDFDownloadNotAllowedForStudents'),
+                        false,
+                        true
+                    )
+                );
                 return false;
             }
         }
@@ -4682,7 +4691,7 @@ class Wiki
         $groupId = $this->group_id;
         $page = $this->page;
 
-        
+
         $actionsLeft = '';
         $actionsLeft .= '<a href="index.php?action=showpage&title=index&cidReq='.$_course['id'].'&session_id='.$session_id.'&group_id='.$groupId.'">'.
             Display::return_icon('home.png', get_lang('Home'), '', ICON_SIZE_MEDIUM).'</a>';
@@ -4721,8 +4730,8 @@ class Wiki
         // menu recent changes
         $actionsLeft .= '<a class="btn btn-default" href="index.php?cidReq='.$_course['id'].'&action=recentchanges&session_id='.$session_id.'&group_id='.$groupId.'"'.self::is_active_navigation_tab('recentchanges').'>'.
             get_lang('RecentChanges').'</a>';
-        
-        
+
+
         echo Display::toolbarAction('toolbar-wiki', array( 0 => $actionsLeft));
     }
 
@@ -5360,7 +5369,7 @@ class Wiki
             case 'export_to_pdf':
                 if (isset($_GET['wiki_id'])) {
                     self::export_to_pdf($_GET['wiki_id'], api_get_course_id());
-                    exit;
+                    break;
                 }
                 break;
             case 'export2doc':

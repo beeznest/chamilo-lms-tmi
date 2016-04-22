@@ -56,19 +56,20 @@ if (!empty($gradebook) && $gradebook == 'view') {
 }
 
 $groupId = api_get_group_id();
+$sessionId = api_get_session_id();
+
 if ($origin == 'group') {
     $group_properties = GroupManager::get_group_properties($groupId);
     $interbreadcrumb[] = array(
-        'url' => '../group/group.php',
+        'url' => api_get_path(WEB_CODE_PATH).'group/group.php?'.api_get_cidreq(),
         'name' => get_lang('Groups')
     );
     $interbreadcrumb[] = array(
-        'url' => '../group/group_space.php?' . api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'group/group_space.php?' . api_get_cidreq(),
         'name' => get_lang('GroupSpace') . ' ' . $group_properties['name']
     );
     $interbreadcrumb[] = array(
-        'url' => 'viewforum.php?forum=' . intval($_GET['forum']) . '&' . api_get_cidreq()
-            . "&origin=$origin&search=" . Security::remove_XSS(urlencode($my_search)),
+        'url' => api_get_path(WEB_CODE_PATH).'forum/viewforum.php?forum='.intval($_GET['forum']).'&'.api_get_cidreq(). "&origin=$origin&search=" . Security::remove_XSS(urlencode($my_search)),
         'name' => Security::remove_XSS($current_forum['forum_title'])
     );
     $interbreadcrumb[] = array(
@@ -84,20 +85,20 @@ if ($origin == 'group') {
         //Display::display_reduced_header();
     } else {
         $interbreadcrumb[] = array(
-            'url' => 'index.php?'
+            'url' => api_get_path(WEB_CODE_PATH).'forum/index.php?'
                 . (isset($gradebook) ? "gradebook=$gradebook&" : '')
                 . 'search=' . Security::remove_XSS(urlencode($my_search)),
             'name' => $nameTools
         );
         $interbreadcrumb[] = array(
-            'url' => 'viewforumcategory.php?forumcategory='
+            'url' => api_get_path(WEB_CODE_PATH).'forum/viewforumcategory.php?forumcategory='
                 . $current_forum_category['cat_id']
                 . "&origin=$origin&search="
                 . Security::remove_XSS(urlencode($my_search)),
             'name' => Security::remove_XSS($current_forum_category['cat_title'])
         );
         $interbreadcrumb[] = array(
-            'url' => 'viewforum.php?forum=' . intval($_GET['forum'])
+            'url' => api_get_path(WEB_CODE_PATH).'forum/viewforum.php?forum=' . intval($_GET['forum'])
                 . "&origin=$origin&search="
                 . Security::remove_XSS(urlencode($my_search)),
             'name' => Security::remove_XSS($current_forum['forum_title'])
@@ -166,7 +167,6 @@ if ($my_message != 'PostDeletedSpecial') {
     increase_thread_view($_GET['thread']);
 
     /* Action Links */
-
     if ($origin == 'learnpath') {
         if (
             ($current_forum_category && $current_forum_category['locked'] == 0) &&
@@ -258,12 +258,11 @@ if ($my_message != 'PostDeletedSpecial') {
     // The different views of the thread.
     if ($origin != 'learnpath') {
         $my_url = '<a href="' . $forumUrl . 'viewthread.php?' . api_get_cidreq() . '&' . api_get_cidreq()
-            . '&forum=' . Security::remove_XSS($_GET['forum']) . '&thread=' . Security::remove_XSS($_GET['thread'])
+            . '&forum=' . intval($_GET['forum']) . '&thread=' . intval($_GET['thread'])
             . '&search=' . Security::remove_XSS(urlencode($my_search));
         echo $my_url . '&view=flat">'
             . Display::return_icon('forum_listview.png', get_lang('FlatView'), null, ICON_SIZE_MEDIUM)
             . '</a>';
-        //echo $my_url.'&view=threaded">'.Display::return_icon('forum_threadedview.gif', get_lang('ThreadedView')).get_lang('ThreadedView').'</a>';
         echo $my_url . '&view=nested">'
             . Display::return_icon('forum_nestedview.png', get_lang('NestedView'), null, ICON_SIZE_MEDIUM)
             . '</a>';
@@ -275,8 +274,7 @@ if ($my_message != 'PostDeletedSpecial') {
     }
 
     /* Display Forum Category and the Forum information */
-
-    if (!isset($_SESSION['view']))	{
+    if (!isset($_SESSION['view'])) {
         $viewMode = $current_forum['default_view'];
     } else {
         $viewMode = $_SESSION['view'];
@@ -292,7 +290,7 @@ if ($my_message != 'PostDeletedSpecial') {
     }
 
     if (isset($_GET['msg']) && isset($_GET['type'])) {
-        switch($_GET['type']) {
+        switch ($_GET['type']) {
             case 'error':
                 Display::display_error_message($_GET['msg']);
                 break;
@@ -302,22 +300,20 @@ if ($my_message != 'PostDeletedSpecial') {
         }
     }
 
-    if ($current_thread['thread_peer_qualify'] == 1 ) {
+    if ($current_thread['thread_peer_qualify'] == 1) {
         echo Display::return_message(get_lang('ForumThreadPeerScoringStudentComment'), 'info');
     }
 
     switch ($viewMode) {
         case 'flat':
+            //no break
+        default:
             include_once 'viewthread_flat.inc.php';
             break;
         case 'threaded':
-            //include_once 'viewthread_threaded.inc.php';
-            //break;
+            //no break;
         case 'nested':
             include_once 'viewthread_nested.inc.php';
-            break;
-        default:
-            include_once 'viewthread_flat.inc.php';
             break;
     }
 }
