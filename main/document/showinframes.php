@@ -29,6 +29,7 @@ api_protect_course_script();
 $noPHP_SELF = true;
 $header_file = isset($_GET['file']) ? Security::remove_XSS($_GET['file']) : null;
 $document_id = intval($_GET['id']);
+$originIsLearnpath = isset($_GET['origin']) && $_GET['origin'] === 'learnpathitem';
 
 $courseInfo = api_get_course_info();
 $course_code = api_get_course_id();
@@ -84,8 +85,9 @@ if (is_dir($file_url_sys)) {
     api_not_allowed(true);
 }
 
+$is_allowed_to_edit = api_is_allowed_to_edit();
 //fix the screen when you try to access a protected course through the url
-$is_allowed_in_course = $_SESSION['is_allowed_in_course'];
+$is_allowed_in_course = api_is_allowed_in_course() || $is_allowed_to_edit;
 if ($is_allowed_in_course == false) {
     api_not_allowed(true);
 }
@@ -99,12 +101,12 @@ $is_visible = DocumentManager::check_visibility_tree(
     api_get_group_id()
 );
 
-if (!api_is_allowed_to_edit() && !$is_visible) {
+if (!$is_allowed_to_edit && !$is_visible) {
     api_not_allowed(true);
 }
 
 $pathinfo = pathinfo($header_file);
-$jplayer_supported_files = array('mp4', 'ogv','flv');
+$jplayer_supported_files = array('mp4', 'ogv', 'flv', 'm4v');
 $jplayer_supported = false;
 
 if (in_array(strtolower($pathinfo['extension']), $jplayer_supported_files)) {
@@ -117,15 +119,15 @@ $current_group_name = $current_group['name'];
 
 if (isset($group_id) && $group_id != '') {
     $interbreadcrumb[] = array(
-        'url' => '../group/group.php?'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'group/group.php?'.api_get_cidreq(),
         'name' => get_lang('Groups'),
     );
     $interbreadcrumb[] = array(
-        'url' => '../group/group_space.php?'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'group/group_space.php?'.api_get_cidreq(),
         'name' => get_lang('GroupSpace').' '.$current_group_name,
     );
     $name_to_show = explode('/', $name_to_show);
-    unset ($name_to_show[1]);
+    unset($name_to_show[1]);
     $name_to_show = implode('/', $name_to_show);
 }
 
@@ -250,34 +252,40 @@ if ($isChatFolder) {
 }
 
 $execute_iframe = true;
-
 if ($jplayer_supported) {
     $extension = api_strtolower($pathinfo['extension']);
+    if ($extension == 'mp4')  {
+        $extension = 'm4v';
+    }
     $js_path = api_get_path(WEB_LIBRARY_PATH).'javascript/';
-    $htmlHeadXtra[] = '<link rel="stylesheet" href="'.$js_path.'jquery-jplayer/skins/blue/jplayer.blue.monday.css" type="text/css">';
-    $htmlHeadXtra[] = '<script type="text/javascript" src="'.$js_path.'jquery-jplayer/jquery.jplayer.min.js"></script>';
+    $htmlHeadXtra[] = '<link rel="stylesheet" href="'.$js_path.'jquery-jplayer/skin/blue.monday/css/jplayer.blue.monday.css" type="text/css">';
+    $htmlHeadXtra[] = '<script type="text/javascript" src="'.$js_path.'jquery-jplayer/jplayer/jquery.jplayer.min.js"></script>';
 
-    $jquery = ' $("#jquery_jplayer_1").jPlayer({
-                    ready: function() {
-                        $(this).jPlayer("setMedia", {
-                            '.$extension.' : "'.$document_data['direct_url'].'"
-                        });
-                    },
-                    errorAlerts: false,
-                    warningAlerts: false,
-                    //swfPath: "../inc/lib/javascript/jquery-jplayer",
-                     swfPath: "'.$js_path.'jquery-jplayer",
-                    //supplied: "m4a, oga, mp3, ogg, wav",
-                    supplied: "'.$extension.'",
-                    //wmode: "window",
-                    solution: "flash, html",  // Do not change this setting
-                    cssSelectorAncestor: "#jp_container_1",
-                });';
+    $jquery = '
+        $("#jquery_jplayer_1").jPlayer({
+            ready: function() {
+                $(this).jPlayer("setMedia", {
+                    '.$extension.' : "'.$document_data['direct_url'].'"
+                });
+            },
+            cssSelectorAncestor: "#jp_container_1",
+            swfPath: "'.$js_path.'jquery-jplayer/jplayer/",
+            supplied: "'.$extension.'",
+            useStateClassSkin: true,
+            autoBlur: false,
+            keyEnabled: false,
+            remainingDuration: true,
+            toggleDuration: true,
+            solution: "html, flash",
+            errorAlerts: false,
+            warningAlerts: false
+        });
+    ';
 
     $htmlHeadXtra[] = '<script>
         $(document).ready( function() {
             //Experimental changes to preview mp3, ogg files
-            '.$jquery.'
+        '.$jquery.'
         });
     </script>';
     $execute_iframe = false;
@@ -324,9 +332,13 @@ if (!$jplayer_supported && $execute_iframe) {
     </script>';
 }
 
-Display::display_header('');
+if ($originIsLearnpath) {
+    Display::display_reduced_header();
+} else {
+    Display::display_header('');
+}
 
-echo '<div align="center">';
+echo '<div class="text-center">';
 
 $file_url = api_get_path(WEB_COURSE_PATH).$courseInfo['path'].'/document'.$header_file;
 $file_url_web = $file_url.'?'.api_get_cidreq();
@@ -348,18 +360,20 @@ if ($show_web_odf) {
             src="' . $pdfUrl. '">
         </iframe>';
     echo '</div>';
-} else {
+} elseif (!$originIsLearnpath) {
     // ViewerJS already have download button
-    echo '<a class="btn btn-default" href="'.$file_url_web.'" target="_blank"><em class="fa fa-download"></em>
-'.get_lang('Download').'</a>';
+    echo '<p>';
+    echo Display::toolbarButton(get_lang('Download'), $file_url_web, 'download', 'default', ['target' => '_blank']);
+    echo '</p>';
 }
 
 echo '</div>';
 
 if ($jplayer_supported) {
-    echo '<br /><div class="span12" style="margin:0 auto; width:100%; text-align:center;">';
     echo DocumentManager::generate_video_preview($document_data);
-    echo '</div>';
+
+    // media_element blocks jplayer disable it
+    Display::$global_template->assign('show_media_element', 0);
 }
 
 if ($is_freemind_available) {
@@ -443,7 +457,7 @@ if ($execute_iframe) {
         $content = Security::remove_XSS(file_get_contents($file_url_sys));
         echo $content;
     } else {
-            echo '<iframe id="mainFrame" name="mainFrame" border="0" frameborder="0" scrolling="no" style="width:100%;" height="600" src="'.$file_url_web.'&rand='.mt_rand(1, 10000).'" height="500" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>';
+        echo '<iframe id="mainFrame" name="mainFrame" border="0" frameborder="0" scrolling="no" style="width:100%;" height="600" src="'.$file_url_web.'&rand='.mt_rand(1, 10000).'" height="500" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>';
     }
 }
 Display::display_footer();

@@ -33,12 +33,12 @@ $form = new FormValidator('set_temp_password', 'POST', api_get_self().'?course_i
 $form->addElement('header', get_lang('CourseRequiresPassword'));
 $form->addElement('hidden', 'course_id', $course_id);
 $form->addElement('hidden', 'session_id', $session_id);
-$form->addElement('password', 'course_password', null, get_lang('Password'));
+$form->addElement('password', 'course_password', get_lang('Password'));
 $form->addButtonSave(get_lang('Accept'));
 
 if ($form->validate()) {
     $form_values = $form->exportValues();
-    if ($form_values['course_password'] === $course_info['registration_code']) {
+    if (sha1($form_values['course_password']) === $course_info['registration_code']) {
         Session::write('course_password_'.$course_info['real_id'], true);
         header('Location: '.api_get_course_url($course_info['code'], $session_id));
         exit;

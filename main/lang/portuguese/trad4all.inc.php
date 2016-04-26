@@ -2,6 +2,10 @@
 /*
 for more information: see languages.txt in the lang folder.
 */
+$TotalX = "Total: %s";
+$SkillsReport = "Relatório de Competências";
+$TemplateCertificateTitle = "Certificado";
+$DownloadCertificate = "Baixar Certificado";
 $CatchScreenCasts = "Capturas de ecrãn";
 $View = "Ver";
 $AmountSubmitted = "Número submetido";
@@ -1159,7 +1163,6 @@ $NomPageAdmin = "Administração";
 $SysInfo = "Informações sobre a plataforma/sistema";
 $DiffTranslation = "Comparar as traduções";
 $StatOf = "Relatório para";
-$SpeeSubscribe = "Inscrição rápida como verificador de cursos";
 $LogIdentLogout = "Lista de acessos";
 $ServerStatus = "Estado/status do servidor MySQL :";
 $DataBase = "Base-de-dados";
@@ -2840,7 +2843,6 @@ $UserInfo = "informação do utilizador";
 $ModifyQuestion = "Guardar a pergunta";
 $CheckAll = "Verificar todos";
 $NbAnnoucement = "Anúncio";
-$OtherCourses = "outros cursos";
 $Doc = "Curso";
 $PlataformAdmin = "Administração do Portal";
 $Groups = "Grupos";
@@ -5110,6 +5112,14 @@ $InvitationDenied = "Convite negado";
 $UserAdded = "O utilizador foi adicionado";
 $UpdatedIn = "Atualizado em";
 $Metadata = "Metadados";
+$SendMessage = "Enviar Mensagem";
+$SeeForum = "Ver Fórum";
+$SeeMore = "Ver Mais";
+$Created = "Criado";
+$EditMyProfile = "Editar o meu perfil";
+$Password = "Senha";
+$SeeBlog = "Ver Blog";
+$Blog = "Blog";
 $YouDoNotHaveAnySessionInItsHistory = "Não possui qualquer sessão do curso no seu histórico";
 $PortalHomepageDefaultIntroduction = "Parabéns! Você instalou com sucesso seu portal de e-learning!
 

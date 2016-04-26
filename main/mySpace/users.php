@@ -161,10 +161,10 @@ function get_users($from, $limit, $column, $direction)
 
         if (isset($_GET['id_coach']) && intval($_GET['id_coach']) != 0) {
             $detailsLink = '<a href="myStudents.php?student='.$student_id.'&id_coach='.$coach_id.'&id_session='.$_GET['id_session'].'">
-				            <img src="'.api_get_path(WEB_IMG_PATH).'2rightarrow.gif" border="0" /></a>';
+				            '.Display::return_icon('2rightarrow.png', get_lang('Details')).'</a>';
         } else {
             $detailsLink =  '<a href="myStudents.php?student='.$student_id.'">
-				             <img src="'.api_get_path(WEB_IMG_PATH).'2rightarrow.gif" border="0" /></a>';
+				            '.Display::return_icon('2rightarrow.png', get_lang('Details')).'</a>';
         }
         $row[] = $detailsLink;
         $all_datas[] = $row;
@@ -200,8 +200,6 @@ if (api_is_drh()) {
 
 $actionsRight = Display::url(Display::return_icon('printer.png', get_lang('Print'), array(), ICON_SIZE_MEDIUM), 'javascript: void(0);', array('onclick'=>'javascript: window.print();'));
 $actionsRight .= Display::url(Display::return_icon('export_csv.png', get_lang('ExportAsCSV'), array(), ICON_SIZE_MEDIUM), api_get_self().'?export=csv&keyword='.$keyword);
-
-
 $toolbar = Display::toolbarAction('toolbar-user', $content = array( 0 => $actionsLeft, 1 => $actionsRight ));
 
 $table = new SortableTable(

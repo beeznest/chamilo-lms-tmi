@@ -18,18 +18,15 @@ var hide_bar = function() {
     $("#template_col").hide();
     $("#doc_form").removeClass("col-md-9");
     $("#doc_form").addClass("col-md-11");
-    $("#hide_bar_template").css({"background-image" : \'url("../img/hide2.png")\'})
+    $("#hide_bar_template").css({"background-image" : \'url("'.Display::returnIconPath('hide2.png').'")\'})
 }
 
-jQuery(document).ready(function(){
-    jQuery(".scrollbar-macosx").scrollbar();
-});
-
 $(document).ready(function() {
+    $(".scrollbar-light").scrollbar();
+
     if ($(window).width() <= 785 ) {
         hide_bar();
-    }
-    
+    }    
 
     $("#hide_bar_template").click(function() {
         
@@ -447,7 +444,7 @@ if ($form->validate()) {
 	$values = $form->exportValues();
 	$readonly = isset($values['readonly']) ? 1 : 0;
 	$values['title'] = trim($values['title']);
-    
+
     if (!empty($values['dirValue'])) {
         $dir = $values['dirValue'];
     }
@@ -619,9 +616,9 @@ if ($form->validate()) {
 		$actionsLeft = '<a href="document.php?curdirpath='.Security::remove_XSS($dir).'">'.
             Display::return_icon('back.png',get_lang('Back').' '.get_lang('To').' '.get_lang('DocumentsOverview'),'',ICON_SIZE_MEDIUM).'</a>';
         }
-        
+
         echo $toolbar = Display::toolbarAction('actions-documents', array(0 => $actionsLeft, 1 => ''));
-                
+
 
 	if ($is_certificate_mode) {
 		$all_information_by_create_certificate = DocumentManager::get_all_info_to_certificate(api_get_user_id(), api_get_course_id());
@@ -635,17 +632,17 @@ if ($form->validate()) {
 	}
     // HTML-editor
     echo '<div class="row" style="overflow:hidden">
-            <div id="template_col" class="col-md-3">
+            <div id="template_col" class="col-md-2">
                 <div class="panel panel-default">
                 <div class="panel-body">
-                    <div id="frmModel" class="items-templates scrollbar-macosx"></div>
+                    <div id="frmModel" class="items-templates scrollbar-light"></div>
                 </div>
                 </div>
             </div>
             <div class="col-md-1">
                 <div id="hide_bar_template"></div>
             </div>
-            <div id="doc_form" class="col-md-8">
+            <div id="doc_form" class="col-md-9">
                 '.$form->returnForm().'
             </div>
           </div>';

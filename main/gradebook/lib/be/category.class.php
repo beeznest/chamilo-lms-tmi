@@ -244,13 +244,19 @@ class Category implements GradebookItem
     }
 
     /**
-     * @return int
+     * @return null
      */
     public function get_grade_model_id()
     {
+        if ($this->grade_model_id < 0) {
+            return null;
+        }
         return $this->grade_model_id;
     }
 
+    /**
+     * @return string
+     */
     public function get_type()
     {
         return 'category';
@@ -891,6 +897,8 @@ class Category implements GradebookItem
             if (!empty($cats)) {
                 /** @var Category $cat */
                 foreach ($cats as $cat) {
+                    $cat->set_session_id($session_id);
+                    $cat->set_course_code($course_code);
                     $cat->setStudentList($this->getStudentList());
                     $score = $cat->calc_score(
                         $stud_id,
@@ -1887,6 +1895,7 @@ class Category implements GradebookItem
     }
 
     /**
+     * Generates a certificate for this user if everything matches
      * @param int $category_id
      * @param int $user_id
      * @return bool|string
@@ -1894,6 +1903,7 @@ class Category implements GradebookItem
     public static function register_user_certificate($category_id, $user_id)
     {
         $courseId = api_get_course_int_id();
+        $courseCode = api_get_course_id();
         $sessionId = api_get_session_id();
         // Generating the total score for a course
         $cats_course = Category::load(
@@ -1935,7 +1945,7 @@ class Category implements GradebookItem
         // A student always sees only the teacher's repartition
         $scoretotal_display = $scoredisplay->display_score($scoretotal, SCORE_DIV_PERCENT);
 
-        if (!self::userFinishedCourse($user_id, $cats_course[0])) {
+        if (!self::userFinishedCourse($user_id, $cats_course[0], 0, $courseCode, $sessionId, true)) {
             return false;
         }
 
@@ -1943,15 +1953,13 @@ class Category implements GradebookItem
         $userHasSkills = false;
 
         if ($skillToolEnabled) {
-            if (!$category->getGenerateCertificates()) {
-                $skill = new Skill();
-                $skill->add_skill_to_user(
-                    $user_id,
-                    $category_id,
-                    $courseId,
-                    $sessionId
-                );
-            }
+            $skill = new Skill();
+            $skill->add_skill_to_user(
+                $user_id,
+                $category_id,
+                $courseId,
+                $sessionId
+            );
 
             $objSkillRelUser = new SkillRelUser();
             $userSkills = $objSkillRelUser->get_user_skills($user_id, $courseId, $sessionId);
@@ -1959,13 +1967,10 @@ class Category implements GradebookItem
 
             if (!$category->getGenerateCertificates() && $userHasSkills) {
                 return [
-                    'badge_link' => Display::url(
-                        get_lang('DownloadBadges'),
+                    'badge_link' => Display::toolbarButton(
+                        get_lang('ExportBadges'),
                         api_get_path(WEB_CODE_PATH) . "gradebook/get_badges.php?user=$user_id",
-                        array(
-                            'target' => '_blank',
-                            'class' => 'btn btn-default'
-                        )
+                        'external-link'
                     )
                 ];
             }
@@ -1997,14 +2002,7 @@ class Category implements GradebookItem
             if (!empty($fileWasGenerated)) {
                 $url = api_get_path(WEB_PATH) . 'certificates/index.php?id=' . $my_certificate['id'];
 
-                $certificates = Display::url(
-                    Display::returnFontAwesomeIcon('download').' '.get_lang('DownloadCertificate'),
-                    $url,
-                    array(
-                        'target' => '_blank',
-                        'class' => 'btn btn-sm btn-primary'
-                    )
-                );
+                $certificates = Display::toolbarButton(get_lang('DisplayCertificate'), $url, 'eye', 'primary');
 
                 $exportToPDF = Display::url(
                     Display::return_icon(
@@ -2029,13 +2027,10 @@ class Category implements GradebookItem
                 );
 
                 if ($skillToolEnabled && $userHasSkills) {
-                    $html['badge_link'] = Display::url(
-                        get_lang('DownloadBadges'),
+                    $html['badge_link'] = Display::toolbarButton(
+                        get_lang('ExportBadges'),
                         api_get_path(WEB_CODE_PATH) . "gradebook/get_badges.php?user=$user_id",
-                        array(
-                            'target' => '_blank',
-                            'class' => 'btn btn-default'
-                        )
+                        'external-link'
                     );
                 }
             }
@@ -2136,6 +2131,7 @@ class Category implements GradebookItem
      *         To check by the category ID
      * @param string $courseCode Optional. The course code
      * @param int $sessionId Optional. The session ID
+     * @param boolean $recalcutateScore Whether recalculate the score
      * @return boolean
      */
     public static function userFinishedCourse(
@@ -2143,9 +2139,9 @@ class Category implements GradebookItem
         \Category $category = null,
         $categoryId = 0,
         $courseCode = null,
-        $sessionId = 0
-    )
-    {
+        $sessionId = 0,
+        $recalcutateScore = false
+    ) {
         if (is_null($category) && empty($categoryId)) {
             return false;
         }
@@ -2171,7 +2167,13 @@ class Category implements GradebookItem
             $category = $cats_course[0];
         }
 
-        $currentScore = self::getCurrentScore($userId, $category->get_id(), $courseCode, $sessionId);
+        $currentScore = self::getCurrentScore(
+            $userId,
+            $category->get_id(),
+            $courseCode,
+            $sessionId,
+            $recalcutateScore
+        );
 
         $minCertificateScore = $category->get_certificate_min_score();
 
@@ -2184,6 +2186,8 @@ class Category implements GradebookItem
      * @param int $categoryId The gradebook category
      * @param int $courseCode The course code
      * @param int $sessionId Optional. The session id
+     * @param bool $recalculate
+     *
      * @return float The score
      */
     public static function getCurrentScore($userId, $categoryId, $courseCode, $sessionId = 0, $recalculate = false)
@@ -2202,7 +2206,7 @@ class Category implements GradebookItem
                 'order' => 'registered_at DESC',
                 'limit' => '1'
             ],
-            'fisrt'
+            'first'
         );
 
         if (empty($resultData)) {
@@ -2296,5 +2300,4 @@ class Category implements GradebookItem
     {
         $this->studentList = $list;
     }
-
 }

@@ -130,7 +130,7 @@ abstract class AbstractLink implements GradebookItem
 
     public function is_locked()
     {
-        return isset($this->locked) && $this->locked == 1 ? true : false ;
+        return isset($this->locked) && $this->locked == 1 ? true : false;
     }
 
     public function is_visible()
@@ -351,13 +351,13 @@ abstract class AbstractLink implements GradebookItem
                     'weight' => $this->get_weight(),
                     'visible' => $this->is_visible(),
                     'created_at' => api_get_utc_datetime(),
+                    'locked' => 0
                 ];
                 $inserted_id = Database::insert($tbl_grade_links, $params);
                 $this->set_id($inserted_id);
+
                 return $inserted_id;
             }
-        } else {
-            die('Error in AbstractLink add: required field empty');
         }
 
         return false;
@@ -368,22 +368,29 @@ abstract class AbstractLink implements GradebookItem
      */
     public function save()
     {
-        $this->save_linked_data();
-        $table = Database :: get_main_table(TABLE_MAIN_GRADEBOOK_LINK);
+        $em = Database::getManager();
 
-        $params = [
-            'type' => $this->get_type(),
-            'ref_id' => $this->get_ref_id(),
-            'user_id' => $this->get_user_id(),
-            'course_code' => $this->get_course_code(),
-            'category_id' => $this->get_category_id(),
-            'weight' => $this->get_weight(),
-            'visible' => $this->is_visible(),
-        ];
-        Database::insert($table, $params, ['id = ?' => $this->id]);
+        $link = $em->find('ChamiloCoreBundle:GradebookLink', $this->id);
+
+        if (!$link) {
+            return;
+        }
 
         AbstractLink::add_link_log($this->id);
 
+        $this->save_linked_data();
+
+        $link
+            ->setType($this->get_type())
+            ->setRefId($this->get_ref_id())
+            ->setUserId($this->get_user_id())
+            ->setCourseCode($this->get_course_code())
+            ->setCategoryId($this->get_category_id())
+            ->setWeight($this->get_weight())
+            ->setVisible($this->is_visible());
+
+        $em->merge($link);
+        $em->flush();
     }
 
     /**

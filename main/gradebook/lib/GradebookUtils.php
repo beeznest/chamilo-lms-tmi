@@ -271,13 +271,6 @@ class GradebookUtils
                         '',
                         ICON_SIZE_SMALL
                     ) . '</a>';
-                //no move ability for root categories
-                if ($cat->is_movable()) {
-                    /* $modify_icons .= '&nbsp;<a href="' . api_get_self() . '?movecat=' . $cat->get_id() . '&amp;selectcat=' . $selectcat . ' &amp;cidReq='.$cat->get_course_code().'">
-                      <img src="../img/icons/22/move.png" border="0" title="' . get_lang('Move') . '" alt="" /></a>'; */
-                } else {
-                    //$modify_icons .= '&nbsp;<img src="../img/deplacer_fichier_na.gif" border="0" title="' . get_lang('Move') . '" alt="" />';
-                }
 
                 if ($cat->is_locked() && !api_is_platform_admin()) {
                     $modify_icons .= Display::return_icon('delete_na.png', get_lang('DeleteAll'), '', ICON_SIZE_SMALL);
@@ -357,8 +350,6 @@ class GradebookUtils
                 $modify_icons = '<a href="gradebook_edit_link.php?editlink=' . $link->get_id() . '&cidReq=' . $link->get_course_code() . '&id_session='.$link->get_session_id().'">' .
                     Display::return_icon('edit.png', get_lang('Modify'), '', ICON_SIZE_SMALL) . '</a>';
             }
-
-            //$modify_icons .= '&nbsp;<a href="' . api_get_self() . '?movelink=' . $link->get_id() . '&selectcat=' . $selectcat . '"><img src="../img/deplacer_fichier.gif" border="0" title="' . get_lang('Move') . '" alt="" /></a>';
             $modify_icons .= '&nbsp;<a href="' . api_get_self() . '?visiblelink=' . $link->get_id() . '&' . $visibility_command . '=&selectcat=' . $selectcat . '&id_session='.$link->get_session_id(). ' ">' .
                 Display::return_icon($visibility_icon . '.png', get_lang('Visible'), '', ICON_SIZE_SMALL) . '</a>';
             $modify_icons .= '&nbsp;<a href="gradebook_showlog_link.php?visiblelink=' . $link->get_id() . '&selectcat=' . $selectcat . '&cidReq=' . $link->get_course_code() . '&id_session='.$link->get_session_id(). '">' .
@@ -378,11 +369,12 @@ class GradebookUtils
 
     /**
      * Checks if a resource is in the unique gradebook of a given course
-     * @param    string  Course code
-     * @param    int     Resource type (use constants defined in linkfactory.class.php)
-     * @param    int     Resource ID in the corresponding tool
-     * @param    int     Session ID (optional -  0 if not defined)
-     * @return   int     false on error or link ID
+     * @param    string  $course_code Course code
+     * @param    int     $resource_type Resource type (use constants defined in linkfactory.class.php)
+     * @param    int     $resource_id Resource ID in the corresponding tool
+     * @param    int     $session_id Session ID (optional -  0 if not defined)
+     *
+     * @return   array     false on error or array of resource
      */
     public static function is_resource_in_course_gradebook($course_code, $resource_type, $resource_id, $session_id = 0)
     {
@@ -399,6 +391,7 @@ class GradebookUtils
             return false;
         }
         $row = Database::fetch_array($res, 'ASSOC');
+        
         return $row;
     }
 
@@ -611,8 +604,10 @@ class GradebookUtils
         $table_certificate = Database::get_main_table(TABLE_MAIN_GRADEBOOK_CERTIFICATE);
         $sql = 'SELECT * FROM ' . $table_certificate . '
                 WHERE cat_id="' . intval($cat_id) . '" AND user_id="' . intval($user_id) . '"';
+
         $result = Database::query($sql);
         $row = Database::fetch_array($result, 'ASSOC');
+
         return $row;
     }
 
@@ -674,16 +669,18 @@ class GradebookUtils
     }
 
     /**
-     * @param $user_id
-     * @param $course_code
+     * @param int $user_id
+     * @param string $course_code
+     * @param int $sessionId
      * @param bool $is_preview
      * @param bool $hide_print_button
+     *
      * @return array
      */
-    public static function get_user_certificate_content($user_id, $course_code, $is_preview = false, $hide_print_button = false)
+    public static function get_user_certificate_content($user_id, $course_code, $sessionId, $is_preview = false, $hide_print_button = false)
     {
         // Generate document HTML
-        $content_html = DocumentManager::replace_user_info_into_html($user_id, $course_code, $is_preview);
+        $content_html = DocumentManager::replace_user_info_into_html($user_id, $course_code, $sessionId, $is_preview);
         $new_content_html = null;
         $variables = null;
         $contentHead = null;
@@ -704,11 +701,14 @@ class GradebookUtils
         $path_image_in_default_course = api_get_path(WEB_CODE_PATH) . 'default_course_document';
         $new_content_html = str_replace('/main/default_course_document', $path_image_in_default_course, $new_content_html);
         $new_content_html = str_replace(SYS_CODE_PATH . 'img/', api_get_path(WEB_IMG_PATH), $new_content_html);
+        $print = '';
 
         //add print header
         if ($hide_print_button == false) {
-            $print = '<style media="print" type="text/css">#print_div {visibility:hidden;}</style>';
-            $print .= '<a href="javascript:window.print();" style="float:right; padding:4px;" id="print_div"><img src="' . api_get_path(WEB_CODE_PATH) . 'img/printmgr.gif" alt="' . get_lang('Print') . '" /> ' . get_lang('Print') . '</a>';
+            $print .= '<style media="print" type="text/css">#print_div {visibility:hidden;}</style>';
+            $print .= '<a href="javascript:window.print();" style="float:right; padding:4px;" id="print_div">';
+            $print .= Display::return_icon('printmgr.gif', get_lang('Print'));
+            $print .= '</a>';
         }
 
         // Add header
@@ -772,9 +772,11 @@ class GradebookUtils
                 $row = Database::fetch_array($res);
                 $category_id = $row['id'];
             }
+
+            return $category_id;
         }
 
-        return $category_id;
+        return false;
     }
 
     /**
@@ -939,8 +941,12 @@ class GradebookUtils
         );
 
         $page_format = $params['orientation'] == 'landscape' ? 'A4-L' : 'A4';
+        ob_start();
         $pdf = new PDF($page_format, $page_format, $pdfParams);
         $pdf->html_to_pdf_with_template($flatviewtable->return_table());
+        $content = ob_get_contents();
+        ob_end_clean();
+        echo $content;
         exit;
     }
 
@@ -1201,7 +1207,7 @@ class GradebookUtils
      *
      * Get the achieved certificates for a user in courses
      * @param int $userId The user id
-     * @param type $includeNonPublicCertificates Whether include the non-plublic certificates
+     * @param bool $includeNonPublicCertificates Whether include the non-plublic certificates
      * @return array
      */
     public static function getUserCertificatesInCourses($userId, $includeNonPublicCertificates = true)
@@ -1250,7 +1256,7 @@ class GradebookUtils
     /**
      * Get the achieved certificates for a user in course sessions
      * @param int $userId The user id
-     * @param type $includeNonPublicCertificates Whether include the non-plublic certificates
+     * @param bool $includeNonPublicCertificates Whether include the non-plublic certificates
      * @return array
      */
     public static function getUserCertificatesInSessions($userId, $includeNonPublicCertificates = true)
@@ -1258,13 +1264,12 @@ class GradebookUtils
         $userId = intval($userId);
         $sessionList = [];
 
-        $sessions = SessionManager::get_sessions_by_user($userId);
+        $sessions = SessionManager::get_sessions_by_user($userId, true, true);
 
         foreach ($sessions as $session) {
             if (empty($session['courses'])) {
                 continue;
             }
-
             $sessionCourses = SessionManager::get_course_list_by_session_id($session['session_id']);
 
             foreach ($sessionCourses as $course) {
@@ -1291,7 +1296,10 @@ class GradebookUtils
 
                 $courseGradebookId = $courseGradebookCategory[0]->get_id();
 
-                $certificateInfo = GradebookUtils::get_certificate_by_user_id($courseGradebookId, $userId);
+                $certificateInfo = GradebookUtils::get_certificate_by_user_id(
+                    $courseGradebookId,
+                    $userId
+                );
 
                 if (empty($certificateInfo)) {
                     continue;

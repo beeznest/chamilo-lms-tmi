@@ -74,31 +74,19 @@ if (api_is_allowed_to_edit(null, true)) {
             case 'set_tutor':
                 $userId = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
                 $isTutor = isset($_GET['is_tutor']) ? intval($_GET['is_tutor']) : 0;
+                $userInfo = api_get_user_info($userId);
+                
                 if (!empty($userId)) {
-                    if ($sessionId) {
-                        /*$res = SessionManager::set_coach_to_course_session(
-                            $userId,
-                            $sessionId,
-                            $courseCode,
-                            true
-                        );*/
-                    } else {
-                        /*if (!empty($_POST['promoteCourseAdmin']) && $_POST['promoteCourseAdmin']){
-                            $userProperties['status'] = 1;
-                        } else{
-                            $userProperties['status'] = 5;
+                    if (!$sessionId) {
+                        if ($userInfo['status'] != INVITEE) {
+                            CourseManager::updateUserCourseTutor(
+                                $userId,
+                                $courseId,
+                                $isTutor
+                            );
+                        } else {
+                            Display::addFlash(Display::return_message(get_lang('InviteesCantBeTutors'), 'error'));
                         }
-                        if (!empty($_POST['promoteTutor']) && $_POST['promoteTutor']){
-                            $userProperties['tutor'] = 1;
-                        } else{
-                            $userProperties['tutor'] = 0;
-                        }*/
-
-                        CourseManager::updateUserCourseTutor(
-                            $userId,
-                            $courseId,
-                            $isTutor
-                        );
                     }
                 }
                 break;
@@ -259,11 +247,8 @@ if (api_is_allowed_to_edit(null, true)) {
                         $data[] = $user;
                         if ($_GET['format'] == 'pdf') {
                             $user_info = api_get_user_info($user['user_id']);
-                            $user_image = Display::img(
-                                $user_info['avatar_no_query'],
-                                null,
-                                array('width' => $user_image_pdf_size.'px')
-                            );
+                            $user_image = '<img src="'.$user_info['avatar'].'" width ="'.$user_image_pdf_size.'px" />';
+
                             if ($is_western_name_order) {
                                 $user_pdf = array(
                                     $counter,
@@ -349,11 +334,8 @@ if (api_is_allowed_to_edit(null, true)) {
                         }
                         if ($_GET['format'] == 'pdf') {
                             $user_info = api_get_user_info($user['user_id']);
-                            $user_image = Display::img(
-                                $user_info['avatar_no_query'],
-                                null,
-                                array('width' => $user_image_pdf_size.'px')
-                            );
+
+                            $user_image = '<img src="'.$user_info['avatar'].'" width ="'.$user_image_pdf_size.'px" />';
 
                             if ($is_western_name_order) {
                                 $user_pdf = array(
@@ -412,6 +394,7 @@ if (api_is_allowed_to_edit(null, true)) {
                             'pdf_title' => $pdfTitle,
                             'header_attributes' => $header_attributes
                         );
+
                         Export::export_table_pdf($a_users, $params);
                         exit;
                 }
@@ -462,6 +445,7 @@ if (api_is_allowed_to_edit(null, true)) {
     }
 }
 
+// $is_allowed_in_course is first defined in local.inc.php
 if (!$is_allowed_in_course) {
     api_not_allowed(true);
 }
@@ -652,7 +636,7 @@ function get_user_data($from, $number_of_items, $column, $direction)
             if (api_is_allowed_to_edit(null, true)) {
 
                 $userInfo = api_get_user_info($user_id);
-                $photo = '<img src="'.$userInfo['avatar_small'].'" alt="'.$userInfo['complete_name'].'" title="'.$userInfo['complete_name'].'" />';
+                $photo = Display::img($userInfo['avatar_small'], $userInfo['complete_name'], [], false);
 
                 $temp[] = $user_id;
                 $temp[] = $photo;
@@ -763,7 +747,7 @@ function active_filter($active, $urlParams, $row)
     /* you cannot lock yourself out otherwise you could disable all the accounts including your own => everybody is
         locked out and nobody can change it anymore.*/
     if ($row[0] <> $userId) {
-        $result = '<center><img src="../img/icons/16/'.$image.'.png" border="0" alt="'.get_lang(ucfirst($action)).'" title="'.get_lang(ucfirst($action)).'"/></center>';
+        $result = '<center><img src="'.Display::returnIconPath($image.'.png', 16).'" border="0" alt="'.get_lang(ucfirst($action)).'" title="'.get_lang(ucfirst($action)).'"/></center>';
     }
 
     return $result;
@@ -779,16 +763,17 @@ function modify_filter($user_id, $row, $data)
     global $is_allowed_to_track, $charset;
 
     $user_id = $data[0];
+    $userInfo = api_get_user_info($user_id);
+    $isInvitee = $userInfo['status'] == INVITEE ? true : false;
     $course_info = $_course = api_get_course_info();
     $current_user_id = api_get_user_id();
     $sessionId = api_get_session_id();
     $type = isset($_REQUEST['type']) ? intval($_REQUEST['type']) : STUDENT;
 
     $result = "";
-
     if ($is_allowed_to_track) {
-        $result .= '<a href="../mySpace/myStudents.php?'.api_get_cidreq().'&student='.$user_id.'&details=true&course='.$_course['id'].'&origin=user_course&id_session='.api_get_session_id().'" title="'.get_lang('Tracking').'"  >
-            <img border="0" alt="'.get_lang('Tracking').'" src="../img/icons/22/stats.png" />
+        $result .= '<a href="../mySpace/myStudents.php?'.api_get_cidreq().'&student='.$user_id.'&details=true&course='.$_course['id'].'&origin=user_course&id_session='.api_get_session_id().'" title="'.get_lang('Tracking').'">
+            '.Display::return_icon('stats.png', get_lang('Tracking')).'
         </a>';
     }
 
@@ -810,7 +795,11 @@ function modify_filter($user_id, $row, $data)
                 $text = get_lang('SetTutor');
             }
 
-            $disabled = '';
+            if ($isInvitee) {
+                $disabled = 'disabled';
+            } else {
+                $disabled = '';
+            }
 
             if ($data['user_status_in_course'] == STUDENT) {
 
@@ -882,11 +871,13 @@ $table->set_header($header_nr++, get_lang('LoginName'));
 $indexList['groups'] = $header_nr;
 $table->set_header($header_nr++, get_lang('GroupSingle'), false);
 
+/*
 if (api_is_allowed_to_edit(null, true) && api_get_setting('allow_user_course_subscription_by_course_admin') == 'true') {
 
 } else {
     $table->set_column_filter(0, 'hide_field');
 }
+*/
 
 $hideFields = api_get_configuration_value('hide_user_field_from_list');
 if (!empty($hideFields)) {

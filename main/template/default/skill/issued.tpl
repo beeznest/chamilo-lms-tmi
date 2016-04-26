@@ -19,7 +19,16 @@
                     </p>
                     {% endfor %}
                 </div>
-            </div>    
+            </div>
+        {% if badge_error %}
+            <div class="alert alert-danger"> {{ 'BakedBadgeProblem'|get_lang }}</div>
+        {% else %}
+            <p class="text-center">
+                <a href="{{ personal_badge }}" class="btn btn-primary" target="_new" download="badge">
+                    <em class="fa fa-download fa-fw"></em> {{ 'DownloadBadge'|get_lang }}
+                </a>
+            </p>
+        {% endif %}
         {% if allow_export %}
             <p class="text-center">
                 <a href="#" class="btn btn-success" id="badge-export-button">
@@ -27,6 +36,15 @@
                 </a>
             </p>
         {% endif %}
+        <div class='col-md-12 text-center'>
+            <h5><b> {{ 'ShareWithYourFriends' | get_lang }} </b></h5>
+            <a href='http://www.facebook.com/sharer.php?u={{ _p.web }}badge/{{ skill_info.id }}/user/{{ user_info.id }}' target='_new'>
+            <em class='fa fa-facebook-square fa-3x text-info' aria-hidden='true'></em>
+            </a>
+            <a href='https://twitter.com/home?status={{ 'IHaveObtainedSkillXOnY' | get_lang |format(skill_info.name, _s.site_name)}} - {{ _p.web }}badge/{{ skill_info.id }}/user/{{ user_info.id }}' target='_new'>
+            <em class='fa fa-twitter-square fa-3x text-light' aria-hidden='true'></em>
+            </a>
+        </div>
     </div>
     <div class="col-md-8">
         <div class="panel panel-default">

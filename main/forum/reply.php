@@ -17,7 +17,7 @@
  *
  * @package chamilo.forum
  */
-// Including the global initialization file.
+
 require_once '../inc/global.inc.php';
 
 // The section (tabs).
@@ -92,22 +92,22 @@ if (!empty($gradebook) && $gradebook == 'view') {
 }
 
 if ($origin == 'group') {
-    $_clean['toolgroup'] = (int)$_SESSION['toolgroup'];
+    $_clean['toolgroup'] = api_get_group_id();
     $group_properties  = GroupManager :: get_group_properties($_clean['toolgroup']);
     $interbreadcrumb[] = array(
-        'url' => '../group/group.php?'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'group/group.php?'.api_get_cidreq(),
         'name' => get_lang('Groups'),
     );
     $interbreadcrumb[] = array(
-        'url' => '../group/group_space.php?'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'group/group_space.php?'.api_get_cidreq(),
         'name' => get_lang('GroupSpace').' '.$group_properties['name'],
     );
     $interbreadcrumb[] = array(
-        'url' => 'viewforum.php?origin='.$origin.'&forum='.intval($_GET['forum']).'&'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'forum/viewforum.php?origin='.$origin.'&forum='.intval($_GET['forum']).'&'.api_get_cidreq(),
         'name' => $current_forum['forum_title'],
     );
     $interbreadcrumb[] = array(
-        'url' => 'viewthread.php?origin='.$origin.'&gradebook='.$gradebook.'&forum='.intval($_GET['forum']).'&thread='.intval($_GET['thread']).'&'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'forum/viewthread.php?origin='.$origin.'&gradebook='.$gradebook.'&forum='.intval($_GET['forum']).'&thread='.intval($_GET['thread']).'&'.api_get_cidreq(),
         'name' => $current_thread['thread_title'],
     );
     $interbreadcrumb[] = array(
@@ -120,22 +120,21 @@ if ($origin == 'group') {
         'name' => $nameTools,
     );
     $interbreadcrumb[] = array(
-        'url' => 'viewforumcategory.php?forumcategory='.$current_forum_category['cat_id'].'&'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'forum/viewforumcategory.php?forumcategory='.$current_forum_category['cat_id'].'&'.api_get_cidreq(),
         'name' => $current_forum_category['cat_title'],
     );
     $interbreadcrumb[] = array(
-        'url' => 'viewforum.php?origin='.$origin.'&forum='.intval($_GET['forum']).'&'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'forum/viewforum.php?origin='.$origin.'&forum='.intval($_GET['forum']).'&'.api_get_cidreq(),
         'name' => $current_forum['forum_title'],
     );
     $interbreadcrumb[] = array(
-        'url' => 'viewthread.php?origin='.$origin.'&gradebook='.$gradebook.'&forum='.intval($_GET['forum']).'&thread='.intval($_GET['thread']).'&'.api_get_cidreq(),
+        'url' => api_get_path(WEB_CODE_PATH).'forum/viewthread.php?origin='.$origin.'&gradebook='.$gradebook.'&forum='.intval($_GET['forum']).'&thread='.intval($_GET['thread']).'&'.api_get_cidreq(),
         'name' => $current_thread['thread_title'],
     );
     $interbreadcrumb[] = array('url' => '#', 'name' => get_lang('Reply'));
 }
 
 /* Resource Linker */
-
 if (isset($_POST['add_resources']) && $_POST['add_resources'] == get_lang('Resources')) {
     $_SESSION['formelements'] = $_POST;
     $_SESSION['origin'] = $_SERVER['REQUEST_URI'];
@@ -145,7 +144,6 @@ if (isset($_POST['add_resources']) && $_POST['add_resources'] == get_lang('Resou
 }
 
 /* Header */
-
 $htmlHeadXtra[] = <<<JS
     <script>
     $(document).on('ready', function() {
@@ -164,10 +162,10 @@ $htmlHeadXtra[] = <<<JS
 JS;
 
 if ($origin == 'learnpath') {
-    Display :: display_reduced_header('');
+    Display::display_reduced_header();
 } else {
     // The last element of the breadcrumb navigation is already set in interbreadcrumb, so give an empty string.
-    Display :: display_header('');
+    Display::display_header();
 }
 /* Action links */
 
@@ -177,8 +175,6 @@ if ($origin != 'learnpath') {
     echo '<a href="viewthread.php?'.api_get_cidreq().'&forum='.Security::remove_XSS($_GET['forum']).'&gradebook='.$gradebook.'&thread='.Security::remove_XSS($_GET['thread']).'&origin='.$origin.'">'.
         Display::return_icon('back.png', get_lang('BackToThread'), '', ICON_SIZE_MEDIUM).'</a>';
     echo '</div>';
-} else {
-    echo '<div style="height:15px">&nbsp;</div>';
 }
 /*New display forum div*/
 echo '<div class="forum_title">';
@@ -199,17 +195,28 @@ $values = show_add_post_form(
     $my_post,
     $my_elements
 );
-if (!empty($values) AND isset($_POST['SubmitPost'])) {
+if (!empty($values) && isset($_POST['SubmitPost'])) {
     $result = store_reply($current_forum, $values);
     //@todo split the show_add_post_form function
+    $origin = isset($_GET['origin']) && $_GET['origin'] === 'learnpath' ? 'learnpath' : null;
 
-    $url = 'viewthread.php?forum='.$current_thread['forum_id'].'&gradebook='.$gradebook.'&thread='.intval($_GET['thread']).'&gidReq='.api_get_group_id().'&origin='.(isset($origin)?$origin:'').'&msg='.$result['msg'].'&type='.$result['type'];
+    $url = 'viewthread.php?' . http_build_query([
+        'forum' => $current_thread['forum_id'],
+        'gradebook' => $gradebook,
+        'thread' => intval($_GET['thread']),
+        'gidReq' => api_get_group_id(),
+        'origin' => $origin,
+        'msg' => $result['msg'],
+        'type' => $result['type']
+    ]);
     echo '
     <script>
     window.location = "'.$url.'";
     </script>';
 }
 
-if (isset($origin) && $origin != 'learnpath') {
-    Display :: display_footer();
+if ($origin == 'learnpath') {
+    Display::display_reduced_footer();
+} else {
+    Display::display_footer();
 }

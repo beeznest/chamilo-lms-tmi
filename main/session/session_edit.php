@@ -24,6 +24,30 @@ SessionManager::protectSession($id);
 
 $sessionInfo = SessionManager::fetch($id);
 
+// Sets to local time to show it correctly when you edit a session
+if (!empty($sessionInfo['display_start_date'])) {
+    $sessionInfo['display_start_date'] = api_get_local_time($sessionInfo['display_start_date']);
+}
+if (!empty($sessionInfo['display_end_date'])) {
+    $sessionInfo['display_end_date'] = api_get_local_time($sessionInfo['display_end_date']);
+}
+
+if (!empty($sessionInfo['access_start_date'])) {
+    $sessionInfo['access_start_date'] = api_get_local_time($sessionInfo['access_start_date']);
+}
+
+if (!empty($sessionInfo['access_end_date'])) {
+    $sessionInfo['access_end_date'] = api_get_local_time($sessionInfo['access_end_date']);
+}
+
+if (!empty($sessionInfo['coach_access_start_date'])) {
+    $sessionInfo['coach_access_start_date'] = api_get_local_time($sessionInfo['coach_access_start_date']);
+}
+
+if (!empty($sessionInfo['coach_access_end_date'])) {
+    $sessionInfo['coach_access_end_date'] = api_get_local_time($sessionInfo['coach_access_end_date']);
+}
+
 $id_coach = $sessionInfo['id_coach'];
 $tool_name = get_lang('EditSession');
 
@@ -126,9 +150,12 @@ if ($form->validate()) {
     $id_session_category = $params['session_category'];
     $id_visibility = $params['session_visibility'];
     $duration = isset($params['duration']) ? $params['duration'] : null;
+    if ($params['access'] == 1) {
+        $duration = null;
+    }
     $description = $params['description'];
     $showDescription = isset($params['show_description']) ? 1: 0;
-    $sendSubscritionNotification = isset($params['send_subscription_notification']);
+    $sendSubscriptionNotification = isset($params['send_subscription_notification']);
 
     $extraFields = array();
     foreach ($params as $key => $value) {
@@ -154,7 +181,7 @@ if ($form->validate()) {
         $duration,
         $extraFields,
         null,
-        $sendSubscritionNotification
+        $sendSubscriptionNotification
     );
 
     if ($return == strval(intval($return))) {
@@ -165,7 +192,6 @@ if ($form->validate()) {
 
 // display the header
 Display::display_header($tool_name);
-
 $form->display();
 ?>
 

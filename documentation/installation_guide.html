@@ -66,6 +66,7 @@
   <li><a href="#14._Improving_files_download">Improving files download time</a></li>
   <li><a href="#15._Videoconference">Videoconference</a></li>
   <li><a href="#16._Rewrite">Rewrite configurations</a></li>
+  <li><a href="#17._Git_Upgrade">Upgrading from Git</a></li>
 </ol>
 
 <br />
@@ -315,6 +316,13 @@ As this is only a minor version change from previous 1.10.* versions of Chamilo,
   <li> you're done! No other upgrade procedure is required</li>
 </ul>
 
+Please note that if you (unluckily) upgraded from any of the 1.9 versions to 1.10.0 against our recommendations, we
+    provide a patch script that should get most of it in order. The script is available here:<br />
+    <a href="https://raw.githubusercontent.com/chamilo/chamilo-lms/1.10.x/tests/scripts/fix_migrations_1.9.x_1.10.0.php">https://raw.githubusercontent.com/chamilo/chamilo-lms/1.10.x/tests/scripts/fix_migrations_1.9.x_1.10.0.php</a> or, if
+    you are using a development version of Chamilo, directly into you tests/scripts/ folder. You should place the file
+    in the /tests/scripts/ folder, then edit it to remove the "die();" line, then launch it from your browser (after
+    connecting to your Chamilo site as admin). You should also remove the scripts afterwards.<br />
+    This script is provided without warranty. Please *always* take a backup before you use it.
 <br />
 
 
@@ -678,6 +686,10 @@ If you have issues with files taking a long time to download, make sure you reco
     Nginx doesn't support .htaccess rules, so you have no other option than to apply the following rules (note that your PHP backend configuration may vary).
     These are only the redirection rules to be placed inside a server{} block, as other settings might differ from one installation to another.
     <pre>
+  # Add your own "server {" header here with listen, server_name, access_log, error_log, index, root and error_page params
+
+  charset utf-8;
+
   location @rewrite{
     rewrite ^/courses/([^/]+)/scorm/(.*)$ /main/document/download_scorm.php?doc_url=/$2&cDir=$1 last;
     rewrite ^/courses/([^/]+)/document/(.*)$ /main/document/download.php?doc_url=/$2&cDir=$1 last;
@@ -685,6 +697,16 @@ If you have issues with files taking a long time to download, make sure you reco
     rewrite ^/courses/([^/]+)/upload/(.*)$ /app/courses/$1/upload/$2 last;
     try_files $uri /index.php;
     break;
+  }
+
+  location / {
+    rewrite ^/courses/([^/]+)/$ /main/course_home/course_home.php?cDir=$1 last;
+    rewrite ^/courses/([^/]+)/index.php$ main/course_home/course_home.php?cDir=$1 last;
+    try_files $uri @rewrite;
+  }
+
+  location /main {
+    rewrite ^/main/admin/$ /main/admin/index.php last;
   }
 
   location ~ \.php$ {
@@ -723,7 +745,36 @@ If you have issues with files taking a long time to download, make sure you reco
     deny all;
   }
     </pre>
+    <h3>Apple on OS X servers</h3>
+    <p>
+        Scott Steven reports that Apache on OS X requires specific actions<br />
+        <ul>
+            <li>First, make sure you have the .htaccess file present at the root of your Chamilo folder</li>
+            <li>Get to your Apache"s HTTPd.conf file and configure your domain and the fact that mod_rewrite is loaded</li>
+            <li>In your Apple Server app, Advanced Settings, check the box to allow .htaccess</li>
+        </ul>
+        Alternatively, you can find the settings file for your domain in Apple's settings folder under
+        /Library/Server/Web/Settings to update it manually.<br />
+        You cannot, however, only allow .htaccess files in the main httpd.conf file, as OS X will override it with the
+        domain-specific configuration file.
+    </p>
 <hr style="width: 100%; height: 2px;" />
+    <hr style="width: 100%; height: 2px;" />
+    <h2><a name="17._Git_Upgrade"></a>Upgrading from Git</h2>
+    <p>If you have sufficient experience with Git and have installed your initial Chamilo portal
+        from the Git version, you might want to upgrade from 1.9.x to 1.10.x using Git directly.<br />
+    Here are a few tips that might help you:<br />
+    <ul>
+    <li>Get into your Chamilo Git repository</li>
+    <li>Make sure you have no additional elements that were not commited (git status/git stash)</li>
+    <li>If you have issues, you can always save your code somewhere else and ask Git to put you exactly at the most recent 1.9.x stage ("git pull"/"git reset --hard origin/1.9.x")</li>
+    <li>Once you're sure you have a "clean" local Chamilo repository, create a 1.10.x branch with "git checkout -b 1.10.x"</li>
+    <li>In the new branch, download all code from the 1.10.x branch upstream: "git pull origin 1.10.x"</li>
+    <li>If you never used composer or used it only a few times in the past, you might need to update it (rm -rf ~/.composer/vendor; composer global require "fxp/composer-asset-plugin:1.0.3"; composer clear-cache) before trying the following command</li>
+    <li>Update composer: "composer update" (you might need to give a Github token here)</li>
+    <li>Change permissions on folders app, web, main/lang and main/default_course_document/images</li>
+    <li>Go to your portal install page (main/install/) and follow the upgrade procedure</li>
+</ul></p>
 <p>
   <br />
   <br />

@@ -14,7 +14,7 @@ $tbl_lp_item = Database :: get_course_table(TABLE_LP_ITEM);
 $sessionId = api_get_session_id();
 
 switch ($action) {
-    case 'get_documents';
+    case 'get_documents':
         $courseInfo = api_get_course_info();
         $folderId = isset($_GET['folder_id']) ? $_GET['folder_id'] : null;
         if (empty($folderId)) {
@@ -46,9 +46,13 @@ switch ($action) {
                 if ($_REQUEST['type'] == TOOL_QUIZ) {
                     $title = Exercise::format_title_variable($title);
                 }
+
+                $parentId = isset($_REQUEST['parent_id']) ? $_REQUEST['parent_id'] : '';
+                $previousId = isset($_REQUEST['previous_id']) ? $_REQUEST['previous_id'] : '';
+
                 echo $_SESSION['oLP']->add_item(
-                    $_REQUEST['parent_id'],
-                    $_REQUEST['previous_id'],
+                    $parentId,
+                    $previousId,
                     $_REQUEST['type'],
                     $_REQUEST['id'],
                     $title,
@@ -181,6 +185,7 @@ switch ($action) {
             echo json_encode([
                 'error' => true,
             ]);
+
             break;
         }
 
@@ -212,7 +217,6 @@ switch ($action) {
 
         if (empty($forum)) {
             require_once '../../forum/forumfunction.inc.php';
-
             $forumCategory = getForumCategoryByTitle(
                 get_lang('LearningPaths'),
                 $course_id,
@@ -237,9 +241,9 @@ switch ($action) {
         } else {
             $forumId = $forum['forum_id'];
         }
-        
+ 
         $lpItemHasThread = $lpItem->lpItemHasThread($course_id);
-        
+
         if (!$lpItemHasThread) {
             echo json_encode([
                 'error' => true
@@ -249,10 +253,8 @@ switch ($action) {
 
         $forumThread = $lpItem->getForumThread($course_id, $sessionId);
 
-
         if (empty($forumThread)) {
-            $lpItem->createForumTthread($forumId);
-
+            $lpItem->createForumThread($forumId);
             $forumThread = $lpItem->getForumThread($course_id, $sessionId);
         }
 

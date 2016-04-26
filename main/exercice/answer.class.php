@@ -245,6 +245,8 @@ class Answer
             $this->comment[$i] = $object->comment;
             $this->weighting[$i] = $object->ponderation;
             $this->position[$i] = $object->position;
+            $this->hotspot_coordinates[$i] = $object->hotspot_coordinates;
+            $this->hotspot_type[$i] = $object->hotspot_type;
             $this->destination[$i] = $object->destination;
             $this->autoId[$i] = $object->id_auto;
             $i++;
@@ -256,6 +258,8 @@ class Answer
             $this->comment[$i] = $doubt_data->comment;
             $this->weighting[$i] = $doubt_data->ponderation;
             $this->position[$i] = $doubt_data->position;
+            $this->hotspot_coordinates[$i] = $object->hotspot_coordinates;
+            $this->hotspot_type[$i] = $object->hotspot_type;
             $this->destination[$i] = $doubt_data->destination;
             $this->autoId[$i] = $doubt_data->id_auto;
             $i++;
@@ -271,7 +275,7 @@ class Answer
 	 */
     public function selectAutoId($id)
     {
-		return isset($this->autoId[$id]) ? $this->autoId[$id] : null;
+		return isset($this->autoId[$id]) ? $this->autoId[$id] : 0;
 	}
 
 	/**
@@ -568,12 +572,13 @@ class Answer
         $params = [
             'answer' => $answer,
             'comment' => $comment,
-            'correct' => $correct,
+            'correct' => intval($correct),
             'ponderation' => $weighting,
             'position' => $position,
             'destination' => $destination,
             'hotspot_coordinates' => $hotspot_coordinates,
-            'hotspot_type' => $hotspot_type,
+            'hotspot_type' => $hotspot_type
+
         ];
 
         Database::update($answerTable, $params, ['id_auto = ?' => $autoId]);
@@ -606,10 +611,11 @@ class Answer
 
             if (!isset($this->position[$i])) {
                 $params = [
+                    'id_auto' => $autoId,
                     'c_id' => $c_id,
                     'question_id' => $questionId,
                     'answer' => $answer,
-                    'correct' => $correct,
+                    'correct' => intval($correct),
                     'comment' => $comment,
                     'ponderation' => $weighting,
                     'position' => $position,

@@ -1,8 +1,6 @@
 <?php
 /* For licensing terms, see /license.txt */
 
-use ChamiloSession as Session;
-
 require_once '../inc/global.inc.php';
 $current_course_tool  = TOOL_STUDENTPUBLICATION;
 
@@ -29,10 +27,12 @@ if (empty($work_id)) {
 }
 
 protectWork($course_info, $work_id);
-
 $workInfo = get_work_data_by_id($work_id);
-
-$is_course_member = CourseManager::is_user_subscribed_in_real_or_linked_course($user_id, $course_id, $session_id);
+$is_course_member = CourseManager::is_user_subscribed_in_real_or_linked_course(
+    $user_id,
+    $course_id,
+    $session_id
+);
 $is_course_member = $is_course_member || api_is_platform_admin();
 
 if ($is_course_member == false || api_is_invitee()) {
@@ -63,16 +63,28 @@ if (!empty($workInfo) && !empty($workInfo['qualification'])) {
 $homework = get_work_assignment_by_id($workInfo['id']);
 $validationStatus = getWorkDateValidationStatus($homework);
 
-$interbreadcrumb[] = array('url' => api_get_path(WEB_CODE_PATH).'work/work.php?'.api_get_cidreq(), 'name' => get_lang('StudentPublications'));
-$interbreadcrumb[] = array('url' => api_get_path(WEB_CODE_PATH).'work/work_list.php?'.api_get_cidreq().'&id='.$work_id, 'name' =>  $workInfo['title']);
-$interbreadcrumb[] = array('url' => '#', 'name'  => get_lang('UploadADocument'));
+$interbreadcrumb[] = array(
+    'url' => api_get_path(WEB_CODE_PATH).'work/work.php?'.api_get_cidreq(),
+    'name' => get_lang('StudentPublications'),
+);
+$interbreadcrumb[] = array(
+    'url' => api_get_path(WEB_CODE_PATH).'work/work_list.php?'.api_get_cidreq().'&id='.$work_id,
+    'name' => $workInfo['title'],
+);
+$interbreadcrumb[] = array('url' => '#', 'name' => get_lang('UploadADocument'));
 
-$form = new FormValidator('form', 'POST', api_get_self()."?".api_get_cidreq()."&id=".$work_id, '', array('enctype' => "multipart/form-data"));
+$form = new FormValidator(
+    'form',
+    'POST',
+    api_get_self()."?".api_get_cidreq()."&id=".$work_id,
+    '',
+    array('enctype' => "multipart/form-data")
+);
+
 setWorkUploadForm($form, $workInfo['allow_text_assignment']);
+
 $form->addElement('hidden', 'id', $work_id);
 $form->addElement('hidden', 'sec_token', $token);
-
-$error_message = null;
 
 $succeed = false;
 if ($form->validate()) {
@@ -80,7 +92,7 @@ if ($form->validate()) {
     if ($student_can_edit_in_session && $check) {
         $values = $form->getSubmitValues();
         // Process work
-        $error_message = processWorkForm(
+        processWorkForm(
             $workInfo,
             $values,
             $course_info,
@@ -92,19 +104,31 @@ if ($form->validate()) {
         if ($is_allowed_to_edit) {
             $script = 'work_list_all.php';
         }
-        if (!empty($error_message)) {
-            Session::write('error_message', $error_message);
-        }
         header('Location: '.api_get_path(WEB_CODE_PATH).'work/'.$script.'?'.api_get_cidreq().'&id='.$work_id);
         exit;
     } else {
         // Bad token or can't add works
-        $error_message = Display::return_message(get_lang('IsNotPosibleSaveTheDocument'), 'error');
+        Display::addFlash(
+            Display::return_message(get_lang('IsNotPosibleSaveTheDocument'), 'error')
+        );
     }
 }
 
+$url = api_get_path(WEB_AJAX_PATH).'work.ajax.php?'.api_get_cidreq().'&a=upload_file&id='.$work_id;
+
+$htmlHeadXtra[] = api_get_jquery_libraries_js(array('jquery-ui', 'jquery-upload'));
 $htmlHeadXtra[] = to_javascript_work();
 Display :: display_header(null);
+
+$headers = array(
+    get_lang('Upload'),
+    get_lang('Upload').' ('.get_lang('Simple').')',
+);
+
+$multipleForm = new FormValidator('post');
+$multipleForm->addMultipleUpload($url);
+
+$tabs = Display::tabs($headers, array($multipleForm->returnForm(), $form->returnForm()), 'tabs');
 
 if (!empty($work_id)) {
     echo $validationStatus['message'];
@@ -112,15 +136,15 @@ if (!empty($work_id)) {
         if (api_resource_is_locked_by_gradebook($work_id, LINK_STUDENTPUBLICATION)) {
             echo Display::display_warning_message(get_lang('ResourceLockedByGradebook'));
         } else {
-            $form->display();
+            echo $tabs;
         }
     } elseif ($student_can_edit_in_session && $validationStatus['has_ended'] == false) {
-        $form->display();
+        echo $tabs;
     } else {
-        Display::display_error_message(get_lang('ActionNotAllowed'));
+        Display::addFlash(Display::return_message(get_lang('ActionNotAllowed'), 'error'));
     }
 } else {
-    Display::display_error_message(get_lang('ActionNotAllowed'));
+    Display::addFlash(Display::return_message(get_lang('ActionNotAllowed'), 'error'));
 }
 
 Display :: display_footer();

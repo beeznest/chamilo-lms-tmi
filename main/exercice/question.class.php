@@ -115,6 +115,7 @@ abstract class Question
         $course_id = $course_info['real_id'];
 
         if (empty($course_id) || $course_id == -1 ) {
+
             return false;
         }
 
@@ -204,8 +205,6 @@ abstract class Question
      */
     public function selectDescription()
     {
-        $this->description = $this->description;
-
         return $this->description;
     }
 
@@ -908,7 +907,7 @@ abstract class Question
                     ];
                     $id = Database::insert($TBL_ANSWERS, $params);
                     if ($id) {
-                        $sql = "UPDATE $TBL_ANSWERS SET id = id_auto WHERE id_auto = $id";
+                        $sql = "UPDATE $TBL_ANSWERS SET id = iid, id_auto = iid WHERE iid = $id";
                         Database::query($sql);
                     }
                 }
@@ -931,7 +930,7 @@ abstract class Question
                     $id = Database::insert($TBL_ANSWERS, $params);
 
                     if ($id) {
-                        $sql = "UPDATE $TBL_ANSWERS SET id = id_auto WHERE id_auto = $id";
+                        $sql = "UPDATE $TBL_ANSWERS SET id = iid, id_auto = iid WHERE iid = $id";
                         Database::query($sql);
                     }
                 }
@@ -965,7 +964,7 @@ abstract class Question
             $tbl_se_ref = Database::get_main_table(TABLE_MAIN_SEARCH_ENGINE_REF);
             if ($addQs || $rmQs) {
                 //there's only one row per question on normal db and one document per question on search engine db
-                $sql = 'SELECT * FROM %
+                $sql = 'SELECT * FROM %s
                     WHERE course_code=\'%s\' AND tool_id=\'%s\' AND ref_id_second_level=%s LIMIT 1';
                 $sql = sprintf($sql, $tbl_se_ref, $course_id, TOOL_QUIZ, $this->id);
             } else {
@@ -1468,9 +1467,13 @@ abstract class Question
             $tabCat = TestCategory::getCategoriesIdAndName();
             $form->addElement('select', 'questionCategory', get_lang('Category'), $tabCat);
 
-            if (in_array($this->type, array(UNIQUE_ANSWER, MULTIPLE_ANSWER))) {
-                $buttonValue = $this->type == UNIQUE_ANSWER ? 'ConvertToMultipleAnswer' : 'ConvertToUniqueAnswer';
-                $form->addElement('button', 'convertAnswer', get_lang($buttonValue));
+            switch ($this->type) {
+                case UNIQUE_ANSWER:
+                    $form->addButton('convertAnswer', get_lang('ConvertToMultipleAnswer'), 'dot-circle-o', 'info');
+                    break;
+                case MULTIPLE_ANSWER:
+                    $form->addButton('convertAnswer', get_lang('ConvertToUniqueAnswer'), 'check-square-o', 'info');
+                    break;
             }
 
             //Medias

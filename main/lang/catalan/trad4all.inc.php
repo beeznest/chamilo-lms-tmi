@@ -1279,7 +1279,6 @@ $NomPageAdmin = "Administració";
 $SysInfo = "Informació del sistema";
 $DiffTranslation = "Compara traduccions";
 $StatOf = "Estadístiques de";
-$SpeeSubscribe = "Subscripció ràpida com comprovador de curs";
 $LogIdentLogout = "Registre de conexions i desconexions";
 $ServerStatus = "Estat del servidor MySQL :";
 $DataBase = "Base de dades";
@@ -2962,7 +2961,6 @@ $ModifyQuestion = "Modificar la pregunta";
 $Example = "Exemple";
 $CheckAll = "Verificar tot";
 $NbAnnoucement = "Anunci";
-$OtherCourses = "Altres cursos";
 $Doc = "Document";
 $PlataformAdmin = "Administrador de l'entorn";
 $Groups = "Grups";
@@ -6382,7 +6380,7 @@ $SSOServerProtocolTitle = "Protocol del servidor Single Sign On";
 $SSOServerProtocolComment = "Prefix que indica el protocol del domini del servidor de Single Sign On (si el seu servidor ho permet, recomanem https:// doncs protocols no segurs són un perill per a un sistema d'autenticació).";
 $EnabledWirisTitle = "Editor matemàtic WIRIS";
 $EnabledWirisComment = "Activa l'editor matemàtic WIRIS. Instal·lant aquest connector obtindrà WIRIS editor i WIRIS CAS.
-L'activació no es realitza completament si prèviament no s'ha descarregat el <a href=\"http://www.wiris.com/plugins/editors/download?filter=fckeditor\" target=\"_blank\">PHP plugin for FCKeditor WIRIS</a> i descomprimit el seu contingut al directori de Chamilo main/inc/lib/fckeditor/editor/plugins/fckeditor_wiris/ 
+L'activació no es realitza completament si prèviament no s'ha descarregat el <a href=\"http://www.wiris.com/es/plugins3/ckeditor/download\" target=\"_blank\">PHP plugin for CKeditor WIRIS</a> i descomprimit el seu contingut al directori de Chamilo main/inc/lib/javascript/ckeditor/plugins/ 
 Això és necessari degut a que WIRIS és un programari propietari i els serveis de WIRIS són <a href=\"http://www.wiris.com/store/who-pays\" target=\"_blank\"> comercials </a>. Per realitzar ajustaments en el connector editi l'arxiu configuration.ini o substitueixi el seu contingut pel de configuration.ini.default que acompanya a Chamilo.";
 $FileSavedAs = "Arxiu desat com";
 $FileExportAs = "Arxiu exportat com";
@@ -7471,4 +7469,5 @@ $DataTableSearch = "Cerca";
 $HideColumn = "Oculta columna";
 $DisplayColumn = "Mostra columna";
 $LegalAgreementAccepted = "Condicions legals acceptades";
+$FollowedStudentBosses = "Superiors d'estudiant seguits";
 ?>

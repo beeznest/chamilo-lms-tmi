@@ -53,8 +53,14 @@ $student_can_edit_in_session = api_is_allowed_to_session_edit(false, true);
 $homework = get_work_assignment_by_id($workInfo['id']);
 $validationStatus = getWorkDateValidationStatus($homework);
 
-$interbreadcrumb[] = array('url' => api_get_path(WEB_CODE_PATH).'work/work.php?'.api_get_cidreq(), 'name' => get_lang('StudentPublications'));
-$interbreadcrumb[] = array('url' => api_get_path(WEB_CODE_PATH).'work/work_list.php?'.api_get_cidreq().'&id='.$work_id, 'name' =>  $workInfo['title']);
+$interbreadcrumb[] = array(
+    'url' => api_get_path(WEB_CODE_PATH).'work/work.php?'.api_get_cidreq(),
+    'name' => get_lang('StudentPublications'),
+);
+$interbreadcrumb[] = array(
+    'url' => api_get_path(WEB_CODE_PATH).'work/work_list.php?'.api_get_cidreq().'&id='.$work_id,
+    'name' => $workInfo['title'],
+);
 $interbreadcrumb[] = array('url' => '#', 'name'  => get_lang('UploadFromTemplate'));
 
 $form = new FormValidator(
@@ -79,8 +85,6 @@ if (!empty($documentTemplateData)) {
 
 $form->setDefaults($defaults);
 
-$error_message = null;
-
 $succeed = false;
 if ($form->validate()) {
     if ($student_can_edit_in_session && $check) {
@@ -99,15 +103,12 @@ if ($form->validate()) {
             $script = 'work_list_all.php';
         }
 
-        if (!empty($error_message)) {
-            Session::write('error_message', $error_message);
-        }
-
+        Display::addFlash($error_message);
         header('Location: '.api_get_path(WEB_CODE_PATH).'work/'.$script.'?'.api_get_cidreq().'&id='.$work_id);
         exit;
     } else {
         // Bad token or can't add works
-        $error_message = Display::return_message(get_lang('IsNotPosibleSaveTheDocument'), 'error');
+        Display::addFlash(Display::return_message(get_lang('IsNotPosibleSaveTheDocument'), 'error'));
     }
 }
 
@@ -125,10 +126,10 @@ if (!empty($work_id)) {
     } elseif ($student_can_edit_in_session && $validationStatus['has_ended'] == false) {
         $form->display();
     } else {
-        Display::display_error_message(get_lang('ActionNotAllowed'));
+        api_not_allowed();
     }
 } else {
-    Display::display_error_message(get_lang('ActionNotAllowed'));
+    api_not_allowed();
 }
 
 Display :: display_footer();

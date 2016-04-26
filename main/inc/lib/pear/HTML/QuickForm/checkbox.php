@@ -45,7 +45,9 @@ class HTML_QuickForm_checkbox extends HTML_QuickForm_input
      * @since     1.1
      * @access    private
      */
-    var $_text = '';
+    public $_text = '';
+    public $labelClass;
+    public $checkboxClass;
 
     // }}}
     // {{{ constructor
@@ -62,12 +64,23 @@ class HTML_QuickForm_checkbox extends HTML_QuickForm_input
      * @access    public
      * @return    void
      */
-    public function HTML_QuickForm_checkbox(
+    public function __construct(
         $elementName = null,
         $elementLabel = null,
         $text = '',
         $attributes = null
     ) {
+        $this->labelClass = isset($attributes['label-class']) ? $attributes['label-class'] : '';
+        $this->checkboxClass = isset($attributes['checkbox-class']) ? $attributes['checkbox-class'] : 'checkbox';
+
+        if (isset($attributes['label-class'])) {
+            unset($attributes['label-class']);
+        }
+
+        if (isset($attributes['checkbox-class'])) {
+            unset($attributes['checkbox-class']);
+        }
+
         parent::__construct($elementName, $elementLabel, $attributes);
         $this->_persistantFreeze = true;
         $this->_text = $text;
@@ -80,10 +93,7 @@ class HTML_QuickForm_checkbox extends HTML_QuickForm_input
         }
 
         $this->_generateId();
-    } //end constructor
-
-    // }}}
-    // {{{ setChecked()
+    }
 
     /**
      * Sets whether a checkbox is checked
@@ -134,13 +144,16 @@ class HTML_QuickForm_checkbox extends HTML_QuickForm_input
         } elseif ($this->_flagFrozen) {
             $label = $this->_text;
         } else {
-            $label =
-                '<div class="checkbox">
-                <label '.$this->getAttribute('label-class').' ">' .
+            $labelClass = $this->labelClass;
+            $checkboxClass = $this->checkboxClass;
+
+            $label ='
+                <div class="'.$checkboxClass.'">
+                <label class="'.$labelClass.'">' .
                     HTML_QuickForm_input::toHtml().$this->_text.
                 '</label>
                 </div>
-                ';
+            ';
 
             return $label;
         }

@@ -77,8 +77,8 @@ if (!empty($my_folder_data)) {
         if (!empty($homework['expires_on']) &&
             !empty($homework['expires_on'])
         ) {
-            $time_expires 	= api_strtotime($homework['expires_on'], 'UTC');
-            $difference 	= $time_expires - $time_now;
+            $time_expires = api_strtotime($homework['expires_on'], 'UTC');
+            $difference = $time_expires - $time_now;
             if ($difference < 0) {
                 $has_expired = true;
             }
@@ -89,8 +89,8 @@ if (!empty($my_folder_data)) {
         }
 
         if (!empty($homework['ends_on'])) {
-            $time_ends 		= api_strtotime($homework['ends_on'], 'UTC');
-            $difference2 	= $time_ends - $time_now;
+            $time_ends = api_strtotime($homework['ends_on'], 'UTC');
+            $difference2 = $time_ends - $time_now;
             if ($difference2 < 0) {
                 $has_ended = true;
             }
@@ -159,7 +159,7 @@ if ($is_allowed_to_edit && !empty($item_id)) {
             $form->addLabel(
                 get_lang('Download'),
                 '<a href="'.api_get_path(WEB_CODE_PATH).'work/download.php?id='.$item_id.'&'.api_get_cidreq().'">'.
-                    Display::return_icon('save.png', get_lang('Save'),array(), ICON_SIZE_MEDIUM).'
+                    Display::return_icon('save.png', get_lang('Save'), array(), ICON_SIZE_MEDIUM).'
                 </a>'
             );
         }
@@ -218,7 +218,6 @@ $class = 'save';
 $form->addButtonUpdate($text);
 
 $form->setDefaults($defaults);
-$error_message = null;
 $_course = api_get_course_info();
 $currentCourseRepositorySys = api_get_path(SYS_COURSE_PATH).$_course['path'] . '/';
 
@@ -249,7 +248,7 @@ if ($form->validate()) {
                 if (isset($_POST['send_email'])) {
                     $url = api_get_path(WEB_CODE_PATH).'work/view.php?'.api_get_cidreq().'&id='.$item_to_edit_id;
                     $subject = sprintf(get_lang('ThereIsANewWorkFeedback'), $work_item['title']);
-                    $message = sprintf(get_lang('ThereIsANewWorkFeedbackInWorkXHere'), $url);
+                    $message = sprintf(get_lang('ThereIsANewWorkFeedbackInWorkXHere'), $work_item['title'], $url);
 
                     MessageManager::send_message_simple(
                         $work_item['user_id'],
@@ -262,10 +261,10 @@ if ($form->validate()) {
             }
 
             if ($_POST['qualification'] > $_POST['qualification_over']) {
-                $error_message .= Display::return_message(
+                Display::addFlash(Display::return_message(
                     get_lang('QualificationMustNotBeMoreThanQualificationOver'),
                     'error'
-                );
+                ));
             } else {
                 $sql = "UPDATE  " . $work_table . "
                         SET	title = '".Database::escape_string($title)."',
@@ -284,16 +283,12 @@ if ($form->validate()) {
             );
 
             $succeed = true;
-            $error_message .= Display::return_message(get_lang('ItemUpdated'));
+            Display::addFlash(Display::return_message(get_lang('ItemUpdated')));
         }
         Security::clear_token();
     } else {
         // Bad token or can't add works
-        $error_message = Display::return_message(get_lang('IsNotPosibleSaveTheDocument'), 'error');
-    }
-
-    if (!empty($error_message)) {
-        Session::write('error_message', $error_message);
+        Display::addFlash(Display::return_message(get_lang('IsNotPosibleSaveTheDocument'), 'error'));
     }
 
     $script = 'work_list.php';
@@ -335,7 +330,7 @@ if (!empty($work_id)) {
             $content .= Display::return_message(get_lang('ActionNotAllowed'), 'error');
         }
     } elseif ($student_can_edit_in_session && $has_ended == false) {
-        $content .= $form->return_form();
+        $content .= $form->returnForm();
     } else {
         $content .= Display::return_message(get_lang('ActionNotAllowed'), 'error');
     }
