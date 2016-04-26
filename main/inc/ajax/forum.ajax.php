@@ -253,6 +253,9 @@ if (!empty($action)) {
 
             foreach ($posts as $post) {
                 $user = $em->find('ChamiloUserBundle:User', $post->getPosterId());
+                if (!$user) {
+                    continue;
+                }
 
                 $template = new Template(null, false, false, false, false, false);
                 $template->assign('is_anonymous', api_is_anonymous());
