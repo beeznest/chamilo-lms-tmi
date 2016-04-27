@@ -18,10 +18,10 @@
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="menu-bar-top">
                         <ul class="nav navbar-nav navbar-right">
-                            <li><a href="{{ _p.web_main ~ 'auth/courses.php' }}"> {{ "AdminCourses"|get_lang }} </a></li>      
-                                {% if user_notifications is not null %}
-                                    <li><a class="new-messages" href="{{ message_url }}">{{ user_notifications }}</a></li>
-                                {% endif %}
+                            <li><a href="{{ _p.web_main ~ 'auth/courses.php' }}"> {{ "AdminCourses"|get_lang }} </a></li>
+                            {% if user_notifications is not null %}
+                                <li><a class="new-messages" href="{{ message_url }}">{{ user_notifications }}</a></li>
+                            {% endif %}
 
                             {% if _u.logged == 0 %}
                                 <li class="dropdown">
@@ -46,11 +46,11 @@
                                         {{ _u.complete_name }}<span class="caret"></span>
                                     </a>
                                     <ul class="dropdown-menu" role="menu">
-                                        
+
                                         {% for item in list %}
                                             {% if item['key'] != 'my-space' and item['key'] != 'dashboard' and item['key'] != 'homepage' %}
                                                 <li><a href="{{ item['url'] }}">{{ item['title'] }}</a></li>
-                                                
+
                                             {% endif %}
                                         {% endfor %}
                                         {% include template ~ "/layout/menu.tpl" %}
@@ -133,7 +133,7 @@
                     </div>
                     <div class="closed-forum" style="display: none;">
                         <h4 class="comments-title">{{ "Comments"|get_lang }}</h4>
-                        
+
                         <i class="fa fa-chevron-up"></i>
                     </div>
                     <div id="body-forum">
@@ -153,24 +153,24 @@
 <script>
 
 
-//Function heigth frame content document items
+    //Function heigth frame content document items
     function updateResizeFrame() {
         var scorm = $('#content_id'),
-            heightFrame = 0;
-    
+                heightFrame = 0;
+
         function scormLoad() {
             this.style.overflow = 'hidden';
-            heightFrame = $(this.contentWindow.document.body).outerHeight(true) ; 
+            heightFrame = $(this.contentWindow.document.body).outerHeight(true) ;
             this.style.height = (heightFrame + 10).toString() + 'px';
             $('#body-forum').css("display", "none");
             scorm.off('load', scormLoad);
         }
         function timeLoad(){
-            $(scorm).on('load', scormLoad); 
+            $(scorm).on('load', scormLoad);
         }
         setTimeout(timeLoad,20);
     }
- 
+
     $(document).ready(function () {
         updateResizeFrame();
         $('#touch-button').children().click(function () {
@@ -182,7 +182,7 @@
         $('#forum-container').hide();
 
         loadForumThead({{ lp_id }}, {{ lp_current_item_id }});
-        
+
         $("#icon-down").click(function () {
             $("#icon-up").removeClass("hidden");
             $(this).addClass("hidden");
@@ -195,7 +195,7 @@
 
         $(".scorm-items-accordion .scorm_type_document").on('click', function () {
             updateResizeFrame();
-            
+
         });
         $(".scorm-items-accordion .scorm_type_quiz").click(function () {
             updateResizeFrame();
@@ -205,7 +205,7 @@
             $('#body-forum').css("display", "block");
             $(".open-forum").css("display", "none");
             $(".closed-forum").css("display", "block");
-            $("#chamilo-disqus").css("height", (100 + heightFrame).toString() + 'px');
+            $("#chamilo-disqus").css("height", (100).toString() + 'px');
         });
         $(".closed-forum").click(function () {
             $('#body-forum').css("display", "none");

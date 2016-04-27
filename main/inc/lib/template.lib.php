@@ -568,7 +568,11 @@ class Template
         $css[] = api_get_cdn_path(api_get_path(WEB_CSS_PATH).'base.css');
 
         if ($this->show_learnpath) {
-            $css[] = api_get_cdn_path(api_get_path(WEB_CSS_PATH).'scorm.css');
+            if (is_file(api_get_path(SYS_CSS_PATH).'themes/'.$this->theme.'/scorm.css')) {
+                $css[] = api_get_path(WEB_CSS_PATH).'themes/'.$this->theme.'/scorm.css';
+            } else {
+                $css[] = api_get_cdn_path(api_get_path(WEB_CSS_PATH).'scorm.css');
+            }
             if (is_file(api_get_path(SYS_CSS_PATH).'themes/'.$this->theme.'/learnpath.css')) {
                 $css[] = api_get_path(WEB_CSS_PATH).'themes/'.$this->theme.'/learnpath.css';
             }
