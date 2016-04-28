@@ -79,13 +79,13 @@
                 <div id="scorm-info" class="panel panel-default">
                     <div id="panel-scorm" class="panel-body">
                         <div id="lp_navigation_elem" class="navegation-bar">
-                            <div class="ranking-scorm">
+                            <div class="ranking-scorm" id="scorm-gamification">
                                 {% if gamification_mode == 1 %}
                                     <div class="row">
                                         <div class="col-md-7">
                                             {% if gamification_stars > 0%}
                                                 {% for i in 1..gamification_stars %}
-                                                    <i class="fa fa-star"></i>
+                                                    <i class="fa fa-star level"></i>
                                                 {% endfor %}
                                             {% endif %}
                                             {% if gamification_stars < 4 %}
