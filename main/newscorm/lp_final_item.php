@@ -97,8 +97,12 @@ if ($accessGranted == false) {
                 }
             }
         }
-        $finalItemTemplate = generateLPFinalItemTemplate($id, $courseCode, $sessionId, $downloadCertificateLink,
+        $finalItemTemplate = generateLPFinalItemTemplate($id, $courseCode, $downloadCertificateLink,
             $badgeLink);
+
+        if (!$finalItemTemplate) {
+            Display::display_warning_message(get_lang('FileNotFound'));
+        }
     }
 }
 
@@ -113,25 +117,37 @@ $tpl->display_one_col_template();
  * Return a HTML string to show as final document in learning path
  * @param int $lpItemId
  * @param string $courseCode
- * @param int $sessionId
  * @param string $downloadCertificateLink
  * @param string $badgeLink
- * @return mixed|string
+ * @return mixed string | bool;
  */
-function generateLPFinalItemTemplate($lpItemId, $courseCode, $sessionId=0, $downloadCertificateLink='', $badgeLink='')
+function generateLPFinalItemTemplate($lpItemId, $courseCode, $downloadCertificateLink='', $badgeLink='')
 {
-    $documentInfo = DocumentManager::get_document_data_by_id(
-        $lpItemId,
-        $courseCode,
-        true,
-        $sessionId
-    );
+    $em = Database::getManager();
+    $courseId = api_get_course_int_id($courseCode);
+    $courseInfo = api_get_course_info_by_id($courseId);
+    $mainCoursePath = api_get_path(SYS_COURSE_PATH).$courseInfo['directory'].'/';
+    $document = $em
+        ->getRepository('ChamiloCourseBundle:CDocument')
+        ->findOneBy(['cId' => $courseId,  'id' => $lpItemId]);
 
-    $finalItemTemplate = file_get_contents($documentInfo['absolute_path']);
+    if (!$document) {
+        return false;
+    }
 
-    $finalItemTemplate = str_replace('((certificate))', $downloadCertificateLink, $finalItemTemplate);
-    $finalItemTemplate = str_replace('((skill))', $badgeLink, $finalItemTemplate);
-    return $finalItemTemplate;
+    $documentLink = $mainCoursePath . 'document' . $document->getPath();
+
+    if (is_file($documentLink)) {
+        $finalItemTemplate = file_get_contents($documentLink);
+
+        $finalItemTemplate = str_replace('((certificate))', $downloadCertificateLink, $finalItemTemplate);
+        $finalItemTemplate = str_replace('((skill))', $badgeLink, $finalItemTemplate);
+
+        return $finalItemTemplate;
+
+    }
+
+    return false;
 }
 
 /**
