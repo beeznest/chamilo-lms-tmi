@@ -5923,8 +5923,8 @@ class learnpath
                 }
 
                 // No edit for this item types
-                if (!in_array($arrLP[$i]['item_type'], array('sco', 'asset', 'final_item'))) {
-                    if (!in_array($arrLP[$i]['item_type'], array('dokeos_chapter', 'dokeos_module'))) {
+                if (!in_array($arrLP[$i]['item_type'], array('sco', 'asset'))) {
+                    if (!in_array($arrLP[$i]['item_type'], array('dokeos_chapter', 'dokeos_module', 'final_item'))) {
                         $edit_icon .= Display::toolbarButton(
                             null,
                             api_get_self() . '?' . api_get_cidreq() . '&' . http_build_query([
@@ -6010,7 +6010,7 @@ class learnpath
     
                     $url = api_get_self() . '?'.api_get_cidreq().'&view=build&id='.$arrLP[$i]['id'] .'&lp_id='.$this->lp_id;
     
-                    if (!in_array($arrLP[$i]['item_type'], array('dokeos_chapter', 'dokeos_module', 'dir'))) {
+                    if (!in_array($arrLP[$i]['item_type'], array('dokeos_chapter', 'dokeos_module', 'dir', 'final_item'))) {
                         $prerequisities_icon = Display::toolbarButton(
                                 null,
                                 "$url&action=edit_item_prereq",
