@@ -5907,21 +5907,18 @@ class learnpath
 
             if ($is_allowed_to_edit) {
                 if (!$update_audio || $update_audio <> 'true') {
-                    $move_icon .= Display::toolbarButton(
-                        null,
-                        '#',
-                        'arrows',
-                        'link',
-                        [
-                            'title' => get_lang('Move'),
-                            'style' => 'color: #00B800;',
-                            'class' => 'moved btn-xs'
-                        ]
-                    );
                     if ($arrLP[$i]['item_type'] !== TOOL_LP_FINAL_ITEM) {
-                        $move_icon .= '<a class="moved" href="#">';
-                        $move_icon .= Display::return_icon('move_everywhere.png', get_lang('Move'), array(), ICON_SIZE_TINY);
-                        $move_icon .= '</a>';
+                        $move_icon .= Display::toolbarButton(
+                            null,
+                            '#',
+                            'arrows',
+                            'link',
+                            [
+                                'title' => get_lang('Move'),
+                                'style' => 'color: #00B800;',
+                                'class' => 'moved btn-xs'
+                            ]
+                        );
                     }
                 }
 
