@@ -1683,11 +1683,13 @@ var loadForumThead = function(lpId, lpItemId) {
 
     $.when(loadForum).done(function(forumThreadData) {
         if (forumThreadData.error) {
+            $('#panel-forum').hide();
             $('#forum-container').hide();
             return;
         }
 
         $('#forum-container').show();
+        $('#panel-forum').show();
         var forumIframe = $('<iframe>').attr({
             width:'100%',
             frameborder:'0',

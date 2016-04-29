@@ -126,7 +126,7 @@
                 {% else %}
                     <iframe id="content_id" name="content_name" src="{{ iframe_src }}" border="0" frameborder="0" style="display: block; width: 100%; height: 100%" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
                 {% endif %}
-                <div class="panel-forum">
+                <div id="panel-forum" class="panel-forum">
                     <div class="open-forum">
                         <h4 class="comments-title">{{ "Comments"|get_lang }}</h4>
                         <i class="fa fa-chevron-down"></i>
@@ -208,7 +208,7 @@
             var iFrameId = document.getElementById('chamilo-disqus');
             var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
             if (iFrameId) {
-                $("#chamilo-disqus").css("height", (heightFrame + 100).toString() + 'px');
+                $("#chamilo-disqus").css("height", (heightFrame).toString() + 'px');
             }
         });
         $(".closed-forum").click(function () {
