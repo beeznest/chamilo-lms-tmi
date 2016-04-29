@@ -282,12 +282,12 @@ switch ($action) {
             exit;
         }
         
-        if ($_SESSION['sr_vertex']) {
+        if (isset($_SESSION['sr_vertex']) && $_SESSION['sr_vertex']) {
             unset($_SESSION['sr_vertex']);
             echo Display::return_message(get_lang('Saved'), 'success');
             break;            
         }
-        
+
         $parents = str_replace($id, '', $parents);
         $parents = explode(',', $parents);
         $parents = array_filter($parents);
