@@ -158,7 +158,6 @@
         $("#content_id").load(function() {
             var iFrameId = document.getElementById('content_id');
             var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
-            console.log(heightFrame);
             if (iFrameId) {
                 $("#content_id").css("height", (heightFrame).toString() + 'px');
             }
