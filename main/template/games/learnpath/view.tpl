@@ -192,9 +192,11 @@
 
         $(".scorm-items-accordion .scorm_type_document").on('click', function () {
             updateResizeFrame();
-
         });
         $(".scorm-items-accordion .scorm_type_quiz").click(function () {
+            updateResizeFrame();
+        });
+        $(".scorm-items-accordion .scorm_type_final_item").click(function () {
             updateResizeFrame();
         });
 
