@@ -159,7 +159,7 @@
             var iFrameId = document.getElementById('content_id');
             var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
             if (iFrameId) {
-                $("#content_id").css("height", (heightFrame).toString() + 'px');
+                $("#content_id").css("height", (heightFrame + 30).toString() + 'px');
             }
         });
     }
