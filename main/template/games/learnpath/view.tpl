@@ -155,20 +155,17 @@
 
     //Function heigth frame content document items
     function updateResizeFrame() {
-        var scorm = $('#content_id'),
-                heightFrame = 0;
-
-        function scormLoad() {
-            this.style.overflow = 'hidden';
-            heightFrame = $(this.contentWindow.document.body).outerHeight(true) ;
-            this.style.height = (heightFrame + 10).toString() + 'px';
-            $('#body-forum').css("display", "none");
-            scorm.off('load', scormLoad);
+        var scorm = function () {
+            $("#content_id").load(function() {
+                var iFrameId = document.getElementById('content_id');
+                var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
+                if (iFrameId) {
+                    $("#content_id").css("height", (heightFrame + 20).toString() + 'px');
+                }
+            });
         }
-        function timeLoad(){
-            $(scorm).on('load', scormLoad);
-        }
-        setTimeout(timeLoad,20);
+        
+        setTimeout(scorm,20);
     }
 
     $(document).ready(function () {
@@ -216,5 +213,8 @@
             $(".closed-forum").css("display", "none");
             $(".open-forum").css("display", "block");
         });
+
+        updateResizeFrame();
+
     });
 </script>
