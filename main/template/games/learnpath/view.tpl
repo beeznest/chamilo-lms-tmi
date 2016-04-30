@@ -155,13 +155,17 @@
 
     //Function heigth frame content document items
     function updateResizeFrame() {
-        $("#content_id").load(function() {
-            var iFrameId = document.getElementById('content_id');
-            var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
-            if (iFrameId) {
-                $("#content_id").css("height", (heightFrame + 30).toString() + 'px');
-            }
-        });
+        var scorm = function () {
+            $("#content_id").load(function() {
+                var iFrameId = document.getElementById('content_id');
+                var heightFrame = iFrameId.contentWindow.document.body.scrollHeight;
+                if (iFrameId) {
+                    $("#content_id").css("height", (heightFrame + 30).toString() + 'px');
+                }
+            });
+        }
+        
+        setTimeout(scorm, 20);
     }
 
     $(document).ready(function () {
