@@ -29,13 +29,6 @@
                 </a>
             </p>
         {% endif %}
-        {% if allow_export %}
-            <p class="text-center">
-                <a href="#" class="btn btn-success" id="badge-export-button">
-                    <em class="fa fa-external-link-square fa-fw"></em> {{ 'ExportBadge'|get_lang }}
-                </a>
-            </p>
-        {% endif %}
         <div class='col-md-12 text-center'>
             <h5><b> {{ 'ShareWithYourFriends' | get_lang }} </b></h5>
             <a href='http://www.facebook.com/sharer.php?u={{ _p.web }}badge/{{ skill_info.id }}/user/{{ user_info.id }}' target='_new'>
@@ -66,14 +59,3 @@
         </div>
     </div>
 </div>
-{% if allow_export %}
-    <script>
-        $(document).on('ready', function () {
-            $('#badge-export-button').on('click', function (e) {
-                e.preventDefault();
-
-                OpenBadges.issue({{ assertions|json_encode() }});
-            });
-        });
-    </script>
-{% endif %}
