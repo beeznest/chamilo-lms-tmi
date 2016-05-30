@@ -373,8 +373,7 @@ class AppPlugin
                         $_template['plugin_info'] = $plugin_info;
                     }
 
-                    // Setting the plugin info available in the template if exists
-
+                    // Setting the plugin info available in the template if exists.
                     $template->assign($plugin_name, $_template);
 
                     // Loading the Twig template plugin files if exists
@@ -549,6 +548,9 @@ class AppPlugin
 
                 $groups = array();
                 foreach ($obj->course_settings as $setting) {
+                    if ($obj->validateCourseSetting($setting['name']) === false) {
+                        continue;
+                    }
                     if ($setting['type'] != 'checkbox') {
                         $form->addElement($setting['type'], $setting['name'], $obj->get_lang($setting['name']));
                     } else {

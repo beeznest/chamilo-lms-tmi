@@ -674,7 +674,6 @@ class Template
             'bootstrap/dist/js/bootstrap.min.js',
             'jquery-ui/jquery-ui.min.js',
             'moment/min/moment-with-locales.min.js',
-            'ckeditor/ckeditor.js',
             'bootstrap-daterangepicker/daterangepicker.js',
             'jquery-timeago/jquery.timeago.js',
             'mediaelement/build/mediaelement-and-player.min.js',
@@ -682,6 +681,9 @@ class Template
             'image-map-resizer/js/imageMapResizer.min.js',
             'jquery.scrollbar/jquery.scrollbar.min.js'
         ];
+        if (CHAMILO_LOAD_WYSIWYG == true) {
+            $bowerJsFiles[] = 'ckeditor/ckeditor.js';
+        }
 
         if (api_get_setting('include_asciimathml_script') == 'true') {
             $bowerJsFiles[] = 'MathJax/MathJax.js?config=AM_HTMLorMML';
@@ -919,6 +921,11 @@ class Template
         }
         $this->assign('message_link', $message_link);
         $this->assign('message_url', $message_url);
+
+        //Certificate Link
+        $certificatesUrl = api_get_path(WEB_CODE_PATH).'gradebook/my_certificates.php';
+        $certificateLink = Display::url(get_lang('MyCertificates'), $certificatesUrl);
+        $this->assign('certificate_link', $certificateLink);
 
         $institution = api_get_setting('Institution');
         $portal_name = empty($institution) ? api_get_setting('siteName') : $institution;

@@ -129,7 +129,7 @@ class Resource
 
     /**
      * Resturns the type of this resource
-     * @return constant The type.
+     * @return integer The type.
      */
     public function get_type()
     {
