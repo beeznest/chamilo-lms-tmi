@@ -11222,6 +11222,13 @@ EOD;
                 );
             } else {
                 $this->edit_document($this->course_info);
+                $this->edit_item(
+                    $finalItem->db_id,
+                    $finalItem->parent,
+                    $finalItem->previous,
+                    $values['title'],
+                    ''
+                );
             }
         }
 
