@@ -4627,6 +4627,9 @@ div#chat-remote-video video {
   padding: 5px;
   /* background: url("../../main/img/icons/48/sequence-arrow.png") no-repeat center bottom; */
 }
+.dl-horizontal dt{
+  padding-right: 30px;
+}
 #parents .sequence-plus-icon{
   color: #CCCCCC;
   padding: 0 10px;
