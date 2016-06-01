@@ -14,3 +14,5 @@ $MailCronCourseFinishedBody="Hola %s,<br><br>Gracias por participar en el curso 
 $YouCanStartSubscribingToCoursesEnteringToXUrl="Puedes iniciar inscribiéndote a los cursos que más te gusten, ingresando a %s,";
 $YouAreRegisterToSessionX="Estamos contentos con tu participación en el curso %s.";
 $ThanksForYourSubscription = "¡Gracias por su inscripción!";
+$DontKnow = "No sé";
+$DoubtScore = "No sé";
