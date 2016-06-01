@@ -5,8 +5,9 @@
 .scorm_item_normal.scorm_completed {
   background:url("images/scorm_completed.png") no-repeat left center;
 }
+.scorm_item_normal.scorm_highlight.scorm_failed,
 .scorm_item_normal.scorm_failed{
-  background:url("images/scorm_failed.png") no-repeat left center;
+  background:url("images/scorm_failed.png") no-repeat left center !important;
 }
 .scorm_item_normal.scorm_not_attempted{
   background:url("images/scorm_not_attempted.png") no-repeat left center;	
