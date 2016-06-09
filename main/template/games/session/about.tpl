@@ -172,6 +172,38 @@
                                         <div class="row">
                                             <div class="col-xs-7 col-md-7">
                                                 <h4><i class="fa fa-circle"></i> {{ coach.complete_name }}</h4>
+
+                                                {% if not coach.extra_fields is empty %}
+                                                    <ul class="list-unstyled">
+                                                        {% set skype_account = '' %}
+                                                        {% set linkedin_url = '' %}
+                                                        {% for extra in coach.extra_fields %}
+                                                            {% if extra.value.getField().getVariable() == 'skype' %}
+                                                                {% set skype_account = extra.value.getValue() %}
+                                                            {% endif %}
+
+                                                            {% if extra.value.getField().getVariable() == 'linkedin_url' %}
+                                                                {% set linkedin_url = extra.value.getValue() %}
+                                                            {% endif %}
+                                                        {% endfor %}
+
+                                                        {% if 'allow_show_skype_account'|get_setting == 'true' and not skype_account is empty %}
+                                                            <li class="item">
+                                                                <a href="skype:{{ skype_account }}?chat">
+                                                                    <span class="fa fa-skype fa-fw" aria-hidden="true"></span> {{ 'Skype'|get_lang }}
+                                                                </a>
+                                                            </li>
+                                                        {% endif %}
+
+                                                        {% if 'allow_show_linkedin_url'|get_setting == 'true' and not linkedin_url is empty %}
+                                                            <li class="item">
+                                                                <a href="{{ linkedin_url }}" target="_blank">
+                                                                    <span class="fa fa-linkedin fa-fw" aria-hidden="true"></span> {{ 'LinkedIn'|get_lang }}
+                                                                </a>
+                                                            </li>
+                                                        {% endif %}
+                                                    </ul>
+                                                {% endif %}
                                             </div>
                                             <div class="col-xs-5 col-md-5">
                                                 <div class="text-center">
