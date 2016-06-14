@@ -124,6 +124,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <meta charset="UTF-8" />
 <title>Chat</title>
 <link rel="stylesheet" type="text/css" href="<?php echo api_get_path(WEB_PATH); ?>web/assets/bootstrap/dist/css/bootstrap.css">
+<link rel="stylesheet" type="text/css" href="<?php echo api_get_path(WEB_PATH); ?>web/assets/jquery.scrollbar/jquery.scrollbar.css">
 <link rel="stylesheet" type="text/css" href="<?php echo api_get_path(WEB_LIBRARY_PATH); ?>javascript/jquery-emojiarea/jquery.emojiarea.css">
 <link rel="stylesheet" type="text/css" href="<?php echo api_get_path(WEB_CSS_PATH); ?>chat.css">
 <link rel="stylesheet" type="text/css" href="<?php echo api_get_path(WEB_CSS_PATH); ?>markdown.css">
@@ -138,6 +139,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <?php echo api_get_js('emojione/js/emojione.min.js'); ?>
 <?php echo api_get_js('jquery-emojiarea/jquery.emojiarea.js'); ?>
 <?php // echo api_get_js('jquery.tinyscrollbar.js'); ?>
+<?php echo api_get_asset('jquery.scrollbar/jquery.scrollbar.min.js') ?>
 <script type="text/javascript">
     hljs.initHighlightingOnLoad();
     emojione.ascii = true;

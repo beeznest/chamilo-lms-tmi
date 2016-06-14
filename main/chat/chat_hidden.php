@@ -11,7 +11,6 @@
 define('FRAME', 'hidden');
 
 require_once '../inc/global.inc.php';
-require_once 'chat_functions.lib.php';
 
 $tbl_user = Database::get_main_table(TABLE_MAIN_USER);
 $tbl_chat_connected = Database::get_course_table(TABLE_CHAT_CONNECTED);
@@ -101,7 +100,14 @@ $connected_old = isset($_POST['connected_old']) ? intval($_POST['connected_old']
 list($connected_new) = Database::fetch_row($result);
 
 /*disconnected user of chat*/
-disconnect_user_of_chat();
+$courseChatUtils = new CourseChatUtils(
+    api_get_course_int_id(),
+    api_get_user_id(),
+    api_get_session_id(),
+    api_get_group_id()
+);
+$courseChatUtils->disconnectInactiveUsers();
+
 require 'header_frame.inc.php';
 ?>
 <form name="formHidden" method="post" action="<?php echo api_get_self().'?'.api_get_cidreq(); ?>">
