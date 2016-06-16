@@ -1,5 +1,4 @@
 body{
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 13px;
   	line-height: 18px;
   	color: #333333;
@@ -29,17 +28,10 @@ body{
 }
 #clear-chat a{
 	text-decoration: none;
-
 }
 #clear-chat a:hover{
-	opacity: 0.7;
 }
 #content-chat{
-	background:#ffffff;
-	padding: 30px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
 }
 
 textarea {
@@ -49,8 +41,6 @@ textarea {
 	float: left;
 	border: 0;
 	background-color: #ffffff;
-
-	font-family: Helvetica, arial, sans-serif;
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
 	border-radius: 10px;
@@ -85,7 +75,7 @@ textarea {
 	font-size: 13px;
 	padding: 15px;
 	vertical-align: top;
-	width: 310px;
+	width: calc(100% - 100px);
 }
 .message-teacher .icon-message{
 	display: inline-block;
@@ -121,7 +111,7 @@ textarea {
 	font-size: 13px;
 	padding: 15px;
 	vertical-align: top;
-	width: 360px;
+	width: calc(100% - 100px);
 }
 .message-teacher .message-date{
 	color: #666;
@@ -155,7 +145,6 @@ textarea {
 	text-decoration: none;
 }
 .user-online .title{
-	background: url(chat.png) no-repeat 0 center;
 	color: #0088AA;
 	padding-top: 5px;
 	padding-left: 30px;
@@ -235,7 +224,6 @@ li.list-group-item:hover a{
 	border:1px solid #53cbf1;
 	display:inline-block;
 	color:#ffffff;
-	font-family:Arial;
 	font-size:22px;
 	font-weight:bold;
 	font-style:normal;
@@ -267,24 +255,26 @@ li.list-group-item:hover a{
 }
 
 .emoji-menu {
-    margin-left: 0px;
-    width:468px;
-    left: 11px !important;
+	margin-left: -234px;
+	margin-top: -224px;
+	width: 468px;
 }
 
 .emoji-wysiwyg-editor-preview,
 .emoji-wysiwyg-editor {
-    width: 454px;
     padding: 3%;
     height: 50px;
     border: 0;
     background-color: #ffffff;
-
-    font-family: Helvetica, arial, sans-serif;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
     border: 1px solid #EEEEEE;
     color: #666;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) inset;
+}
+
+#chat-history {
+	height: 500px;
+	overflow: auto;
 }
