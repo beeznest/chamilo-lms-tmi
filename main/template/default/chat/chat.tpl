@@ -28,7 +28,6 @@
                                     <a href="#tab2" id="preview" data-toggle="tab">{{ 'Preview'|get_lang }}</a>
                                 </li>
                                 <li>
-                                <li>
                                     <button id="emojis" class="btn btn-link" type="button">
                                         <span class="sr-only">{{ 'Emoji'|get_lang }}</span>{{ emoji_smile }}
                                     </button>
@@ -36,17 +35,15 @@
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane active" id="tab1">
-                                    <form class="form-horizontal">
-                                        <div class="form-group">
-                                            <div class="col-sm-9">
-                                                <span class="sr-only">{{ 'Message'|get_lang }}</span>
-                                                <textarea id="chat-writer" name="message"></textarea>
-                                            </div>
-                                            <div class="col-sm-3">
-                                                <button id="chat-send-message" type="button" class="btn btn-primary">{{ 'Send'|get_lang }}</button>
-                                            </div>
+                                    <div class="row">
+                                        <div class="col-sm-9">
+                                            <span class="sr-only">{{ 'Message'|get_lang }}</span>
+                                            <textarea id="chat-writer" name="message"></textarea>
                                         </div>
-                                    </form>
+                                        <div class="col-sm-3">
+                                            <button id="chat-send-message" type="button" class="btn btn-primary">{{ 'Send'|get_lang }}</button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tab-pane" id="tab2">
                                     <div id="html-preview" class="emoji-wysiwyg-editor-preview"></div>
@@ -115,31 +112,23 @@
                 userList.forEach(function (user) {
                     var currentUserId = {{ _u.user_id }};
 
-                    html += '\
-                        <li class="col-xs-12 chat-user">\
-                            <div>\
-                                <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat"/>\
-                                <ul class="fa-ul">\
-                                    <li>\
-                     ';
+                    html += '<li class="col-xs-12 chat-user">' +
+                            '   <div>' +
+                            '       <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat"/>' +
+                            '       <ul class="list-unstyled">' +
+                            '           <li>' + user.complete_name;
 
                     if (currentUserId != user.id) {
-                        html += '\
-                                        <button type="button" class="btn btn-link btn-xs" data-name="' + user.complete_name + '" data-user="' + user.id + '">\
-                                            <i class="fa-li fa fa-comments"></i> ' + user.complete_name + '\
-                                        </button>\
-                        ';
-                    } else {
-                        html += '<i class="fa-li fa fa-comments"></i> ' + user.complete_name;
+                        html += '           <button type="button" class="btn btn-default btn-xs" title="{{ 'StartChat'|get_lang }}" data-name="' + user.complete_name + '" data-user="' + user.id + '">' +
+                                '               <i class="fa fa-comments"></i><span class="sr-only">{{ 'StartChat'|get_lang }}</span>' +
+                                '           </button>';
                     }
 
-                    html += '\
-                                    </li>\
-                                    <li>' + user.username + '</li>\
-                                </ul>\
-                            </div>\
-                        </li>\
-                    ';
+                    html += '           </li>' +
+                            '           <li><small>' + user.username + '</small></li>' +
+                            '       </ul>' +
+                            '   </div>' +
+                            '</li>';
                 });
 
                 $('#chat-users').html(html);

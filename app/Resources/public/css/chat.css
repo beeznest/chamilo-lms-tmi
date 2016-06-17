@@ -91,31 +91,26 @@
 }
 
 .chat-user {
-	position: relative;
-	display: block;
-	padding: 5px 10px 10px;
-	margin-bottom: -1px;
 	background-color: #EEEEEE;
 	border: 1px solid #E2E2E2;
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
 	border-radius: 10px;
 	color: #666;
+	margin-bottom: -1px;
+	padding: 10px;
 }
 .chat-user .user-image-chat {
-	width: 40px;
-	height: auto;
-	max-height: 40px;
-	display: inline-block;
-	vertical-align: top;
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
+	border: 2px solid #FFF;
 	border-radius: 10px;
-	border: 2px solid #ffffff;
+	display: inline-block;
+	height: auto;
+	margin-right: 10px;
+	max-height: 40px;
 	float: left;
-}
-.chat-user .fa-ul {
-	margin-left: 75px;
+	width: 40px;
 }
 
 .emoticons-chat img{
