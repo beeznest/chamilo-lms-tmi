@@ -1804,7 +1804,7 @@ class CourseChatUtils
         foreach ($subscriptions as $subscription) {
             $user = $subscription->getUser();
 
-            $usersInfo[] = [
+            $userInfo = [
                 'id' => $user->getId(),
                 'firstname' => $user->getFirstname(),
                 'lastname' => $user->getLastname(),
@@ -1814,8 +1814,20 @@ class CourseChatUtils
                 'complete_name' => $user->getCompleteName(),
                 'username' => $user->getUsername(),
                 'email' => $user->getEmail(),
-                'isConnected' => $this->userIsConnected($user->getId())
+                'isConnected' => $this->userIsConnected($user->getId()),
             ];
+
+            if (api_get_setting('gamification_mode') != '0') {
+                $gamificationPoints = GamificationUtils::getSessionPoints($this->sessionId, $user->getId());
+                $gamificationRanking = GamificationUtils::getUserRanking($user->getId(), $this->sessionId);
+
+                $userInfo['gamification'] = [
+                    'ranking' => sprintf(get_lang('RankingX'), $gamificationRanking),
+                    'points' => sprintf(get_lang('XPoints'), $gamificationPoints)
+                ];
+            }
+
+            $usersInfo[] = $userInfo;
         }
 
         return $usersInfo;

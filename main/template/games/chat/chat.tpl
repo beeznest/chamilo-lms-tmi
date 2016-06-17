@@ -120,6 +120,7 @@
                     }
 
                     html += '           </li>' +
+                            '           <li>' + user.gamification.ranking  + ' (' + user.gamification.points + ')</li>' +
                             '       </ul>' +
                             '   </div>' +
                             '</div>';

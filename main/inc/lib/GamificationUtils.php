@@ -52,6 +52,13 @@ class GamificationUtils
             return 0;
         }
 
+        $cacheEnabled = function_exists('apcu_exists');
+        $gameScoreVariable = 'chamilo_tademi_game_score_' . $userId . '_' . $sessionId;
+
+        if ($cacheEnabled &&apcu_exists($gameScoreVariable)) {
+            return apcu_fetch($gameScoreVariable);
+        }
+
         foreach ($courses as $course) {
             $learnPathListObject = new LearnpathList(
                 $userId,
@@ -85,7 +92,13 @@ class GamificationUtils
             $totalPoints += round($score / $countLP, 2);
         }
 
-        return round($totalPoints / count($courses), 2);
+        $points = round($totalPoints / count($courses), 2);
+
+        if ($cacheEnabled && !apcu_exists($gameScoreVariable)) {
+            apcu_store($gameScoreVariable, $points, 300);
+        }
+
+        return $points;
     }
 
     /**
@@ -230,4 +243,68 @@ class GamificationUtils
         return round($progress / count($sessions), 2);
     }
 
+    /**
+     * Calculate the gamification ranking for a session
+     * @param int $sessionId
+     * @return array
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public static function calcRankingPositions($sessionId)
+    {
+        $session = Database::getManager()
+            ->find('ChamiloCoreBundle:Session', $sessionId);
+
+        if (!$session) {
+            return [];
+        }
+
+        $studentsSubscriptions = $session->getUserSubscriptionByStatus(0);
+        $ranking = [];
+
+        $cacheEnabled = function_exists('apcu_exists');
+
+        foreach ($studentsSubscriptions as $subscription) {
+            $user = $subscription->getUser();
+
+            if (!$cacheEnabled) {
+                $points = self::getSessionPoints($session->getId(), $user->getId());
+            } else {
+                $gameScoreVariable = 'chamilo_tademi_game_score_' . $user->getId() . '_' . $session->getId();
+
+                if (apcu_exists($gameScoreVariable)) {
+                    $points = apcu_fetch($gameScoreVariable);
+                } else {
+                    $points = self::getSessionPoints($session->getId(), $user->getId());
+                    apcu_store($gameScoreVariable, $points, 300);
+                }
+            }
+
+            $ranking[$user->getId()] = $points;
+        }
+
+        arsort($ranking);
+
+        return array_keys($ranking);
+    }
+
+    /**
+     * Get the user position in the gamification ranking for a session
+     * @param int $userId
+     * @param int $sessionId
+     * @return int|string
+     */
+    public static function getUserRanking($userId, $sessionId)
+    {
+        $raking = self::calcRankingPositions($sessionId);
+
+        foreach ($raking as $index => $id) {
+            if ($id != $userId) {
+                continue;
+            }
+
+            return $index + 1;
+        }
+    }
 }

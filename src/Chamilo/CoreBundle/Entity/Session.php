@@ -1006,4 +1006,20 @@ class Session
         return $this->userCourseSubscriptions->matching($criteria);
     }
 
+    /**
+     * Get users by status
+     * @param $status
+     * @return \Doctrine\Common\Collections\Collection|static
+     */
+    public function getUserSubscriptionByStatus($status)
+    {
+        $criteria = Criteria::create()
+            ->where(
+                Criteria::expr()->eq('status', $status)
+            );
+
+        return $this
+            ->userCourseSubscriptions
+            ->matching($criteria);
+    }
 }
