@@ -7,6 +7,8 @@ require_once '../inc/global.inc.php';
 
 api_protect_course_script(true);
 
+Event::event_access_tool(TOOL_CHAT);
+
 // View
 $externalCSS = [
     'jquery-emojiarea/jquery.emojiarea.css',
