@@ -23,7 +23,8 @@ switch ($_REQUEST['action']) {
         $courseChatUtils->keepUserAsConnected();
         $courseChatUtils->disconnectInactiveUsers();
 
-        $filePath = $courseChatUtils->getFileName(true);
+        $friend = isset($_REQUEST['friend']) ? intval($_REQUEST['friend']) : 0;
+        $filePath = $courseChatUtils->getFileName(true, $friend);
         $newFileSize = file_exists($filePath) ? filesize($filePath) : 0;
         $oldFileSize = isset($_GET['size']) ? intval($_GET['size']) : -1;
         $newUsersOnline = $courseChatUtils->countUsersOnline();
@@ -34,9 +35,10 @@ switch ($_REQUEST['action']) {
             'data' => [
                 'chatIsDenied' => $courseChatUtils->isChatDenied(),
                 'oldFileSize' => file_exists($filePath) ? filesize($filePath) : 0,
-                'history' => $newFileSize !== $oldFileSize ? $courseChatUtils->readMessages() : null,
+                'history' => $newFileSize !== $oldFileSize ? $courseChatUtils->readMessages(false, $friend) : null,
                 'usersOnline' => $newUsersOnline,
-                'userList' => $newUsersOnline != $oldUsersOnline ? $courseChatUtils->listUsersOnline() : null
+                'userList' => $newUsersOnline != $oldUsersOnline ? $courseChatUtils->listUsersOnline() : null,
+                'currentFriend' => $friend
             ]
         ];
 
@@ -50,13 +52,16 @@ switch ($_REQUEST['action']) {
         ];
         break;
     case 'reset':
+        $friend = isset($_REQUEST['friend']) ? intval($_REQUEST['friend']) : 0;
+    
         $json = [
             'status' => true,
-            'data' => $courseChatUtils->readMessages(true)
+            'data' => $courseChatUtils->readMessages(true, $friend)
         ];
         break;
     case 'write':
-        $writed = $courseChatUtils->saveMessage($_POST['message']);
+        $friend = isset($_REQUEST['friend']) ? intval($_REQUEST['friend']) : 0;
+        $writed = $courseChatUtils->saveMessage($_POST['message'], $friend);
 
         $json = [
             'status' => $writed,

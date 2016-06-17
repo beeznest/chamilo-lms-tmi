@@ -86,13 +86,14 @@ class CourseChatUtils
 
     /**
      * Save a chat message in a HTML file
-     * @param string $message
+     * @param string$message
+     * @param int $friendId
      * @return bool
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function saveMessage($message)
+    public function saveMessage($message, $friendId = 0)
     {
         if (empty($message)) {
             return false;
@@ -122,10 +123,16 @@ class CourseChatUtils
         $timeNow = date('d/m/y H:i:s');
         $basename_chat = 'messages-' . $date_now;
 
-        if ($this->groupId) {
+        if ($this->groupId && !$friendId) {
             $basename_chat = 'messages-' . $date_now . '_gid-' . $this->groupId;
-        } elseif ($this->sessionId) {
+        } elseif ($this->sessionId && !$friendId) {
             $basename_chat = 'messages-' . $date_now . '_sid-' . $this->sessionId;
+        } elseif ($friendId) {
+            if ($this->userId < $friendId) {
+                $basename_chat = 'messages-' . $date_now . '_uid-' . $this->userId . '-' . $friendId;
+            } else {
+                $basename_chat = 'messages-' . $date_now . '_uid-' . $friendId . '-' . $this->userId;
+            }
         }
 
         $message = self::prepareMessage($message);
@@ -1481,18 +1488,25 @@ class CourseChatUtils
     /**
      * Get the chat history file name
      * @param bool $absolute Optional. Whether get the base or the absolute file path
+     * @param int $friendId Optional.
      * @return string
      */
-    public function getFileName($absolute = false)
+    public function getFileName($absolute = false, $friendId = 0)
     {
         $date = date('Y-m-d');
 
         $base = 'messages-' . $date . '.log.html';
 
-        if ($this->groupId) {
+        if ($this->groupId && !$friendId) {
             $base = 'messages-' . $date . '_gid-' . $this->groupId . '.log.html';
-        } elseif ($this->sessionId) {
+        } elseif ($this->sessionId && !$friendId) {
             $base = 'messages-' . $date . '_sid-' . $this->sessionId . '.log.html';
+        } elseif ($friendId) {
+            if ($this->userId < $friendId) {
+                $base = 'messages-' . $date . '_uid-' . $this->userId . '-' . $friendId . '.log.html';
+            } else {
+                $base = 'messages-' . $date . '_uid-' . $friendId . '-' . $this->userId . '.log.html';
+            }
         }
 
         if (!$absolute) {
@@ -1515,9 +1529,10 @@ class CourseChatUtils
     /**
      * Get the chat history
      * @param bool $reset
+     * @param int $friendId Optional.
      * @return string
      */
-    public function readMessages($reset = false)
+    public function readMessages($reset = false, $friendId = 0)
     {
         $courseInfo = api_get_course_info_by_id($this->courseId);
         $date_now = date('Y-m-d');
@@ -1559,10 +1574,16 @@ class CourseChatUtils
 
         $filename_chat = 'messages-' . $date_now . '.log.html';
 
-        if ($this->groupId) {
+        if ($this->groupId && !$friendId) {
             $filename_chat = 'messages-' . $date_now . '_gid-' . $this->groupId . '.log.html';
-        } else if ($this->sessionId) {
+        } else if ($this->sessionId && !$friendId) {
             $filename_chat = 'messages-' . $date_now . '_sid-' . $this->sessionId . '.log.html';
+        } elseif ($friendId) {
+            if ($this->userId < $friendId) {
+                $filename_chat = 'messages-' . $date_now . '_uid-' . $this->userId . '-' . $friendId . '.log.html';
+            } else {
+                $filename_chat = 'messages-' . $date_now . '_uid-' . $friendId . '-' . $this->userId . '.log.html';
+            }
         }
 
         if (!file_exists($chat_path . $filename_chat)) {
@@ -1599,10 +1620,16 @@ class CourseChatUtils
 
         $basename_chat = 'messages-' . $date_now;
 
-        if ($this->groupId) {
+        if ($this->groupId && !$friendId) {
             $basename_chat = 'messages-' . $date_now . '_gid-' . $this->groupId;
-        } else if ($this->sessionId) {
+        } else if ($this->sessionId && !$friendId) {
             $basename_chat = 'messages-' . $date_now . '_sid-' . $this->sessionId;
+        } elseif ($friendId) {
+            if ($this->userId < $friendId) {
+                $basename_chat = 'messages-' . $date_now . '_uid-' . $this->userId . '-' . $friendId;
+            } else {
+                $basename_chat = 'messages-' . $date_now . '_uid-' . $friendId . '-' . $this->userId;
+            }
         }
 
         if ($reset && $isMaster) {
@@ -1767,7 +1794,8 @@ class CourseChatUtils
                 'image_url' => UserManager::getUserPicture($user->getId(), USER_IMAGE_SIZE_MEDIUM),
                 'profile_url' => api_get_path(WEB_CODE_PATH) . 'social/profile.php?u=' . $user->getId(),
                 'complete_name' => $user->getCompleteName(),
-                'username' => $user->getUsername()
+                'username' => $user->getUsername(),
+                'email' => $user->getEmail()
             ];
         }
 

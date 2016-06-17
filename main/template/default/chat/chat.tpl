@@ -1,42 +1,58 @@
-<div class="page-chat row">
-    <div class="col-sm-4 col-md-5 col-lg-4">
-        <h1 class="page-header">{{ 'Users'|get_lang }} {{ 'Connected'|get_lang }}</h1>
-        <ul class="profile list-group" id="chat-users"></ul>
-    </div>
-    <div class="col-sm-8 col-md-7 col-lg-8">
-        <div class="course-chat" id="chat-history"></div>
-        <div class="message-form-chat">
-            <div class="tabbable">
-                <ul class="nav nav-tabs">
-                    <li class="active">
-                        <a href="#tab1" data-toggle="tab">{{ 'Write'|get_lang }}</a>
-                    </li>
-                    <li>
-                        <a href="#tab2" id="preview" data-toggle="tab">{{ 'Preview'|get_lang }}</a>
-                    </li>
-                    <li>
-                    <li>
-                        <button id="emojis" class="btn btn-link" type="button">
-                            <span class="sr-only">{{ 'Emoji'|get_lang }}</span>{{ emoji_smile }}
-                        </button>
+<div class="page-chat">
+    <div class="row">
+        <div class="col-sm-4 col-md-5 col-lg-4">
+            <ul class="row list-unstyled" id="chat-users"></ul>
+        </div>
+        <div class="col-sm-8 col-md-7 col-lg-8">
+            <div id="chat-tabs">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active">
+                        <a href="#all" aria-controls="all" role="tab" data-toggle="tab">{{ 'All'|get_lang }}</a>
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane active" id="tab1">
-                        <form class="form-horizontal">
-                            <div class="form-group">
-                                <div class="col-sm-9">
-                                    <span class="sr-only">{{ 'Message'|get_lang }}</span>
-                                    <textarea id="chat-writer" name="message"></textarea>
+                    <div role="tabpanel" class="tab-pane active" id="all">
+                        <div class="course-chat chat-history" id="chat-history"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile row">
+                <div class="col-xs-12">
+                    <div class="message-form-chat">
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                <li class="active">
+                                    <a href="#tab1" data-toggle="tab">{{ 'Write'|get_lang }}</a>
+                                </li>
+                                <li>
+                                    <a href="#tab2" id="preview" data-toggle="tab">{{ 'Preview'|get_lang }}</a>
+                                </li>
+                                <li>
+                                <li>
+                                    <button id="emojis" class="btn btn-link" type="button">
+                                        <span class="sr-only">{{ 'Emoji'|get_lang }}</span>{{ emoji_smile }}
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                    <form class="form-horizontal">
+                                        <div class="form-group">
+                                            <div class="col-sm-9">
+                                                <span class="sr-only">{{ 'Message'|get_lang }}</span>
+                                                <textarea id="chat-writer" name="message"></textarea>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <button id="chat-send-message" type="button" class="btn btn-primary">{{ 'Send'|get_lang }}</button>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="col-sm-3">
-                                    <button id="chat-send-message" type="button" class="btn btn-primary">{{ 'Send'|get_lang }}</button>
+                                <div class="tab-pane" id="tab2">
+                                    <div id="html-preview" class="emoji-wysiwyg-editor-preview"></div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class="tab-pane" id="tab2">
-                        <div id="html-preview" class="emoji-wysiwyg-editor-preview"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,33 +70,38 @@
             _ajaxUrl: '{{ _p.web_ajax }}course_chat.ajax.php?{{ _p.web_cid_query }}',
             _historySize: -1,
             usersOnline: 0,
+            currentFriend: 0,
+            call: false,
             track: function () {
                 return $
-                    .get(ChChat._ajaxUrl, {
-                        action: 'track',
-                        size: ChChat._historySize,
-                        users_online: ChChat.usersOnline
-                    })
-                    .done(function (response) {
-                        if (response.data.chatIsDenied) {
-                            alert("{{ 'ChatDenied'|get_lang }}");
+                        .get(ChChat._ajaxUrl, {
+                            action: 'track',
+                            size: ChChat._historySize,
+                            users_online: ChChat.usersOnline,
+                            friend: ChChat.currentFriend
+                        })
+                        .done(function (response) {
+                            if (response.data.chatIsDenied) {
+                                alert("{{ 'ChatDenied'|get_lang }}");
 
-                            return;
-                        }
+                                return;
+                            }
 
-                        if (response.data.history) {
-                            ChChat._historySize = response.data.oldFileSize;
-                            ChChat.setHistory(response.data.history);
-                        }
+                            if (response.data.history) {
+                                ChChat._historySize = response.data.oldFileSize;
+                                ChChat.setHistory(response.data.history);
+                            }
 
-                        if (response.data.userList) {
-                            ChChat.usersOnline = response.data.usersOnline;
-                            ChChat.setConnectedUsers(response.data.userList);
-                        }
-                    });
+                            if (response.data.userList) {
+                                ChChat.usersOnline = response.data.usersOnline;
+                                ChChat.setConnectedUsers(response.data.userList);
+                            }
+                        });
             },
             setHistory: function (messageList) {
-                $('#chat-history')
+                var chatHistoryContainer = ChChat.currentFriend ? ('#chat-history-' + ChChat.currentFriend) : '#chat-history';
+
+                $(chatHistoryContainer)
                         .html(messageList)
                         .prop('scrollTop', function () {
                             return this.scrollHeight;
@@ -92,19 +113,31 @@
                 var html = '';
 
                 userList.forEach(function (user) {
-                    var userIcon = '{{ 'user.png'|img(16, 'Student'|get_lang) }}';
+                    var currentUserId = {{ _u.user_id }};
 
-                    if (user.status == 1) {
-                        userIcon = '{{ 'teacher.png'|img(16, 'Teacher'|get_lang) }}';
+                    html += '\
+                        <li class="col-xs-12 chat-user">\
+                            <div>\
+                                <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat"/>\
+                                <ul class="fa-ul">\
+                                    <li>\
+                     ';
+
+                    if (currentUserId != user.id) {
+                        html += '\
+                                        <button type="button" class="btn btn-link btn-xs" data-name="' + user.complete_name + '" data-user="' + user.id + '">\
+                                            <i class="fa-li fa fa-comments"></i> ' + user.complete_name + '\
+                                        </button>\
+                        ';
+                    } else {
+                        html += '<i class="fa-li fa fa-comments"></i> ' + user.complete_name;
                     }
 
                     html += '\
-                        <li class="list-group-item chat-user">\
-                            <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="user-image-chat"/>\
-                            <div class="user-name">\
-                                <a href="' + user.profile_url + '" target="_blank">' + user.complete_name + '</a>' + userIcon + '\
+                                    </li>\
+                                    <li>' + user.username + '</li>\
+                                </ul>\
                             </div>\
-                            <div class="user-email">' + user.username + '</div>\
                         </li>\
                     ';
                 });
@@ -113,34 +146,44 @@
             },
             onPreviewListener: function () {
                 $
-                    .post(ChChat._ajaxUrl, {
-                        action: 'preview',
-                        'message': $('textarea#chat-writer').val()
-                    })
-                    .done(function (response) {
-                        if (!response.status) {
-                            return;
-                        }
+                        .post(ChChat._ajaxUrl, {
+                            action: 'preview',
+                            'message': $('textarea#chat-writer').val()
+                        })
+                        .done(function (response) {
+                            if (!response.status) {
+                                return;
+                            }
 
-                        $('#html-preview').html(response.data.message);
-                    });
+                            $('#html-preview').html(response.data.message);
+                        });
             },
             onSendMessageListener: function (e) {
                 e.preventDefault();
 
-                $
-                    .post(ChChat._ajaxUrl, {
-                        'action': 'write',
-                        'message': $('textarea#chat-writer').val()
-                    })
-                    .done(function (response) {
-                        if (!response.status) {
-                            return;
-                        }
+                if (!$('textarea#chat-writer').val().trim().length) {
+                    return;
+                }
 
-                        $('textarea#chat-writer').val('');
-                        $(".emoji-wysiwyg-editor").html('');
-                    });
+                var self = this;
+                self.disabled = true;
+
+                $
+                        .post(ChChat._ajaxUrl, {
+                            action: 'write',
+                            message: $('textarea#chat-writer').val(),
+                            friend: ChChat.currentFriend
+                        })
+                        .done(function (response) {
+                            self.disabled = false;
+
+                            if (!response.status) {
+                                return;
+                            }
+
+                            $('textarea#chat-writer').val('');
+                            $(".emoji-wysiwyg-editor").html('');
+                        });
             },
             onResetListener: function (e) {
                 if (!confirm("{{ 'ConfirmReset'|get_lang }}")) {
@@ -150,16 +193,17 @@
                 }
 
                 $
-                    .get(ChChat._ajaxUrl, {
-                        action: 'reset'
-                    })
-                    .done(function (response) {
-                        if (!response.status) {
-                            return;
-                        }
+                        .get(ChChat._ajaxUrl, {
+                            action: 'reset',
+                            friend: ChChat.currentFriend
+                        })
+                        .done(function (response) {
+                            if (!response.status) {
+                                return;
+                            }
 
-                        ChChat.setHistory(response.data);
-                    });
+                            ChChat.setHistory(response.data);
+                        });
             },
             init: function () {
                 ChChat.track().done(function () {
@@ -186,8 +230,8 @@
 
         $('#emojis').on('click', function () {
             $('[data-toggle="tab"][href="#tab1"]')
-                .show()
-                .tab('show');
+                    .show()
+                    .tab('show');
         });
 
         $('textarea#chat-writer').emojiarea({
@@ -240,6 +284,61 @@
         ], {});
 
         $('button#chat-send-message').on('click', ChChat.onSendMessageListener);
+
+        $('#chat-users').on('click', 'button.btn', function (e) {
+            e.preventDefault();
+
+            var jSelf = $(this),
+                    userId = parseInt(jSelf.data('user')) || 0;
+
+            if (!userId) {
+                return;
+            }
+
+            var exists = false;
+
+            $('#chat-tabs ul.nav li').each(function (i, el) {
+                if ($(el).data('user') == userId) {
+                    exists = true;
+                }
+            });
+
+            if (exists) {
+                $('#chat-tab-' + userId).tab('show');
+
+                return;
+            }
+
+            $('#chat-tabs ul.nav-tabs').append('\
+                <li role="presentation" data-user="' + userId + '">\
+                    <a id="chat-tab-' + userId + '" href="#chat-' + userId + '" aria-controls="chat-' + userId + '" role="tab" data-toggle="tab">' + jSelf.data('name') + '</a>\
+                </li>\
+            ');
+
+            $('#chat-tabs .tab-content').append('\
+                <div role="tabpanel" class="tab-pane" id="chat-' + userId + '">\
+                    <div class="course-chat chat-history" id="chat-history-' + userId + '"></div>\
+                </div>\
+            ');
+
+            $('#chat-tab-' + userId).tab('show');
+        });
+
+        $('#chat-tabs ul.nav-tabs').on('shown.bs.tab', 'li a', function (e) {
+            var jSelf = $(this);
+
+            var userId = parseInt(jSelf.parent().data('user')) || 0;
+
+            if (!userId) {
+                ChChat.currentFriend = 0;
+
+                return;
+            }
+
+            ChChat.currentFriend = userId;
+
+            $(this).tab('show');
+        });
 
         ChChat.init();
     });
