@@ -30,33 +30,25 @@ class CourseChatUtils
     }
 
     /**
-     * Get the connected users for a chat
-     * @return array
+     * Get the users subscriptions (SessionRelCourseRelUser array or CourseRelUser array) for chat
+     * @return \Doctrine\Common\Collections\ArrayCollection
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function getConnectedUsers()
+    private function getUsersSubscriptions()
     {
-        $date = new DateTime(api_get_utc_datetime(), new DateTimeZone('UTC'));
-        $date->modify('-5 minutes');
+        $em = Database::getManager();
 
-        $extraCondition = null;
-
-        if ($this->groupId) {
-            $extraCondition = 'AND ccc.toGroupId = ' . intval($this->groupId);
-        } else {
-            $extraCondition = 'AND ccc.sessionId = ' . intval($this->sessionId);
+        if ($this->sessionId) {
+            return $em
+                ->find('ChamiloCoreBundle:Session', $this->sessionId)
+                ->getUserCourseSubscriptions();
         }
 
-        return Database::getManager()
-            ->createQuery("
-                SELECT u FROM ChamiloCourseBundle:CChatConnected ccc
-                INNER JOIN ChamiloUserBundle:User u WITH ccc.userId = u
-                WHERE ccc.lastConnection > :date AND ccc.cId = :course $extraCondition
-            ")
-            ->setParameters([
-                'date' => $date,
-                'course' => $this->courseId
-            ])
-            ->getResult();
+        $em
+            ->find('ChamiloCoreBundle:Course', $this->courseId)
+            ->getUsers();
     }
 
     /**
@@ -1743,7 +1735,7 @@ class CourseChatUtils
     public function countUsersOnline()
     {
         $date = new DateTime(api_get_utc_datetime(), new DateTimeZone('UTC'));
-        $date->modify('-5 minutes');
+        $date->modify('-5 seconds');
 
         $extraCondition = null;
 
@@ -1768,34 +1760,61 @@ class CourseChatUtils
     }
 
     /**
+     * Check if a user is connected in course chat
+     * @param int $userId
+     * @return int
+     */
+    private function userIsConnected($userId)
+    {
+        $date = new DateTime(api_get_utc_datetime(), new DateTimeZone('UTC'));
+        $date->modify('-5 seconds');
+
+        $extraCondition = null;
+
+        if ($this->groupId) {
+            $extraCondition = 'AND ccc.toGroupId = ' . intval($this->groupId);
+        } else {
+            $extraCondition = 'AND ccc.sessionId = ' . intval($this->sessionId);
+        }
+
+        $number = Database::getManager()
+            ->createQuery("
+                SELECT COUNT(ccc.userId) FROM ChamiloCourseBundle:CChatConnected ccc
+                WHERE ccc.lastConnection > :date AND ccc.cId = :course AND ccc.userId = :user $extraCondition
+            ")
+            ->setParameters([
+                'date' => $date,
+                'course' => $this->courseId,
+                'user' => $userId
+            ])
+            ->getSingleScalarResult();
+
+        return intval($number);
+    }
+
+    /**
      * Get the users online data
      * @return string
      */
     public function listUsersOnline()
     {
-        $users = $this->getConnectedUsers();
+        $subscriptions = $this->getUsersSubscriptions();
         $usersInfo = [];
 
-        foreach ($users as $user) {
-            $userStatus = $user->getStatus();
-
-            if ($this->sessionId) {
-                $userStatus = CourseManager::is_course_teacher(
-                    $user->getId(),
-                    api_get_course_id()
-                ) ? COURSEMANAGER : STUDENT;
-            }
+        foreach ($subscriptions as $subscription) {
+            $user = $subscription->getUser();
 
             $usersInfo[] = [
                 'id' => $user->getId(),
                 'firstname' => $user->getFirstname(),
                 'lastname' => $user->getLastname(),
-                'status' => $userStatus,
+                'status' => !$this->sessionId ? $subscription->getStatus() : $user->getStatus(),
                 'image_url' => UserManager::getUserPicture($user->getId(), USER_IMAGE_SIZE_MEDIUM),
                 'profile_url' => api_get_path(WEB_CODE_PATH) . 'social/profile.php?u=' . $user->getId(),
                 'complete_name' => $user->getCompleteName(),
                 'username' => $user->getUsername(),
-                'email' => $user->getEmail()
+                'email' => $user->getEmail(),
+                'isConnected' => $this->userIsConnected($user->getId())
             ];
         }
 

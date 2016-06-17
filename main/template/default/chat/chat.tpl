@@ -110,17 +110,18 @@
                 var html = '';
 
                 userList.forEach(function (user) {
-                    var currentUserId = {{ _u.user_id }};
+                    var buttonStatus = user.isConnected ? 'success' : 'muted',
+                            buttonTitle = user.isConnected ? '{{ 'StartAChat'|get_lang }}' : '{{ 'LeaveAMessage'|get_lang }}';
 
                     html += '<li class="col-xs-12 chat-user">' +
                             '   <div>' +
-                            '       <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat"/>' +
+                            '       <img src="'+ user.image_url + '" alt="' + user.complete_name + '" class="img-circle user-image-chat"/>' +
                             '       <ul class="list-unstyled">' +
                             '           <li>' + user.complete_name;
 
-                    if (currentUserId != user.id) {
-                        html += '           <button type="button" class="btn btn-default btn-xs" title="{{ 'StartChat'|get_lang }}" data-name="' + user.complete_name + '" data-user="' + user.id + '">' +
-                                '               <i class="fa fa-comments"></i><span class="sr-only">{{ 'StartChat'|get_lang }}</span>' +
+                    if (user.id != {{ _u.user_id }}) {
+                        html += '           <button type="button" class="btn btn-link btn-xs" title="' + buttonTitle + '" data-name="' + user.complete_name + '" data-user="' + user.id + '">' +
+                                '               <i class="fa fa-comments text-' + buttonStatus + '"></i><span class="sr-only">' + buttonTitle + '</span>' +
                                 '           </button>';
                     }
 
