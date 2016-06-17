@@ -1827,6 +1827,18 @@ class CourseChatUtils
                 ];
             }
 
+            $objSkill = new Skill();
+            $skillsInfo = $objSkill->get_user_skills($user->getId(), true);
+
+            foreach ($skillsInfo as &$skillInfo) {
+                $userInfo['badges'][] = [
+                    'id' => $skillInfo['id'],
+                    'name' => $skillInfo['name'],
+                    'url' => api_get_path(WEB_PATH) . 'badge/' . $skillInfo['id'] . '/user/' . $user->getId(),
+                    'web_icon_thumb_path' => $skillInfo['icon'] ? $skillInfo['web_icon_thumb_path'] : Template::get_icon_path('badges-default.png')
+                ];
+            }
+
             $usersInfo[] = $userInfo;
         }
 

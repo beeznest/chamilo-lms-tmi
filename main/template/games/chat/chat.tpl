@@ -104,6 +104,7 @@
                 var html = '';
 
                 userList.forEach(function (user) {
+                    console.log(user);
                     var buttonStatus = user.isConnected ? 'success' : 'muted',
                             buttonTitle = user.isConnected ? '{{ 'StartAChat'|get_lang }}' : '{{ 'LeaveAMessage'|get_lang }}';
 
@@ -122,6 +123,19 @@
                     html += '           </li>' +
                             '           <li>' + user.gamification.ranking  + ' (' + user.gamification.points + ')</li>' +
                             '       </ul>' +
+                            '       <ul class="list-inline">';
+
+                    if (user.badges) {
+                        user.badges.forEach(function (badge) {
+                            html += '   <li>' +
+                                    '       <a href="' + badge.url + '" target="_blank">' +
+                                    '           <img src="' + badge.web_icon_thumb_path + '" title="' + badge.name+ '" alt="' + badge.name+ '" width="30" height="30">' +
+                                    '       </a>' +
+                                    '   </li>';
+                        });
+                    }
+
+                    html += '       </ul>' +
                             '   </div>' +
                             '</div>';
                 });
