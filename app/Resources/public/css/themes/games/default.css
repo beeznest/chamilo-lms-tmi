@@ -1295,3 +1295,35 @@ hr.separator:after {
   }
 
 }
+
+/* Course chat */
+#chat-tabs .tab-content{
+    margin-top: 15px;
+}
+
+#chat-users {
+    margin-left: -15px;
+    margin-top: 30px;
+}
+#chat-users .chat-user {
+    background-color: #FFF;
+    border: 0 none;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 0 15px;
+}
+#chat-users div.chat-user > div {
+    background-color: #EFEFEF;
+    padding: 20px;
+}
+#chat-users div.chat-user .user-image-chat {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    display: block;
+    float: none;
+    height: 80px;
+    margin: 0 auto 15px;
+    max-height: 80px;
+    width: 80px;
+}

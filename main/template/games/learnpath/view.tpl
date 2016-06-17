@@ -103,7 +103,9 @@
                             <div id="progress_bar">
                                 {{ progress_bar }}
                             </div>
-
+                            <button id="go-to-student-list" class="btn btn-link btn-block" type="button">
+                                <span class="fa fa-users fa-fw"></span> {{ 'StudentList'|get_lang }}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -218,5 +220,8 @@
 
         updateResizeFrame();
 
+        $('#go-to-student-list').on('click', function () {
+            $('iframe#content_id').attr('src', '{{ _p.web_main }}chat/chat.php');
+        });
     });
 </script>
