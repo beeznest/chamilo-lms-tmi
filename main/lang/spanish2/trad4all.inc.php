@@ -16,3 +16,4 @@ $YouAreRegisterToSessionX="Estamos contentos con tu participación en el curso %
 $ThanksForYourSubscription = "¡Gracias por su inscripción!";
 $DontKnow = "No sé";
 $DoubtScore = "No sé";
+$RankingX = "Ranking: %s";
