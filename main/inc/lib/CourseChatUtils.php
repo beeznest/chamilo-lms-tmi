@@ -1821,9 +1821,17 @@ class CourseChatUtils
                 $gamificationPoints = GamificationUtils::getSessionPoints($this->sessionId, $user->getId());
                 $gamificationRanking = GamificationUtils::getUserRanking($user->getId(), $this->sessionId);
 
+                $status = $subscription->getStatus();
+                if ($status != 0) {
+                    $ranking = get_lang('Coach');
+                    $score = ' - ';
+                } else {
+                    $ranking = sprintf(get_lang('RankingX'), $gamificationRanking);
+                    $score = sprintf(get_lang('XPoints'), $gamificationPoints);
+                }
                 $userInfo['gamification'] = [
-                    'ranking' => sprintf(get_lang('RankingX'), $gamificationRanking),
-                    'points' => sprintf(get_lang('XPoints'), $gamificationPoints)
+                    'ranking' => $ranking,
+                    'points' => $score
                 ];
             }
 
