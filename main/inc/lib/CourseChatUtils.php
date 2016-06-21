@@ -46,7 +46,7 @@ class CourseChatUtils
                 ->getUserCourseSubscriptions();
         }
 
-        $em
+        return $em
             ->find('ChamiloCoreBundle:Course', $this->courseId)
             ->getUsers();
     }

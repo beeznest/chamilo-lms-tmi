@@ -10,7 +10,7 @@ if (!api_protect_course_script(false)) {
     exit;
 }
 
-$courseId = api_get_course_id();
+$courseId = api_get_course_int_id();
 $userId = api_get_user_id();
 $sessionId = api_get_session_id();
 $groupId = api_get_group_id();
