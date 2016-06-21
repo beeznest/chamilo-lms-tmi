@@ -221,7 +221,10 @@
         updateResizeFrame();
 
         $('#go-to-student-list').on('click', function () {
-            $('iframe#content_id').attr('src', '{{ _p.web_main }}chat/chat.php');
+            $('#panel-forum').hide();
+            $('#forum-container').hide();
+
+            $('iframe#content_id').attr('src', '{{ _p.web_main }}chat/chat.php?{{ _p.web_cid_query }}');
         });
     });
 </script>
