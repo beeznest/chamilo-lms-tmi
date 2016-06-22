@@ -102,9 +102,8 @@
     border: 1px solid #E2E2E2;
     border-radius: 5px;
     color: #666;
-    margin-bottom: -1px;
     padding: 10px;
-    min-height: 185px;
+    min-height: 207px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px #C8C8C8;
 }
@@ -117,7 +116,12 @@
 }
 .chat-user .list-inline{
     margin: 0;
+    height: 30px;
+    overflow: hidden;
     text-align: center;
+}
+.chat-user .list-inline.unfolded {
+    height: auto;
 }
 .chat-user .list-inline li{
     padding-left: 2px;

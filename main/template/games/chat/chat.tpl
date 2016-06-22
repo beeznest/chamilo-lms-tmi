@@ -104,7 +104,6 @@
                 var html = '';
 
                 userList.forEach(function (user) {
-                    console.log(user);
                     var buttonStatus = user.isConnected ? 'success' : 'muted',
                             buttonTitle = user.isConnected ? '{{ 'StartAChat'|get_lang }}' : '{{ 'LeaveAMessage'|get_lang }}';
 
@@ -115,17 +114,18 @@
                             '           <li>' + user.complete_name;
 
                     if (user.id != {{ _u.user_id }}) {
-                        html += '           <button type="button" class="btn btn-link btn-xs" title="' + buttonTitle + '" data-name="' + user.complete_name + '" data-user="' + user.id + '">' +
+                        html += '           <button type="button" class="btn btn-link btn-xs start-chat-with" title="' + buttonTitle + '" data-name="' + user.complete_name + '" data-user="' + user.id + '">' +
                                 '               <i class="fa fa-comments fa-lg status-' + buttonStatus + '"></i><span class="sr-only">' + buttonTitle + '</span>' +
                                 '           </button>';
                     }
 
                     html += '           </li>' +
                             '           <li class="ranking">' + user.gamification.ranking  + ' (' + user.gamification.points + ')</li>' +
-                            '       </ul>' +
-                            '       <ul class="list-inline">';
+                            '       </ul>';
 
                     if (user.badges) {
+                        html += '   <ul class="list-inline">';
+
                         user.badges.forEach(function (badge) {
                             html += '   <li>' +
                                     '       <a href="' + badge.url + '" target="_blank">' +
@@ -133,10 +133,19 @@
                                     '       </a>' +
                                     '   </li>';
                         });
+
+                        html += '   </ul>';
+
+                        if (user.badges.length > 5) {
+                            html += '<button id="show-more-' + user.id + '" type="button" class="btn btn-default btn-xs btn-block show-more">' +
+                                    '   <span class="fa fa-chevron-down fa-fw"></span><span class="sr-only">' +
+                                    '       {{ 'ShowMore'|get_lang }}' +
+                                    '   </span>' +
+                                    '</button>';
+                        }
                     }
 
-                    html += '       </ul>' +
-                            '   </div>' +
+                    html += '   </div>' +
                             '</div>';
                 });
 
@@ -283,7 +292,7 @@
 
         $('button#chat-send-message').on('click', ChChat.onSendMessageListener);
 
-        $('#chat-users').on('click', 'button.btn', function (e) {
+        $('#chat-users').on('click', 'button.start-chat-with', function (e) {
             e.preventDefault();
 
             var jSelf = $(this),
@@ -320,6 +329,12 @@
             ');
 
             $('#chat-tab-' + userId).tab('show');
+        });
+
+        $('#chat-users').on('click', 'button.show-more', function (e) {
+            e.preventDefault();
+
+            $(this).prev().toggleClass('unfolded');
         });
 
         $('#chat-tabs ul.nav-tabs').on('shown.bs.tab', 'li a', function (e) {
