@@ -39,15 +39,22 @@ class CourseChatUtils
     private function getUsersSubscriptions()
     {
         $em = Database::getManager();
+        $course = $em->find('ChamiloCoreBundle:Course', $this->courseId);
 
         if ($this->sessionId) {
+            $criteria = \Doctrine\Common\Collections\Criteria::create()
+                ->where(
+                    \Doctrine\Common\Collections\Criteria::expr()->eq("course", $course)
+                );
+
             return $em
                 ->find('ChamiloCoreBundle:Session', $this->sessionId)
-                ->getUserCourseSubscriptions();
+                ->getUserCourseSubscriptions()
+                ->matching($criteria);
         }
 
         return $em
-            ->find('ChamiloCoreBundle:Course', $this->courseId)
+            ->find('ChamiloCoreBundle:Course', $course)
             ->getUsers();
     }
 
