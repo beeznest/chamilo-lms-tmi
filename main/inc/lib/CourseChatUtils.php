@@ -73,12 +73,25 @@ class CourseChatUtils
         Emojione\Emojione::$ascii = true;
 
         $message = trim($message);
+        $message = nl2br($message);
+        // Security XSS
+        $message = Security::remove_XSS($message);
+        //search urls
+        $message = preg_replace(
+            '@((https?://)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)@',
+            '<a href="$1" target="_blank">$1</a>',
+            $message
+        );
+        // add "http://" if not set
+        $message = preg_replace(
+            '/<a\s[^>]*href\s*=\s*"((?!https?:\/\/)[^"]*)"[^>]*>/i',
+            '<a href="http://$1" target="_blank">',
+            $message
+        );
         // Parsing emojis
         $message = Emojione\Emojione::toImage($message);
         // Parsing text to understand markdown (code highlight)
         $message = MarkdownExtra::defaultTransform($message);
-        // Security XSS
-        $message = Security::remove_XSS($message);
 
         return $message;
     }
