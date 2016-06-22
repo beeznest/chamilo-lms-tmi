@@ -235,7 +235,7 @@
         $('textarea#chat-writer').emojiarea({
             button: '#emojis'
         });
-        $('textarea#chat-writer').textcomplete([
+        $('body').delay(1500).find('.emoji-wysiwyg-editor').textcomplete([
             {
                 match: /\B:([\-+\w]*)$/,
                 search: function (term, callback) {
