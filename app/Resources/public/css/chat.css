@@ -5,74 +5,79 @@
 .message-form-chat .nav{
   margin-bottom: 0;
 }
-.message-form-chat .nav-tabs .active a{
-  background-color: #f6f6f6;
-}
 
+.message-form-chat #chat-send-message{
+    margin-top: 20px;
+    min-height: 68px;
+}
+.message-form-chat .tabbable .nav li a:hover{
+    background-color: #FFF;
+}
 .message-student .chat-image, .message-teacher .chat-image{
- 	width: 80px;
- 	height: auto;
- 	max-height: 80px;
- 	display: inline-block;
- 	vertical-align: top;
- 	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	border:2px solid #fff;
-	box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
- }
+    width: 50px;
+    height: auto;
+    max-height: 50px;
+    display: inline-block;
+    vertical-align: top;
+    border-radius: 50%;
+    border:1px solid #fff;
+}
 .message-student .content-message{
-	background-color: #F9F2E0;
-    color: #000;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-top: 1px solid #F9F2E0;
-    border-left: 1px solid #F9F2E0;
-    border-right: 2px solid #F7E5B9;
-    border-bottom: 3px solid #F7E5B9;
-    border-radius: 10px;
-
-	display: inline-block;
-	font-size: 13px;
-	padding: 15px;
-	vertical-align: top;
-	width: calc(100% - 100px);
-}
-.message-teacher .icon-message{
-	display: inline-block;
-	margin-left: -6px;
-	margin-top: 10px;
-	width: 0;
-	height: 0;
-	border-top: 0px solid transparent;
-	border-bottom: 15px solid transparent;
-	border-left: 15px solid #EBEFF3;
-}
-.message-student .icon-message{
-	display: inline-block;
-	margin-right: -6px;
-	margin-top: 10px;
-	width: 0;
-	height: 0;
-	border-top: 0px solid transparent;
-	border-bottom: 15px solid transparent;
-	border-right: 15px solid #F9F2E0;
-}
-.message-teacher .content-message{
-	background-color: #EBEFF3;
-    color: #000;
+    background-color: #FFF;
+    color: #666;
     padding: 10px;
     margin-bottom: 15px;
     border-top: 1px solid #EBEFF3;
-    border-left: 2px solid #DEE1E5;
+    border-left: 1px solid #DEE1E5;
     border-right: 1px solid #EBEFF3;
-    border-bottom: 3px solid #DEE1E5;
+    border-bottom: 2px solid #DEE1E5;
     border-radius: 10px;
-	display: inline-block;
-	font-size: 13px;
-	padding: 15px;
-	vertical-align: top;
-	width: calc(100% - 100px);
+    display: inline-block;
+    font-size: 12px;
+    padding: 15px;
+    vertical-align: top;
+    width: calc(100% - 100px);
+}
+.message-teacher .icon-message{
+    display: inline-block;
+    margin-left: -6px;
+    margin-top: 10px;
+    width: 0;
+    height: 0;
+    border-top: 0px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-left: 15px solid #E3F2E4;
+}
+.message-student .icon-message{
+    display: inline-block;
+    margin-right: -6px;
+    margin-top: 10px;
+    width: 0;
+    height: 0;
+    border-top: 0px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 15px solid #DEE1E5;
+}
+.message-teacher .content-message{
+    background-color: #EFFFEF;
+    color: #666;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-top: 1px solid #EBEFF3;
+    border-left: 1px solid #DEE1E5;
+    border-right: 1px solid #EBEFF3;
+    border-bottom: 2px solid #E3F2E4;
+    border-radius: 10px;
+    display: inline-block;
+    font-size: 13px;
+    padding: 15px;
+    vertical-align: top;
+    width: calc(100% - 100px);
+}
+.message-teacher .content-message .chat-message-block-name,
+.message-student .content-message .chat-message-block-name
+{
+    font-weight: bold;
 }
 .message-teacher .message-date{
 	color: #666;
@@ -89,22 +94,48 @@
 	text-align: right;
 	margin-top: 10px;
 }
-
+#chat-tabs .nav li a:hover{
+    background-color: #FFF;
+}
 .chat-user {
-	background-color: #EEEEEE;
-	border: 1px solid #E2E2E2;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	color: #666;
-	margin-bottom: -1px;
-	padding: 10px;
+    background-color: #FFF;
+    border: 1px solid #E2E2E2;
+    border-radius: 5px;
+    color: #666;
+    margin-bottom: -1px;
+    padding: 10px;
+    min-height: 185px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px #C8C8C8;
+}
+.chat-user .list-unstyled li{
+    text-align: center;
+}
+.chat-user .list-unstyled li.ranking{
+    font-size: 12px;
+    font-weight: bold;
+}
+.chat-user .list-inline{
+    margin: 0;
+    text-align: center;
+}
+.chat-user .list-inline li{
+    padding-left: 2px;
+    padding-right: 2px;
+}
+.chat-user .avatar{
+    position: relative;
+}
+.chat-user .icon{
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    bottom: 15px;
+    right: 90px;
+    left: auto;
+    border-radius: 50%;
 }
 .chat-user .user-image-chat {
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border: 2px solid #FFF;
-	border-radius: 10px;
 	display: inline-block;
 	height: auto;
 	margin-right: 10px;
@@ -118,14 +149,9 @@
   	border: none;
 }
 .message-form-chat{
-	margin-top: 10px;
-	padding: 5px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	background: #EEEEEE;
+    margin-top: 30px;
+    padding: 5px;
 }
-
 .emoji-menu {
 	margin-left: -234px;
 	margin-top: -224px;
@@ -134,16 +160,17 @@
 
 .emoji-wysiwyg-editor-preview,
 .emoji-wysiwyg-editor {
-    padding: 3%;
-    height: 50px;
+    margin-top: 20px;
     border: 0;
+    min-height: 70px;
     background-color: #ffffff;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-    border: 1px solid #EEEEEE;
+    border-radius: 5px;
+    border: 2px solid #DDDDDD;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
     color: #666;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) inset;
 }
 
 #chat-tabs .tab-content{
@@ -160,4 +187,40 @@
 }
 #chat-users div.chat-user > div {
 	padding: 5px;
+}
+.border-success{
+    border: 2px solid #DDD;
+}
+.border-muted{
+    border: 2px solid #DDD;
+}
+.status-muted{
+    color: #666;
+}
+.status-success{
+    color: #8FC400;
+}
+.icon-muted{
+    background: #DDDDDD;
+}
+.icon-success{
+    background: #8FC400;
+}
+/* Course chat */
+#chat-tabs .tab-content{
+    margin-top: 15px;
+}
+
+#chat-users {
+    margin-left: -15px;
+    margin-top: 30px;
+}
+#chat-users div.chat-user .user-image-chat {
+    border-radius: 50%;
+    display: block;
+    float: none;
+    height: 60px;
+    margin: 0 auto 10px;
+    max-height: 60px;
+    width: 60px;
 }

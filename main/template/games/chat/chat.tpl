@@ -36,7 +36,7 @@
                                     <textarea id="chat-writer" name="message"></textarea>
                                 </div>
                                 <div class="col-sm-3">
-                                    <button id="chat-send-message" type="button" class="btn btn-primary">{{ 'Send'|get_lang }}</button>
+                                    <button id="chat-send-message" type="button" class="btn btn-success btn-lg btn-block">{{ 'Send'|get_lang }}</button>
                                 </div>
                             </div>
                         </form>
@@ -108,20 +108,20 @@
                     var buttonStatus = user.isConnected ? 'success' : 'muted',
                             buttonTitle = user.isConnected ? '{{ 'StartAChat'|get_lang }}' : '{{ 'LeaveAMessage'|get_lang }}';
 
-                    html += '<div class="col-xs-4 col-sm-4 col-md-3 col-lg-2 chat-user">' +
-                            '   <div>' +
-                            '       <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat"/>' +
-                            '       <ul class="list-unstyled">' +
+                    html += '<div class="col-xs-4 col-md-4">' +
+                            '   <div class="chat-user">' +
+                            '       <div class="avatar"><img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat border-' + buttonStatus + '"/>' +
+                            '       <span class="icon icon-' + buttonStatus + '"></span></div><ul class="list-unstyled">' +
                             '           <li>' + user.complete_name;
 
                     if (user.id != {{ _u.user_id }}) {
                         html += '           <button type="button" class="btn btn-link btn-xs" title="' + buttonTitle + '" data-name="' + user.complete_name + '" data-user="' + user.id + '">' +
-                                '               <i class="fa fa-comments text-' + buttonStatus + '"></i><span class="sr-only">' + buttonTitle + '</span>' +
+                                '               <i class="fa fa-comments fa-lg status-' + buttonStatus + '"></i><span class="sr-only">' + buttonTitle + '</span>' +
                                 '           </button>';
                     }
 
                     html += '           </li>' +
-                            '           <li>' + user.gamification.ranking  + ' (' + user.gamification.points + ')</li>' +
+                            '           <li class="ranking">' + user.gamification.ranking  + ' (' + user.gamification.points + ')</li>' +
                             '       </ul>' +
                             '       <ul class="list-inline">';
 
