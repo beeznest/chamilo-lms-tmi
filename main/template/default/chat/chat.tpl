@@ -331,6 +331,12 @@
             $(this).tab('show');
         });
 
+        $('.emoji-wysiwyg-editor').on('keyup', function (e) {
+            if (e.ctrlKey && e.keyCode === 13) {
+                $('button#chat-send-message').trigger('click');
+            }
+        });
+
         ChChat.init();
     });
 </script>
