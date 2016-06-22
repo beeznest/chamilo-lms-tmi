@@ -129,13 +129,17 @@
 }
 .chat-user .avatar{
     position: relative;
+    width: 70px;
+    margin: auto;
+    text-align: center;
 }
+
 .chat-user .icon{
     width: 10px;
     height: 10px;
     position: absolute;
-    bottom: 15px;
-    right: 90px;
+    bottom: 5px;
+    right: 8px;
     left: auto;
     border-radius: 50%;
 }
@@ -189,9 +193,7 @@
 #chat-users {
 	margin-left: 0;
 }
-#chat-users div.chat-user > div {
-	padding: 5px;
-}
+
 .border-success{
     border: 2px solid #DDD;
 }
