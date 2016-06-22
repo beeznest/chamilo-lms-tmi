@@ -39,15 +39,22 @@ class CourseChatUtils
     private function getUsersSubscriptions()
     {
         $em = Database::getManager();
+        $course = $em->find('ChamiloCoreBundle:Course', $this->courseId);
 
         if ($this->sessionId) {
+            $criteria = \Doctrine\Common\Collections\Criteria::create()
+                ->where(
+                    \Doctrine\Common\Collections\Criteria::expr()->eq("course", $course)
+                );
+
             return $em
                 ->find('ChamiloCoreBundle:Session', $this->sessionId)
-                ->getUserCourseSubscriptions();
+                ->getUserCourseSubscriptions()
+                ->matching($criteria);
         }
 
         return $em
-            ->find('ChamiloCoreBundle:Course', $this->courseId)
+            ->find('ChamiloCoreBundle:Course', $course)
             ->getUsers();
     }
 
@@ -1821,9 +1828,17 @@ class CourseChatUtils
                 $gamificationPoints = GamificationUtils::getSessionPoints($this->sessionId, $user->getId());
                 $gamificationRanking = GamificationUtils::getUserRanking($user->getId(), $this->sessionId);
 
+                $status = $subscription->getStatus();
+                if ($status != 0) {
+                    $ranking = get_lang('Coach');
+                    $score = ' - ';
+                } else {
+                    $ranking = sprintf(get_lang('RankingX'), $gamificationRanking);
+                    $score = sprintf(get_lang('XPoints'), $gamificationPoints);
+                }
                 $userInfo['gamification'] = [
-                    'ranking' => sprintf(get_lang('RankingX'), $gamificationRanking),
-                    'points' => sprintf(get_lang('XPoints'), $gamificationPoints)
+                    'ranking' => $ranking,
+                    'points' => $score
                 ];
             }
 
