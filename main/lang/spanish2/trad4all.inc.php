@@ -17,3 +17,4 @@ $ThanksForYourSubscription = "¡Gracias por su inscripción!";
 $DontKnow = "No sé";
 $DoubtScore = "No sé";
 $RankingX = "Ranking: %s";
+$LeaveAMessage = "Dejar un mensage";
