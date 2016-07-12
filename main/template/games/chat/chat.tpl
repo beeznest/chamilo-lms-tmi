@@ -109,8 +109,13 @@
 
                     html += '<div class="col-xs-4 col-md-4">' +
                             '   <div class="chat-user">' +
-                            '       <div class="avatar"><img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat border-' + buttonStatus + '"/>' +
-                            '       <span class="icon icon-' + buttonStatus + '"></span></div><ul class="list-unstyled">' +
+                            '       <div class="avatar">' +
+                            '           <a href="{{ _p.web_main }}social/profile.php?u=' + user.id + '" target="_blank">' +
+                            '               <img src="'+ user.image_url + '" width="50" alt="' + user.complete_name + '" class="img-circle user-image-chat border-' + buttonStatus + '"/>' +
+                            '               <span class="icon icon-' + buttonStatus + '"></span>' +
+                            '           </a>' +
+                            '       </div>' +
+                            '       <ul class="list-unstyled">' +
                             '           <li>' + user.complete_name;
 
                     if (user.id != {{ _u.user_id }}) {
@@ -128,9 +133,7 @@
 
                         user.badges.forEach(function (badge) {
                             html += '   <li>' +
-                                    '       <a href="' + badge.url + '" target="_blank">' +
-                                    '           <img src="' + badge.web_icon_thumb_path + '" title="' + badge.name+ '" alt="' + badge.name+ '" width="30" height="30">' +
-                                    '       </a>' +
+                                    '       <img src="' + badge.web_icon_thumb_path + '" title="' + badge.name+ '" alt="' + badge.name+ '" width="30" height="30">' +
                                     '   </li>';
                         });
 

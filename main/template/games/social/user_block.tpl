@@ -9,8 +9,10 @@
             <dl class="dl-horizontal">
                 <dt>{{ "Email" | get_lang }}</dt>
                 <dd>{{ user.email}}</dd>
-                <dt>{{ "Password" | get_lang }}</dt>
-                <dd>*********</dd>
+                {% if _u.id == user.id %}
+                    <dt>{{ "Password" | get_lang }}</dt>
+                    <dd>*********</dd>
+                {% endif %}
                 {% for extra_field in user.extra %}
                     <dt>{{ extra_field.value.getField().getDisplayText() }}</dt>
                     <dd>
@@ -22,9 +24,11 @@
                     </dd>
                 {% endfor %}
             </dl>
-            <div class="tool-profile">
-                <a href="{{ profile_edition_link }}" class="btn btn-press btn-sm">{{ "EditProfile" | get_lang }}</a>
-            </div>
+            {% if _u.id == user.id %}
+                <div class="tool-profile">
+                    <a href="{{ profile_edition_link }}" class="btn btn-press btn-sm">{{ "EditProfile" | get_lang }}</a>
+                </div>
+            {% endif %}
         </div>
     </div>
     <div class="col-md-5">
