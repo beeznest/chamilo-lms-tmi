@@ -3372,6 +3372,15 @@ function api_not_allowed($print_headers = false, $message = null)
         $show_headers = 1;
     }
 
+    global $htmlHeadXtra;
+    $htmlHeadXtra[] = "
+        <script>
+            if (window.parent.document.getElementById('content_id')) {
+                window.parent.location = '" . api_get_path(WEB_PATH) . "';
+            }
+        </script>
+    ";
+
     $tpl = new Template(null, $show_headers, $show_headers);
     $tpl->assign('hide_login_link', 1);
     $tpl->assign('content', $msg);
