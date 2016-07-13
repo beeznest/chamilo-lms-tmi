@@ -87,6 +87,10 @@
                             ChChat.usersOnline = response.data.usersOnline;
                             ChChat.setConnectedUsers(response.data.userList);
                         }
+
+                        if (response.data.myChats) {
+                            ChChat.setMyChats(response.data.myChats);
+                        }
                     });
             },
             setHistory: function (messageList) {
@@ -153,6 +157,57 @@
                 });
 
                 $('#chat-users').html(html);
+            },
+            setMyChats: function (chats) {
+                chats.forEach(function (chat) {
+                    var aChat = $('#chat-tab-' + chat.id);
+
+                    if (aChat.length) {
+                        var size = aChat.data('size') || 0;
+
+                        if (size != chat.size && ChChat.currentFriend != chat.id) {
+                            var icon = $('<span>', {
+                                'aria-hidden': 'true'
+                            }).addClass('fa fa-exclamation-circle');
+
+                            aChat.text(chat.name + ' ').append(icon);
+                        }
+
+                        aChat.data('size', chat.size);
+
+                        return;
+                    }
+
+                    aChat = $('<a>', {
+                        'id': 'chat-tab-' + chat.id,
+                        'href': '#chat-' + chat.id,
+                        'aria-controls': 'chat-' + chat.id,
+                        'role': 'tab',
+                        'data-toggle': 'tab'
+                    }).data({
+                        'size': chat.size
+                    }).text(chat.name);
+
+                    $('<li>', {
+                        'role': 'presentation'
+                    }).addClass(function () {
+                        return ChChat.currentFriend == chat.id ? 'active' : ''
+                    }).data({
+                        'user': chat.id
+                    }).append(aChat).appendTo('#chat-tabs ul.nav-tabs');
+
+                    $('#chat-tabs .tab-content').append('\
+                        <div role="tabpanel" class="tab-pane" id="chat-' + chat.id + '">\
+                            <div class="course-chat chat-history" id="chat-history-' + chat.id + '"></div>\
+                        </div>\
+                    ');
+                });
+
+                if (!ChChat.currentFriend) {
+                    $('#all').tab('show');
+                } else {
+                    $('#chat-tab-' + ChChat.currentFriend).tab('show');
+                }
             },
             onPreviewListener: function () {
                 $
@@ -353,7 +408,8 @@
 
             ChChat.currentFriend = userId;
 
-            $(this).tab('show');
+            $(this).find('span').remove();
+            //$(this).tab('show');
         });
 
         $('.emoji-wysiwyg-editor').on('keyup', function (e) {

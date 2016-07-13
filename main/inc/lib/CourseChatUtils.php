@@ -1871,4 +1871,40 @@ class CourseChatUtils
 
         return $usersInfo;
     }
+
+    public function findMyChaths()
+    {
+        $courseInfo = api_get_course_info_by_id($this->courseId);
+        $document_path = api_get_path(SYS_COURSE_PATH) . $courseInfo['path'] . '/document';
+
+        $chatPath = $document_path . '/chat_files/';
+
+        if (!is_dir($chatPath)) {
+            return [];
+        }
+
+        $dir = scandir($chatPath);
+        $date = date('Y-m-d');
+        $chatWith = [];
+
+        foreach ($dir as $item) {
+            $match = [];
+
+            if (
+                preg_match('/messages-' . $date . '_uid-' . $this->userId . '-(\d{1,})\.log.\bhtml\b/i', $item, $match) ||
+                preg_match('/messages-' . $date . '_uid-(\d{1,})-' . $this->userId . '\.log.\bhtml\b/i', $item, $match)
+            ) {
+                $friend = api_get_user_info($match[1]);
+
+                $chatWith[] = [
+                    'id' => $friend['id'],
+                    'name' => api_get_person_name($friend['firstname'], $friend['lastname']),
+                    'size' => filesize($this->getFileName(true, $friend['id']))
+                ];
+                continue;
+            }
+        }
+
+        return $chatWith;
+    }
 }
