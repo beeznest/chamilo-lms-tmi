@@ -131,7 +131,7 @@ class CourseChatUtils
             }
         }
 
-        $date_now = date('Y-m-d');
+        $date_now = date('Y-m');
         $timeNow = date('d/m/y H:i:s');
         $basename_chat = 'messages-' . $date_now;
 
@@ -1505,7 +1505,7 @@ class CourseChatUtils
      */
     public function getFileName($absolute = false, $friendId = 0)
     {
-        $date = date('Y-m-d');
+        $date = date('Y-m');
 
         $base = 'messages-' . $date . '.log.html';
 
@@ -1547,7 +1547,7 @@ class CourseChatUtils
     public function readMessages($reset = false, $friendId = 0)
     {
         $courseInfo = api_get_course_info_by_id($this->courseId);
-        $date_now = date('Y-m-d');
+        $date_now = date('Y-m');
         $isMaster = (bool)api_is_course_admin();
         $basepath_chat = '/chat_files';
         $document_path = api_get_path(SYS_COURSE_PATH) . $courseInfo['path'] . '/document';
@@ -1884,7 +1884,7 @@ class CourseChatUtils
         }
 
         $dir = scandir($chatPath);
-        $date = date('Y-m-d');
+        $date = date('Y-m');
         $chatWith = [];
 
         foreach ($dir as $item) {
