@@ -2,6 +2,7 @@
 /* For licensing terms, see /license.txt */
 
 use Michelf\MarkdownExtra;
+use Chamilo\CoreBundle\Entity\EventSent;
 
 /**
  * Class CourseChat
@@ -213,6 +214,8 @@ class CourseChatUtils
 
         update_existing_document($courseInfo, $doc_id, $chat_size);
         item_property_update_on_folder($courseInfo, $basepath_chat, $this->userId);
+
+        $this->saveMessageNotification($friendId);
 
         return true;
     }
@@ -1745,6 +1748,8 @@ class CourseChatUtils
             ';
         }
 
+        $this->removeMessageNotification($friendId);
+
         return $history;
     }
 
@@ -1899,12 +1904,86 @@ class CourseChatUtils
                 $chatWith[] = [
                     'id' => $friend['id'],
                     'name' => api_get_person_name($friend['firstname'], $friend['lastname']),
-                    'size' => filesize($this->getFileName(true, $friend['id']))
+                    'unreadMessages' => $this->countMessageNotifications($friend['id'])
                 ];
                 continue;
             }
         }
 
         return $chatWith;
+    }
+
+    /**
+     * Save a new EventSent for a new message notification
+     * @param int $friendId
+     */
+    private function saveMessageNotification($friendId)
+    {
+        if (!$friendId) {
+            return;
+        }
+
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $em = Database::getManager();
+
+        $event = new EventSent();
+        $event
+            ->setUserFrom($this->userId)
+            ->setUserTo($friendId)
+            ->setEventTypeName(EventSent::TYPE_COURSE_CHAT_NOTIFICACTION);
+
+        $em->persist($event);
+        $em->flush();
+    }
+
+    /**
+     * Remove all message notifications
+     * @param int $friendId
+     */
+    private function removeMessageNotification($friendId)
+    {
+        if (!$friendId) {
+            return;
+        }
+
+        /** @var \Doctrine\ORM\EntityManager $em */
+        $em = Database::getManager();
+
+        /** @var array $results */
+        $results = $em
+            ->getRepository('ChamiloCoreBundle:EventSent')
+            ->findBy([
+                'userFrom' => $friendId,
+                'userTo' => $this->userId
+            ]);
+
+        /** @var EventSent $result */
+        foreach ($results as $result) {
+            $em->remove($result);
+        }
+
+        $em->flush();
+    }
+
+    /**
+     * Get the number of messages notification for a user with a friend
+     * @param int $friendId
+     * @return int
+     */
+    private function countMessageNotifications($friendId)
+    {
+        if (!$friendId) {
+            return 0;
+        }
+
+        /** @var array $results */
+        $results = Database::getManager()
+            ->getRepository('ChamiloCoreBundle:EventSent')
+            ->findBy([
+                'userFrom' => $friendId,
+                'userTo' => $this->userId
+            ]);
+
+        return count($results);
     }
 }

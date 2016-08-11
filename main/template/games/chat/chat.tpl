@@ -163,17 +163,13 @@
                     var aChat = $('#chat-tab-' + chat.id);
 
                     if (aChat.length) {
-                        var size = aChat.data('size') || 0;
-
-                        if (size != chat.size && ChChat.currentFriend != chat.id) {
-                            var icon = $('<span>', {
-                                'aria-hidden': 'true'
-                            }).addClass('fa fa-exclamation-circle');
+                        if (chat.unreadMessages && ChChat.currentFriend != chat.id) {
+                            var icon = $('<span>')
+                                .addClass('badge')
+                                .text(chat.unreadMessages);
 
                             aChat.text(chat.name + ' ').append(icon);
                         }
-
-                        aChat.data('size', chat.size);
 
                         return;
                     }
@@ -184,8 +180,6 @@
                         'aria-controls': 'chat-' + chat.id,
                         'role': 'tab',
                         'data-toggle': 'tab'
-                    }).data({
-                        'size': chat.size
                     }).text(chat.name);
 
                     $('<li>', {
