@@ -3337,7 +3337,14 @@ function api_not_allowed($print_headers = false, $message = null)
     }
     $home_url = api_get_path(WEB_PATH);
     $user_id = api_get_user_id();
-    $course = api_get_course_id();
+    $courseInfo = api_get_course_info();
+    $course = null;
+    $sessionId = api_get_session_id();
+
+    if (!empty($courseInfo)) {
+        $course = $courseInfo['id'];
+        $home_url = api_get_path(WEB_COURSE_PATH) . $courseInfo['path'] . '/index.php?id_session=' . $sessionId;
+    }
 
     global $this_section;
 
@@ -3357,8 +3364,15 @@ function api_not_allowed($print_headers = false, $message = null)
     if (isset($message)) {
         $msg = $message;
     } else {
+        $messageLink = get_lang('NotAllowedClickBack') .
+            '<br><br>' .
+            Display::url(
+                $courseInfo ? get_lang('ReturnToCourseHomepage') : get_lang('BackH'),
+                $home_url
+            );
+
         $msg = Display::return_message(
-            get_lang('NotAllowedClickBack').'<br/><br/><a href="'.$home_url.'">'.get_lang('ReturnToCourseHomepage').'</a>',
+            $messageLink,
             'error',
             false
         );
@@ -3445,7 +3459,7 @@ function api_not_allowed($print_headers = false, $message = null)
             $content .= "<div style='display:none;'>";
         }
         $content .= '<div class="well_login">';
-        $content .= $form->return_form();
+        $content .= $form->returnForm();
         $content .='</div>';
         if (api_is_cas_activated()) {
             $content .= "</div>";
